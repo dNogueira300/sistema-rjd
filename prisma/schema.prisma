@@ -1,15 +1,210 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============ MODELOS DE USUARIOS Y AUTENTICACIÓN ============
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  name      String
+  phone     String?
+  role      Role       @default(TECNICO)
+  status    UserStatus @default(ACTIVE)
+  password  String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relaciones
+  assignedEquipments Equipment[]
+  payrollRecords     PayrollRecord[]
+  advances          Advance[]
+
+  @@map("users")
+}
+
+enum Role {
+  ADMINISTRADOR
+  TECNICO
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+// ============ MODELOS DE EQUIPOS ============
+
+model Customer {
+  id        String      @id @default(cuid())
+  name      String
+  phone     String
+  ruc       String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  // Relaciones
+  equipments Equipment[]
+
+  @@map("customers")
+}
+
+model Equipment {
+  id           String          @id @default(cuid())
+  code         String          @unique // RJD-YMD-NNNN
+  type         EquipmentType
+  brand        String?
+  model        String?
+  serialNumber String?
+  reportedFlaw String
+  accessories  String?
+  serviceType  String?
+  status       EquipmentStatus @default(RECEIVED)
+  entryDate    DateTime        @default(now())
+  deliveryDate DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  // Relaciones
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+  
+  assignedTechnicianId String?
+  assignedTechnician   User?   @relation(fields: [assignedTechnicianId], references: [id])
+
+  statusHistory EquipmentStatusHistory[]
+  payments      Payment[]
+
+  @@map("equipments")
+}
+
+model EquipmentStatusHistory {
+  id          String          @id @default(cuid())
+  equipmentId String
+  equipment   Equipment       @relation(fields: [equipmentId], references: [id])
+  status      EquipmentStatus
+  observations String?
+  changedBy   String          // User ID quien hizo el cambio
+  changedAt   DateTime        @default(now())
+
+  @@map("equipment_status_history")
+}
+
+enum EquipmentType {
+  PC
+  LAPTOP
+  PRINTER
+  PLOTTER
+  OTHER
+}
+
+enum EquipmentStatus {
+  RECEIVED    // Recibido
+  REPAIR      // Reparación
+  REPAIRED    // Reparado
+  DELIVERED   // Entregado
+  CANCELLED   // Cancelado
+}
+
+// ============ MODELOS FINANCIEROS ============
+
+model Payment {
+  id               String        @id @default(cuid())
+  equipmentId      String
+  equipment        Equipment     @relation(fields: [equipmentId], references: [id])
+  totalAmount      Float
+  advanceAmount    Float         @default(0)
+  remainingAmount  Float
+  paymentDate      DateTime      @default(now())
+  paymentMethod    PaymentMethod
+  voucherType      VoucherType
+  paymentStatus    PaymentStatus @default(PENDING)
+  observations     String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@map("payments")
+}
+
+enum PaymentMethod {
+  CASH        // Efectivo
+  YAPE
+  PLIN
+  TRANSFER    // Transferencia
+}
+
+enum VoucherType {
+  RECEIPT     // Boleta
+  INVOICE     // Factura
+  DELIVERY_NOTE // Nota de entrega
+}
+
+enum PaymentStatus {
+  PENDING     // Pendiente
+  PARTIAL     // Pagado parcial
+  COMPLETED   // Pagado total
+}
+
+model Expense {
+  id            String        @id @default(cuid())
+  type          ExpenseType
+  description   String
+  amount        Float
+  beneficiary   String?       // Para pagos a trabajadores
+  paymentMethod PaymentMethod
+  expenseDate   DateTime      @default(now())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("expenses")
+}
+
+enum ExpenseType {
+  PURCHASE    // Compras
+  ADVANCE     // Adelantos
+  OTHER       // Otros gastos
+}
+
+// ============ MODELOS DE PERSONAL ============
+
+model PayrollRecord {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  amount     Float
+  weekStart  DateTime // Inicio de semana
+  weekEnd    DateTime // Fin de semana
+  payDate    DateTime @default(now())
+  observations String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("payroll_records")
+}
+
+model Advance {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  amount      Float
+  reason      String?
+  status      AdvanceStatus @default(PENDING)
+  requestDate DateTime      @default(now())
+  paidDate    DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("advances")
+}
+
+enum AdvanceStatus {
+  PENDING     // Pendiente
+  PAID        // Pagado
+  CANCELLED   // Cancelado
 }
