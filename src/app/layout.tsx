@@ -1,10 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import "./custom-styles.css";
 import { Providers } from "./providers";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Sistema RJD - Control Interno",
@@ -32,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark">
       <body
-        className={`${inter.className} antialiased bg-slate-900 text-slate-100`}
+        className="font-sans antialiased bg-slate-900 text-slate-100"
       >
         <Providers session={null}>{children}</Providers>
       </body>

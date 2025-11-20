@@ -3,7 +3,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
-import { Role } from "@prisma/client";
+
+// Define Role type manually (from Prisma schema)
+type Role = "ADMINISTRADOR" | "TECNICO";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
