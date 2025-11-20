@@ -1,5 +1,7 @@
 import "next-auth";
-import { Role } from "@prisma/client";
+
+// Define Role type manually (from Prisma schema)
+type Role = "ADMINISTRADOR" | "TECNICO";
 
 declare module "next-auth" {
   interface Session {
