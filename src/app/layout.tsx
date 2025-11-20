@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import "./custom-styles.css";
 import { Providers } from "./providers";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -8,6 +9,19 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Sistema RJD - Control Interno",
   description: "Sistema de control interno para Suministro y Servicios RJD",
+  keywords: "RJD, sistema, control interno, reparación, equipos, computación",
+  authors: [{ name: "Suministro y Servicios RJD" }],
+  icons: {
+    icon: "/assets/favicon.ico",
+    shortcut: "/assets/favicon.ico",
+    apple: "/assets/favicon.ico",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#1e293b",
 };
 
 export default function RootLayout({
@@ -16,8 +30,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
-      <body className={inter.className}>
+    <html lang="es" className="dark">
+      <body
+        className={`${inter.className} antialiased bg-slate-900 text-slate-100`}
+      >
         <Providers session={null}>{children}</Providers>
       </body>
     </html>

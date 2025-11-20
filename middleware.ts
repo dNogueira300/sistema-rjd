@@ -6,17 +6,21 @@ export default withAuth(
     const { pathname } = req.nextUrl;
     const token = req.nextauth.token;
 
-    // Redirigir a login si no está autenticado
-    if (!token && pathname !== "/auth/signin") {
-      return NextResponse.redirect(new URL("/auth/signin", req.url));
+    // Si está autenticado y está en rutas públicas, redirigir según rol
+    if (
+      token &&
+      (pathname === "/" ||
+        pathname === "/welcome" ||
+        pathname === "/auth/signin")
+    ) {
+      if (token.role === "ADMINISTRADOR") {
+        return NextResponse.redirect(new URL("/dashboard", req.url));
+      } else {
+        return NextResponse.redirect(new URL("/equipos", req.url));
+      }
     }
 
-    // Si está autenticado y está en login, redirigir al dashboard
-    if (token && pathname === "/auth/signin") {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
-
-    // Control de acceso por roles
+    // Control de acceso por roles para rutas administrativas
     if (token && pathname.startsWith("/admin")) {
       if (token.role !== "ADMINISTRADOR") {
         return NextResponse.redirect(new URL("/unauthorized", req.url));
@@ -32,10 +36,12 @@ export default withAuth(
 
         // Permitir acceso a rutas públicas
         if (
-          pathname.startsWith("/auth") ||
           pathname === "/" ||
+          pathname === "/welcome" ||
+          pathname.startsWith("/auth") ||
           pathname.startsWith("/_next") ||
-          pathname === "/favicon.ico"
+          pathname === "/favicon.ico" ||
+          pathname.startsWith("/api/auth")
         ) {
           return true;
         }

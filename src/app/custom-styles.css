@@ -1,0 +1,360 @@
+/* Animaciones personalizadas para el sistema RJD - TEMA OSCURO */
+
+@keyframes blob {
+    0% {
+        transform: translate(0px, 0px) scale(1);
+    }
+
+    33% {
+        transform: translate(30px, -50px) scale(1.1);
+    }
+
+    66% {
+        transform: translate(-20px, 20px) scale(0.9);
+    }
+
+    100% {
+        transform: translate(0px, 0px) scale(1);
+    }
+}
+
+.animate-blob {
+    animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+    animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+    animation-delay: 4s;
+}
+
+/* Gradientes personalizados para tema oscuro */
+.gradient-blue-green {
+    background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+}
+
+.gradient-dark-blue-green {
+    background: linear-gradient(135deg, #1d4ed8 0%, #047857 100%);
+}
+
+.text-gradient-blue-green {
+    background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Efectos de glassmorphism para tema oscuro */
+.glass-dark {
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.glass-dark-strong {
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.glass-light-dark {
+    background: rgba(51, 65, 85, 0.3);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+/* Hover effects personalizados para tema oscuro */
+.hover-lift {
+    transition: all 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+}
+
+/* Fondo gradiente para tema oscuro */
+.bg-dark-gradient {
+    background: linear-gradient(135deg,
+            #0f172a 0%,
+            /* slate-900 */
+            #1e293b 25%,
+            /* slate-800 */
+            #334155 50%,
+            /* slate-700 */
+            #1e293b 75%,
+            /* slate-800 */
+            #0f172a 100%
+            /* slate-900 */
+        );
+}
+
+.bg-dark-pattern {
+    background:
+        radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+        linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+}
+
+/* Colores del sistema RJD - Tema Oscuro */
+:root {
+    --rjd-blue: #3b82f6;
+    --rjd-blue-light: #60a5fa;
+    --rjd-blue-dark: #1d4ed8;
+    --rjd-green: #10b981;
+    --rjd-green-light: #34d399;
+    --rjd-green-dark: #047857;
+
+    /* Grises para tema oscuro */
+    --rjd-slate-50: #f8fafc;
+    --rjd-slate-100: #f1f5f9;
+    --rjd-slate-200: #e2e8f0;
+    --rjd-slate-300: #cbd5e1;
+    --rjd-slate-400: #94a3b8;
+    --rjd-slate-500: #64748b;
+    --rjd-slate-600: #475569;
+    --rjd-slate-700: #334155;
+    --rjd-slate-800: #1e293b;
+    --rjd-slate-900: #0f172a;
+}
+
+/* Utility classes para el sistema tema oscuro */
+.text-rjd-blue {
+    color: var(--rjd-blue-light);
+}
+
+.text-rjd-green {
+    color: var(--rjd-green-light);
+}
+
+.bg-rjd-blue {
+    background-color: var(--rjd-blue);
+}
+
+.bg-rjd-green {
+    background-color: var(--rjd-green);
+}
+
+.border-rjd-blue {
+    border-color: var(--rjd-blue);
+}
+
+.border-rjd-green {
+    border-color: var(--rjd-green);
+}
+
+/* Inputs y formularios para tema oscuro */
+.input-dark {
+    background-color: #1e293b;
+    border: 1px solid #475569;
+    color: #f1f5f9;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.input-dark::placeholder {
+    color: #94a3b8;
+}
+
+.input-dark:focus {
+    outline: none;
+    /* REEMPLAZO: Usamos box-shadow para simular el 'ring' */
+    /* Sintaxis: offset-x | offset-y | blur-radius | spread-radius | color */
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    border-color: #3b82f6;
+}
+
+/* Botones para tema oscuro */
+.btn-primary-dark {
+    background: linear-gradient(to right, #2563eb, #059669);
+    color: white;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    border: none;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transform: scale(1);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.btn-primary-dark:hover {
+    background: linear-gradient(to right, #1d4ed8, #047857);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    transform: scale(1.05);
+}
+
+.btn-primary-dark:active {
+    transform: scale(0.95);
+}
+
+.btn-primary-dark:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: scale(1);
+}
+
+/* Cards y paneles para tema oscuro */
+.card-dark {
+    background: rgba(30, 41, 59, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(51, 65, 85, 0.5);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border-radius: 1rem;
+}
+
+.card-dark-strong {
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    border-radius: 1rem;
+}
+
+/* Animación de loading para tema oscuro */
+@keyframes loading-dark {
+    0% {
+        width: 0%;
+        background: linear-gradient(90deg, #3b82f6, #10b981);
+    }
+
+    50% {
+        background: linear-gradient(90deg, #60a5fa, #34d399);
+    }
+
+    100% {
+        width: 100%;
+        background: linear-gradient(90deg, #3b82f6, #10b981);
+    }
+}
+
+.loading-bar-dark {
+    animation: loading-dark 3s ease-in-out forwards;
+}
+
+/* Responsive design helpers para tema oscuro */
+@media (max-width: 640px) {
+    .animate-blob {
+        animation-duration: 10s;
+    }
+
+    .glass-dark,
+    .glass-dark-strong {
+        backdrop-filter: blur(8px);
+    }
+}
+
+/* Scrollbar para tema oscuro */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--rjd-slate-800);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--rjd-slate-600);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--rjd-slate-500);
+}
+
+/* Círculo para logo con fondo blanco */
+.logo-circle {
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid rgba(148, 163, 184, 0.2);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+    padding: 0.5rem;
+    backdrop-filter: blur(10px);
+    transform: scale(1);
+    transition: all 0.3s ease;
+}
+
+.logo-circle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 35px 70px -12px rgba(0, 0, 0, 0.4);
+}
+
+.logo-circle-glow {
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid rgba(148, 163, 184, 0.2);
+    padding: 0.5rem;
+    backdrop-filter: blur(10px);
+    transform: scale(1);
+    transition: all 0.3s ease;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+}
+
+.logo-circle-glow:hover {
+    transform: scale(1.05);
+    box-shadow: 0 35px 70px rgba(0, 0, 0, 0.4);
+}
+
+/* Variantes adicionales para diferentes contextos */
+.logo-circle-white {
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid rgba(203, 213, 225, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem;
+    transform: scale(1);
+    transition: all 0.3s ease;
+}
+
+.logo-circle-white:hover {
+    transform: scale(1.05);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+}
+
+.logo-circle-white-glow {
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid rgba(203, 213, 225, 0.3);
+    padding: 0.5rem;
+    transform: scale(1);
+    transition: all 0.3s ease;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.logo-circle-white-glow:hover {
+    transform: scale(1.05);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
+}
+
+/* Animaciones adicionales */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slide-in-from-bottom {
+    from {
+        transform: translateY(1rem);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+}
+
+.animate-slide-in {
+    animation: slide-in-from-bottom 0.5s ease-out;
+}
