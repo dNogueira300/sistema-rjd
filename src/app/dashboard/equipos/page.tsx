@@ -1,3 +1,4 @@
+// src/app/dashboard/equipos/page.tsx
 import { Laptop, Plus, Search } from "lucide-react";
 
 export default function EquiposPage() {
@@ -7,7 +8,7 @@ export default function EquiposPage() {
       <div className="card-dark p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700">
+            <div className="p-3 rounded-lg bg-linear-to-br from-blue-600 to-blue-700">
               <Laptop className="w-8 h-8 text-white" />
             </div>
             <div>

@@ -1,3 +1,4 @@
+// src/app/dashboard/finanzas/page.tsx
 import { DollarSign, TrendingUp, TrendingDown, Calendar } from "lucide-react";
 
 const financialStats = [
@@ -31,16 +32,14 @@ export default function FinanzasPage() {
       <div className="card-dark p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-gradient-to-br from-green-600 to-green-700">
+            <div className="p-3 rounded-lg bg-linear-to-br from-green-600 to-green-700">
               <DollarSign className="w-8 h-8 text-white" />
             </div>
             <div>
               <h2 className="text-2xl font-bold text-slate-100">
                 Gestión Financiera
               </h2>
-              <p className="text-slate-400">
-                Control de ingresos y gastos
-              </p>
+              <p className="text-slate-400">Control de ingresos y gastos</p>
             </div>
           </div>
           <button className="btn-primary-dark flex items-center gap-2">
@@ -129,9 +128,7 @@ export default function FinanzasPage() {
               <div className="flex items-center gap-4">
                 <div
                   className={`p-2 rounded-lg ${
-                    transaction.positive
-                      ? "bg-green-600/20"
-                      : "bg-red-600/20"
+                    transaction.positive ? "bg-green-600/20" : "bg-red-600/20"
                   }`}
                 >
                   <DollarSign

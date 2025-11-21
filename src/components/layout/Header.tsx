@@ -34,7 +34,6 @@ export default function Header() {
               <p className="text-xs text-slate-400">Administrador</p>
             </div>
           </div>
-
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors duration-200"

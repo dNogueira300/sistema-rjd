@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Laptop, DollarSign, BarChart3 } from "lucide-react";
+import { Home, Laptop, Users, DollarSign, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Logo from "@/components/ui/Logo";
+import Image from "next/image";
 
 const menuItems = [
   {
@@ -16,6 +16,11 @@ const menuItems = [
     name: "Equipos",
     href: "/dashboard/equipos",
     icon: Laptop,
+  },
+  {
+    name: "Clientes",
+    href: "/dashboard/clientes",
+    icon: Users,
   },
   {
     name: "Finanzas",
@@ -38,7 +43,26 @@ export default function Sidebar() {
         {/* Logo Section */}
         <div className="p-6 border-b border-slate-700">
           <Link href="/dashboard" className="block">
-            <Logo size="md" variant="circle" showText={true} />
+            <div className="flex flex-col items-center space-y-3">
+              <div className="logo-circle-white w-16 h-16 flex items-center justify-center">
+                <Image
+                  src="/assets/logo.png"
+                  alt="Suministro y Servicios RJD"
+                  width={64}
+                  height={64}
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <div className="text-center">
+                <div className="text-slate-100 font-bold text-lg leading-tight">
+                  Suministro y Servicios
+                </div>
+                <div className="text-gradient-blue-green font-bold text-base">
+                  RJD
+                </div>
+              </div>
+            </div>
           </Link>
         </div>
 
@@ -69,7 +93,7 @@ export default function Sidebar() {
         {/* Footer */}
         <div className="p-4 border-t border-slate-700">
           <p className="text-xs text-slate-400 text-center">
-            Sistema RJD © 2024
+            Sistema RJD © 2025
           </p>
         </div>
       </div>

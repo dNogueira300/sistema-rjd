@@ -1,3 +1,4 @@
+// src/app/dashboard/reportes/page.tsx
 import { BarChart3, Download, FileText, Calendar } from "lucide-react";
 
 const reportTypes = [
@@ -38,7 +39,7 @@ export default function ReportesPage() {
       <div className="card-dark p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-gradient-to-br from-purple-600 to-purple-700">
+            <div className="p-3 rounded-lg bg-linear-to-br from-purple-600 to-purple-700">
               <BarChart3 className="w-8 h-8 text-white" />
             </div>
             <div>
@@ -90,7 +91,7 @@ export default function ReportesPage() {
             <div key={index} className="card-dark p-6 hover-lift">
               <div className="flex items-start justify-between mb-4">
                 <div
-                  className={`p-3 rounded-lg bg-gradient-to-br ${report.color}`}
+                  className={`p-3 rounded-lg bg-linear-to-br ${report.color}`}
                 >
                   <Icon className="w-6 h-6 text-white" />
                 </div>

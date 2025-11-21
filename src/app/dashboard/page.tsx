@@ -1,3 +1,4 @@
+// src/app/dashboard/page.tsx
 import { Laptop, Wrench, CheckCircle, AlertTriangle } from "lucide-react";
 
 const stats = [
@@ -62,9 +63,7 @@ export default function DashboardPage() {
               className={`card-dark p-6 hover-lift ${stat.bgColor} border ${stat.borderColor}`}
             >
               <div className="flex items-start justify-between mb-4">
-                <div
-                  className={`p-3 rounded-lg bg-gradient-to-br ${stat.color}`}
-                >
+                <div className={`p-3 rounded-lg bg-linear-to-br ${stat.color}`}>
                   <Icon className="w-6 h-6 text-white" />
                 </div>
               </div>
