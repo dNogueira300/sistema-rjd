@@ -1,14 +1,36 @@
+// src/app/providers.tsx
 "use client";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider } from "next-auth/react";
-import { Session } from "next-auth";
+import { Toaster } from "sonner";
+import { useState } from "react";
+import type { Session } from "next-auth";
 
-export function Providers({
-  children,
-  session,
-}: {
+interface ProvidersProps {
   children: React.ReactNode;
   session: Session | null;
-}) {
-  return <SessionProvider session={session}>{children}</SessionProvider>;
+}
+
+export function Providers({ children, session }: ProvidersProps) {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 60 * 1000, // 1 minuto
+            gcTime: 5 * 60 * 1000, // 5 minutos
+          },
+        },
+      })
+  );
+
+  return (
+    <SessionProvider session={session}>
+      <QueryClientProvider client={queryClient}>
+        {children}
+        <Toaster position="top-right" theme="dark" richColors expand={true} />
+      </QueryClientProvider>
+    </SessionProvider>
+  );
 }
