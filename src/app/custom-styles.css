@@ -167,6 +167,71 @@
     border-color: #3b82f6;
 }
 
+/* Input con icono a la izquierda */
+.input-dark-with-icon {
+    background-color: #1e293b;
+    border: 1px solid #475569;
+    color: #f1f5f9;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem 0.75rem 3rem;
+    transition: all 0.2s ease;
+}
+
+.input-dark-with-icon::placeholder {
+    color: #94a3b8;
+}
+
+.input-dark-with-icon:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    border-color: #3b82f6;
+}
+
+/* Input group para prefijos como +51 */
+.input-group {
+    display: flex;
+    align-items: stretch;
+}
+
+.input-group-prefix {
+    background-color: #334155;
+    border: 1px solid #475569;
+    border-right: none;
+    color: #94a3b8;
+    border-radius: 0.75rem 0 0 0.75rem;
+    padding: 0.75rem 0.875rem;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.input-group-input {
+    background-color: #1e293b;
+    border: 1px solid #475569;
+    color: #f1f5f9;
+    border-radius: 0 0.75rem 0.75rem 0;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+    flex: 1;
+    min-width: 0;
+}
+
+.input-group-input::placeholder {
+    color: #94a3b8;
+}
+
+.input-group-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    border-color: #3b82f6;
+}
+
+/* Cuando el input tiene focus, también resaltar el prefijo */
+.input-group:focus-within .input-group-prefix {
+    border-color: #3b82f6;
+}
+
 /* Botones para tema oscuro */
 .btn-primary-dark {
     background: linear-gradient(to right, #2563eb, #059669);
