@@ -1,11 +1,11 @@
 // src/components/clients/ClientTable.tsx
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import {
   Users,
   User,
   Search,
-  Filter,
   Phone,
   Edit3,
   Trash2,
@@ -179,17 +179,6 @@ function ClientRow({ client, onEdit, onDelete, onView }: ClientRowProps) {
         </div>
       </td>
 
-      {/* Estado */}
-      <td className="px-4 lg:px-6 py-4">
-        <span
-          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-            client.status
-          )}`}
-        >
-          {getStatusLabel(client.status)}
-        </span>
-      </td>
-
       {/* Equipos */}
       <td className="px-4 lg:px-6 py-4 text-center">
         <span className="text-lg font-bold text-slate-100">
@@ -213,7 +202,7 @@ function ClientRow({ client, onEdit, onDelete, onView }: ClientRowProps) {
 
       {/* Acciones Directas */}
       <td className="px-4 lg:px-6 py-4">
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-center gap-2">
           <button
             onClick={onView}
             className="p-2 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 hover:text-blue-300 transition-colors border border-blue-600/30"
@@ -250,13 +239,28 @@ export default function ClientTable({
   onView,
   isLoading = false,
 }: ClientTableProps) {
-  const handleSearchChange = (search: string) => {
-    onFiltersChange({ search });
-  };
+  // Estado local para el input de búsqueda (sin debounce)
+  const [searchInput, setSearchInput] = useState(filters.search);
 
-  const handleStatusChange = (status: ClientFilters["status"]) => {
-    onFiltersChange({ status });
-  };
+  // Sincronizar el input con los filtros externos
+  useEffect(() => {
+    setSearchInput(filters.search);
+  }, [filters.search]);
+
+  // Debounce para la búsqueda
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInput !== filters.search) {
+        onFiltersChange({ search: searchInput });
+      }
+    }, 400); // 400ms de debounce
+
+    return () => clearTimeout(timer);
+  }, [searchInput, filters.search, onFiltersChange]);
+
+  const handleSearchInputChange = useCallback((value: string) => {
+    setSearchInput(value);
+  }, []);
 
   const handleSortChange = (sortBy: ClientFilters["sortBy"]) => {
     const newSortOrder =
@@ -279,36 +283,17 @@ export default function ClientTable({
     <div className="space-y-4 md:space-y-6">
       {/* Filters Section */}
       <div className="card-dark p-4 md:p-6">
-        <div className="flex flex-col gap-3 md:gap-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              value={filters.search}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="input-dark w-full pl-10 md:pl-12 text-sm md:text-base"
-              placeholder="Buscar por nombre, teléfono o RUC..."
-              disabled={isLoading}
-            />
-          </div>
-
-          {/* Status Filter */}
-          <div className="flex items-center gap-2">
-            <Filter className="w-5 h-5 text-slate-400 shrink-0" />
-            <select
-              value={filters.status}
-              onChange={(e) =>
-                handleStatusChange(e.target.value as ClientFilters["status"])
-              }
-              className="input-dark flex-1 md:flex-none md:min-w-[150px] text-sm md:text-base"
-              disabled={isLoading}
-            >
-              <option value="ALL">Todos los estados</option>
-              <option value="ACTIVE">Activos</option>
-              <option value="INACTIVE">Inactivos</option>
-            </select>
-          </div>
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => handleSearchInputChange(e.target.value)}
+            className="input-dark w-full pl-12 text-sm md:text-base"
+            placeholder="Buscar por nombre, teléfono o RUC..."
+            disabled={isLoading}
+          />
         </div>
 
         {/* Results Summary */}
@@ -320,9 +305,12 @@ export default function ClientTable({
                 : `${clients.length} cliente(s) encontrado(s)`}
             </span>
 
-            {filters.search && !isLoading && (
+            {searchInput && !isLoading && (
               <button
-                onClick={() => onFiltersChange({ search: "" })}
+                onClick={() => {
+                  setSearchInput("");
+                  onFiltersChange({ search: "" });
+                }}
                 className="text-blue-400 hover:text-blue-300 transition-colors"
               >
                 Limpiar
@@ -394,9 +382,6 @@ export default function ClientTable({
                         Teléfono
                       </div>
                     </th>
-                    <th className="px-4 lg:px-6 py-4 text-left">
-                      <div className="font-semibold text-slate-200">Estado</div>
-                    </th>
                     <th className="px-4 lg:px-6 py-4 text-center">
                       <div className="font-semibold text-slate-200">
                         Equipos
@@ -420,8 +405,8 @@ export default function ClientTable({
                         {getSortIcon("createdAt")}
                       </button>
                     </th>
-                    <th className="px-4 lg:px-6 py-4 text-right">
-                      <div className="font-semibold text-slate-200">
+                    <th className="px-4 lg:px-6 py-4">
+                      <div className="font-semibold text-slate-200 text-center">
                         Acciones
                       </div>
                     </th>

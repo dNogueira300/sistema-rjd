@@ -208,7 +208,7 @@ export default function ClientesPage() {
     <div className="space-y-4 md:space-y-6">
       {/* Header */}
       <div className="card-dark p-4 md:p-6">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3 md:gap-4">
             <div className="p-2 md:p-3 rounded-lg bg-linear-to-br from-purple-600 to-purple-700 shrink-0">
               <Users className="w-6 h-6 md:w-8 md:h-8 text-white" />
@@ -223,7 +223,7 @@ export default function ClientesPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 md:gap-3">
+          <div className="flex flex-wrap gap-2 md:gap-3 sm:justify-end">
             <button
               onClick={handleExport}
               className="bg-slate-700 hover:bg-slate-600 text-slate-100 px-3 md:px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-2 text-sm md:text-base flex-1 sm:flex-none justify-center"
@@ -249,7 +249,7 @@ export default function ClientesPage() {
               className="btn-primary-dark px-3 md:px-4 py-2 rounded-lg inline-flex items-center gap-2 text-sm md:text-base flex-1 sm:flex-none justify-center"
             >
               <Plus className="w-4 h-4" />
-              <span>Nuevo</span>
+              <span>Nuevo Cliente</span>
             </button>
           </div>
         </div>

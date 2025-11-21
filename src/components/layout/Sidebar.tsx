@@ -88,7 +88,7 @@ export default function Sidebar() {
         <div className="flex flex-col h-full">
           {/* Logo Section */}
           <div className="p-4 border-b border-slate-700">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <Link
                 href="/dashboard"
                 className="block flex-1"
@@ -96,8 +96,8 @@ export default function Sidebar() {
               >
                 <div
                   className={cn(
-                    "flex items-center",
-                    isCollapsed && !isMobile ? "justify-center" : "space-x-3"
+                    "flex flex-col items-center",
+                    isCollapsed && !isMobile ? "items-center" : "items-center"
                   )}
                 >
                   <div className="logo-circle-white w-12 h-12 shrink-0 flex items-center justify-center">
@@ -111,7 +111,7 @@ export default function Sidebar() {
                     />
                   </div>
                   {(!isCollapsed || isMobile) && (
-                    <div className="text-left">
+                    <div className="text-center mt-2">
                       <div className="text-slate-100 font-bold text-sm leading-tight">
                         Suministro y Servicios
                       </div>
@@ -127,7 +127,7 @@ export default function Sidebar() {
               {isMobile && !isCollapsed && (
                 <button
                   onClick={closeSidebar}
-                  className="p-2 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors ml-2"
+                  className="p-2 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors absolute top-4 right-4"
                 >
                   <X className="w-5 h-5" />
                 </button>
