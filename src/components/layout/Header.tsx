@@ -1,14 +1,10 @@
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
-import { LogOut, User } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { User } from "lucide-react";
 
 export default function Header() {
   const { data: session } = useSession();
-
-  const handleLogout = async () => {
-    await signOut({ callbackUrl: "/auth/signin" });
-  };
 
   return (
     <header className="fixed top-0 left-64 right-0 h-16 bg-dark-pattern border-b border-slate-700 z-30">
@@ -34,14 +30,6 @@ export default function Header() {
               <p className="text-xs text-slate-400">Administrador</p>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors duration-200"
-            title="Cerrar sesión"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden md:inline">Salir</span>
-          </button>
         </div>
       </div>
     </header>

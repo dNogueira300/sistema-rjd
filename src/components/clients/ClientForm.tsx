@@ -187,7 +187,7 @@ export default function ClientForm({
             <span>Teléfono *</span>
           </label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">
               +51
             </span>
             <input
@@ -195,7 +195,7 @@ export default function ClientForm({
               value={formData.phone ? formatPhone(formData.phone) : ""}
               onChange={(e) => handlePhoneChange(e.target.value)}
               onBlur={() => handleBlur("phone")}
-              className={`input-dark w-full pl-12 ${
+              className={`input-dark w-full pl-14 ${
                 errors.phone ? "border-red-500" : ""
               }`}
               placeholder="987 654 321"
@@ -222,7 +222,7 @@ export default function ClientForm({
             className={`input-dark w-full ${
               errors.ruc ? "border-red-500" : ""
             }`}
-            placeholder="20-123456789"
+            placeholder="10 o 20 + 9 dígitos (ej: 10123456789)"
             disabled={isLoading}
           />
           {errors.ruc && (
