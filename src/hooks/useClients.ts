@@ -4,6 +4,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { apiFetch } from "@/lib/api";
 import type {
   Client,
   ClientResponse,
@@ -29,7 +30,7 @@ interface ClientsAPI {
   deleteClient: (id: string) => Promise<{ message: string; deletedId: string }>;
 }
 
-// Funciones API
+// Funciones API con manejo automático de errores 401
 const clientsAPI: ClientsAPI = {
   getClients: async (params) => {
     const searchParams = new URLSearchParams();
@@ -39,7 +40,7 @@ const clientsAPI: ClientsAPI = {
       }
     });
 
-    const response = await fetch(`/api/clients?${searchParams}`);
+    const response = await apiFetch(`/api/clients?${searchParams}`);
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || "Error obteniendo clientes");
@@ -48,7 +49,7 @@ const clientsAPI: ClientsAPI = {
   },
 
   getClient: async (id) => {
-    const response = await fetch(`/api/clients/${id}`);
+    const response = await apiFetch(`/api/clients/${id}`);
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || "Error obteniendo cliente");
@@ -57,7 +58,7 @@ const clientsAPI: ClientsAPI = {
   },
 
   createClient: async (data) => {
-    const response = await fetch("/api/clients", {
+    const response = await apiFetch("/api/clients", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -71,7 +72,7 @@ const clientsAPI: ClientsAPI = {
   },
 
   updateClient: async (id, data) => {
-    const response = await fetch(`/api/clients/${id}`, {
+    const response = await apiFetch(`/api/clients/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -85,7 +86,7 @@ const clientsAPI: ClientsAPI = {
   },
 
   deleteClient: async (id) => {
-    const response = await fetch(`/api/clients/${id}`, {
+    const response = await apiFetch(`/api/clients/${id}`, {
       method: "DELETE",
     });
 

@@ -1,7 +1,7 @@
 // src/app/dashboard/clientes/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Users, Plus, FileDown, RefreshCw, X, Laptop } from "lucide-react";
 import { useClients } from "@/hooks/useClients";
 import ClientForm from "@/components/clients/ClientForm";
@@ -67,10 +67,26 @@ export default function ClientesPage() {
     setModalType("delete");
   };
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setModalType(null);
     setSelectedClient(null);
-  };
+  }, []);
+
+  // Manejar cierre de modales con tecla ESC
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && modalType !== null) {
+        // No cerrar si hay una operación en progreso
+        if (isCreating || isUpdating || isDeleting) return;
+        handleCloseModal();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [modalType, isCreating, isUpdating, isDeleting, handleCloseModal]);
 
   // Handler unificado para CREATE y UPDATE
   const handleFormSubmit = (data: CreateClientData | UpdateClientData) => {
@@ -257,7 +273,7 @@ export default function ClientesPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-        <div className="card-dark p-3 md:p-6 hover-lift bg-purple-600/10 border-2 border-purple-600/30">
+        <div className="card-dark p-3 md:p-6 hover-lift bg-purple-600/10 border-2 border-purple-500">
           <div className="flex items-center gap-2 md:gap-4">
             <div className="p-2 md:p-3 rounded-lg bg-purple-600/20 shrink-0">
               <Users className="w-4 h-4 md:w-6 md:h-6 text-purple-400" />
@@ -273,7 +289,7 @@ export default function ClientesPage() {
           </div>
         </div>
 
-        <div className="card-dark p-3 md:p-6 hover-lift bg-green-600/10 border-2 border-green-600/30">
+        <div className="card-dark p-3 md:p-6 hover-lift bg-green-600/10 border-2 border-green-500">
           <div className="flex items-center gap-2 md:gap-4">
             <div className="p-2 md:p-3 rounded-lg bg-green-600/20 shrink-0">
               <Users className="w-4 h-4 md:w-6 md:h-6 text-green-400" />
@@ -289,7 +305,7 @@ export default function ClientesPage() {
           </div>
         </div>
 
-        <div className="card-dark p-3 md:p-6 hover-lift bg-gray-600/10 border-2 border-gray-600/30">
+        <div className="card-dark p-3 md:p-6 hover-lift bg-gray-600/10 border-2 border-gray-500">
           <div className="flex items-center gap-2 md:gap-4">
             <div className="p-2 md:p-3 rounded-lg bg-gray-600/20 shrink-0">
               <Users className="w-4 h-4 md:w-6 md:h-6 text-gray-400" />
@@ -305,7 +321,7 @@ export default function ClientesPage() {
           </div>
         </div>
 
-        <div className="card-dark p-3 md:p-6 hover-lift bg-blue-600/10 border-2 border-blue-600/30">
+        <div className="card-dark p-3 md:p-6 hover-lift bg-blue-600/10 border-2 border-blue-500">
           <div className="flex items-center gap-2 md:gap-4">
             <div className="p-2 md:p-3 rounded-lg bg-blue-600/20 shrink-0">
               <Laptop className="w-4 h-4 md:w-6 md:h-6 text-blue-400" />

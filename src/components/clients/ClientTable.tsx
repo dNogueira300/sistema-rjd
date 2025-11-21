@@ -1,7 +1,7 @@
 // src/components/clients/ClientTable.tsx
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Users,
   User,
@@ -242,20 +242,68 @@ export default function ClientTable({
   // Estado local para el input de búsqueda (sin debounce)
   const [searchInput, setSearchInput] = useState(filters.search);
 
-  // Debounce para la búsqueda
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchInput !== filters.search) {
-        onFiltersChange({ search: searchInput });
-      }
-    }, 400); // 400ms de debounce
+  // Refs para mejor control del debounce
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const isTypingRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-    return () => clearTimeout(timer);
+  // Sincronizar con filtros externos solo cuando NO estamos escribiendo
+  useEffect(() => {
+    if (!isTypingRef.current && filters.search !== searchInput) {
+      setSearchInput(filters.search);
+    }
+  }, [filters.search]);
+
+  // Debounce para la búsqueda usando refs
+  useEffect(() => {
+    // Limpiar timer anterior
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    // Solo crear nuevo timer si hay diferencia
+    if (searchInput !== filters.search) {
+      timerRef.current = setTimeout(() => {
+        onFiltersChange({ search: searchInput });
+        isTypingRef.current = false;
+      }, 600); // 600ms de debounce
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
   }, [searchInput, filters.search, onFiltersChange]);
 
   const handleSearchInputChange = useCallback((value: string) => {
+    isTypingRef.current = true;
     setSearchInput(value);
   }, []);
+
+  // Función para limpiar búsqueda y cancelar timer pendiente
+  const handleClearSearch = useCallback(() => {
+    // Cancelar cualquier búsqueda pendiente
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    isTypingRef.current = false;
+    setSearchInput("");
+    onFiltersChange({ search: "" });
+  }, [onFiltersChange]);
+
+  // Función para limpiar todos los filtros
+  const handleClearAllFilters = useCallback(() => {
+    // Cancelar cualquier búsqueda pendiente
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    isTypingRef.current = false;
+    setSearchInput("");
+    onFiltersChange({ search: "", status: "ALL" });
+  }, [onFiltersChange]);
 
   const handleSortChange = (sortBy: ClientFilters["sortBy"]) => {
     const newSortOrder =
@@ -282,6 +330,7 @@ export default function ClientTable({
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none z-10" />
           <input
+            ref={inputRef}
             type="text"
             value={searchInput}
             onChange={(e) => handleSearchInputChange(e.target.value)}
@@ -302,10 +351,7 @@ export default function ClientTable({
 
             {searchInput && !isLoading && (
               <button
-                onClick={() => {
-                  setSearchInput("");
-                  onFiltersChange({ search: "" });
-                }}
+                onClick={handleClearSearch}
                 className="text-blue-400 hover:text-blue-300 transition-colors"
               >
                 Limpiar
@@ -334,7 +380,7 @@ export default function ClientTable({
           </p>
           {filters.search && (
             <button
-              onClick={() => onFiltersChange({ search: "", status: "ALL" })}
+              onClick={handleClearAllFilters}
               className="btn-primary-dark px-6 py-2"
             >
               Limpiar filtros

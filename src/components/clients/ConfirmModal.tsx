@@ -1,6 +1,7 @@
 // src/components/clients/ConfirmModal.tsx
 "use client";
 
+import { useEffect, useCallback } from "react";
 import { AlertTriangle, X } from "lucide-react";
 
 interface ConfirmModalProps {
@@ -26,6 +27,25 @@ export default function ConfirmModal({
   onCancel,
   isLoading = false,
 }: ConfirmModalProps) {
+  // Manejar cierre con tecla ESC
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isLoading) {
+        onCancel();
+      }
+    },
+    [onCancel, isLoading]
+  );
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+      };
+    }
+  }, [isOpen, handleKeyDown]);
+
   if (!isOpen) return null;
 
   const getConfirmButtonClasses = () => {
