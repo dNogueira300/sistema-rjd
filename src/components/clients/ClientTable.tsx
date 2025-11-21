@@ -3,6 +3,7 @@
 
 import {
   Users,
+  User,
   Search,
   Filter,
   Phone,
@@ -62,7 +63,7 @@ function ClientRow({ client, onEdit, onDelete, onView }: ClientRowProps) {
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-purple-600/20 border border-purple-600/30">
-            <Users className="w-4 h-4 text-purple-400" />
+            <User className="w-4 h-4 text-purple-400" />
           </div>
           <div>
             <div className="font-semibold text-slate-100">{client.name}</div>
