@@ -9,7 +9,7 @@ const stats = [
     icon: Laptop,
     color: "from-blue-600 to-blue-700",
     bgColor: "bg-blue-600/10",
-    borderColor: "border-blue-600/30",
+    borderColor: "border-blue-500",
   },
   {
     title: "En Reparación",
@@ -18,7 +18,7 @@ const stats = [
     icon: Wrench,
     color: "from-orange-600 to-orange-700",
     bgColor: "bg-orange-600/10",
-    borderColor: "border-orange-600/30",
+    borderColor: "border-orange-500",
   },
   {
     title: "Completados",
@@ -27,7 +27,7 @@ const stats = [
     icon: CheckCircle,
     color: "from-green-600 to-green-700",
     bgColor: "bg-green-600/10",
-    borderColor: "border-green-600/30",
+    borderColor: "border-green-500",
   },
   {
     title: "Pendientes",
@@ -36,7 +36,7 @@ const stats = [
     icon: AlertTriangle,
     color: "from-yellow-600 to-yellow-700",
     bgColor: "bg-yellow-600/10",
-    borderColor: "border-yellow-600/30",
+    borderColor: "border-yellow-500",
   },
 ];
 
