@@ -1,7 +1,7 @@
 // src/components/clients/ClientTable.tsx
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Users,
   User,
@@ -239,43 +239,22 @@ export default function ClientTable({
   onView,
   isLoading = false,
 }: ClientTableProps) {
-  // Estado local para el input de búsqueda
+  // Estado local para el input de búsqueda (sin debounce)
   const [searchInput, setSearchInput] = useState(filters.search);
 
-  // Sincronizar el input con los filtros externos
+  // Debounce para la búsqueda
   useEffect(() => {
-    setSearchInput(filters.search);
-  }, [filters.search]);
-
-  // Función para ejecutar la búsqueda con debounce
-  const handleSearchInputChange = useCallback(
-    (value: string) => {
-      setSearchInput(value);
-      isTypingRef.current = true;
-
-      // Limpiar timer anterior
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+    const timer = setTimeout(() => {
+      if (searchInput !== filters.search) {
+        onFiltersChange({ search: searchInput });
       }
+    }, 400); // 400ms de debounce
 
-      // Nuevo timer - solo busca después de 600ms sin escribir
-      debounceTimerRef.current = setTimeout(() => {
-        isTypingRef.current = false;
-        if (value !== filters.search) {
-          onFiltersChange({ search: value });
-        }
-      }, 600);
-    },
-    [filters.search, onFiltersChange]
-  );
+    return () => clearTimeout(timer);
+  }, [searchInput, filters.search, onFiltersChange]);
 
-  // Limpiar timer al desmontar
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
+  const handleSearchInputChange = useCallback((value: string) => {
+    setSearchInput(value);
   }, []);
 
   const handleSortChange = (sortBy: ClientFilters["sortBy"]) => {
@@ -303,7 +282,6 @@ export default function ClientTable({
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none z-10" />
           <input
-            ref={inputRef}
             type="text"
             value={searchInput}
             onChange={(e) => handleSearchInputChange(e.target.value)}
@@ -325,11 +303,6 @@ export default function ClientTable({
             {searchInput && !isLoading && (
               <button
                 onClick={() => {
-                  // Limpiar timer pendiente
-                  if (debounceTimerRef.current) {
-                    clearTimeout(debounceTimerRef.current);
-                  }
-                  isTypingRef.current = false;
                   setSearchInput("");
                   onFiltersChange({ search: "" });
                 }}
@@ -361,14 +334,7 @@ export default function ClientTable({
           </p>
           {filters.search && (
             <button
-              onClick={() => {
-                if (debounceTimerRef.current) {
-                  clearTimeout(debounceTimerRef.current);
-                }
-                isTypingRef.current = false;
-                setSearchInput("");
-                onFiltersChange({ search: "", status: "ALL" });
-              }}
+              onClick={() => onFiltersChange({ search: "", status: "ALL" })}
               className="btn-primary-dark px-6 py-2"
             >
               Limpiar filtros
