@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { User, Menu, ChevronLeft, ChevronRight } from "lucide-react";
+import { User, Menu } from "lucide-react";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +24,7 @@ export default function Header() {
       <div className="flex items-center justify-between h-full px-4 md:px-6">
         {/* Left Section - Hamburger + Title */}
         <div className="flex items-center gap-3">
-          {/* Botón hamburguesa en móvil / Toggle en desktop */}
+          {/* Botón hamburguesa para colapsar/expandir sidebar */}
           <button
             onClick={toggleSidebar}
             className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
@@ -36,13 +36,7 @@ export default function Header() {
                 : "Colapsar menú"
             }
           >
-            {isMobile ? (
-              <Menu className="w-5 h-5" />
-            ) : isCollapsed ? (
-              <ChevronRight className="w-5 h-5" />
-            ) : (
-              <ChevronLeft className="w-5 h-5" />
-            )}
+            <Menu className="w-5 h-5" />
           </button>
 
           {/* Title Section */}
