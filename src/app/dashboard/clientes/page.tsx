@@ -9,7 +9,7 @@ import ClientTable from "@/components/clients/ClientTable"; // Cambiado de Clien
 import ConfirmModal from "@/components/clients/ConfirmModal";
 import Pagination from "@/components/clients/Pagination";
 import { formatPhone, formatRUC } from "@/lib/validations/client";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import type {
   Client,
   CreateClientData,
@@ -104,46 +104,66 @@ export default function ClientesPage() {
     });
   };
 
-  // Export data to Excel
-  const handleExport = () => {
+  // Export data to Excel using ExcelJS (secure alternative to xlsx)
+  const handleExport = async () => {
     if (clients.length === 0) return;
 
-    // Preparar datos para Excel
-    const exportData = clients.map((client) => ({
-      Nombre: client.name,
-      Teléfono: `+51 ${formatPhone(client.phone)}`,
-      RUC: client.ruc ? formatRUC(client.ruc) : "N/A",
-      Estado: client.status === "ACTIVE" ? "Activo" : "Inactivo",
-      "Equipos Registrados": client.equipmentCount || 0,
-      "Última Visita": client.lastVisit || "Nunca",
-      "Fecha de Registro": new Date(client.createdAt).toLocaleDateString(),
-    }));
+    // Crear libro de trabajo
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = "Sistema RJD";
+    workbook.created = new Date();
 
     // Crear hoja de trabajo
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const worksheet = workbook.addWorksheet("Clientes");
 
-    // Ajustar ancho de columnas
-    const columnWidths = [
-      { wch: 30 }, // Nombre
-      { wch: 18 }, // Teléfono
-      { wch: 18 }, // RUC
-      { wch: 12 }, // Estado
-      { wch: 20 }, // Equipos
-      { wch: 15 }, // Última Visita
-      { wch: 18 }, // Fecha Registro
+    // Definir columnas con anchos
+    worksheet.columns = [
+      { header: "Nombre", key: "nombre", width: 30 },
+      { header: "Teléfono", key: "telefono", width: 18 },
+      { header: "RUC", key: "ruc", width: 18 },
+      { header: "Estado", key: "estado", width: 12 },
+      { header: "Equipos Registrados", key: "equipos", width: 20 },
+      { header: "Última Visita", key: "ultimaVisita", width: 15 },
+      { header: "Fecha de Registro", key: "fechaRegistro", width: 18 },
     ];
-    worksheet["!cols"] = columnWidths;
 
-    // Crear libro de trabajo
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Clientes");
+    // Estilizar encabezados
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF4A5568" },
+    };
+    worksheet.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+
+    // Agregar datos
+    clients.forEach((client) => {
+      worksheet.addRow({
+        nombre: client.name,
+        telefono: `+51 ${formatPhone(client.phone)}`,
+        ruc: client.ruc ? formatRUC(client.ruc) : "N/A",
+        estado: client.status === "ACTIVE" ? "Activo" : "Inactivo",
+        equipos: client.equipmentCount || 0,
+        ultimaVisita: client.lastVisit || "Nunca",
+        fechaRegistro: new Date(client.createdAt).toLocaleDateString(),
+      });
+    });
 
     // Generar nombre de archivo con fecha
     const fecha = new Date().toISOString().split("T")[0];
     const fileName = `Clientes_RJD_${fecha}.xlsx`;
 
-    // Descargar archivo
-    XLSX.writeFile(workbook, fileName);
+    // Generar buffer y descargar
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    window.URL.revokeObjectURL(url);
   };
 
   // Estadísticas rápidas
@@ -185,110 +205,110 @@ export default function ClientesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="card-dark p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-linear-to-br from-purple-600 to-purple-700">
-              <Users className="w-8 h-8 text-white" />
+      <div className="card-dark p-4 md:p-6">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className="p-2 md:p-3 rounded-lg bg-linear-to-br from-purple-600 to-purple-700 flex-shrink-0">
+              <Users className="w-6 h-6 md:w-8 md:h-8 text-white" />
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-slate-100">
+            <div className="min-w-0">
+              <h2 className="text-xl md:text-2xl font-bold text-slate-100 truncate">
                 Gestión de Clientes
               </h2>
-              <p className="text-slate-400">
+              <p className="text-sm md:text-base text-slate-400 hidden sm:block">
                 Administra tu cartera de clientes y su información
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-wrap gap-2 md:gap-3">
             <button
               onClick={handleExport}
-              className="bg-slate-700 hover:bg-slate-600 text-slate-100 px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-2"
+              className="bg-slate-700 hover:bg-slate-600 text-slate-100 px-3 md:px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-2 text-sm md:text-base flex-1 sm:flex-none justify-center"
               disabled={isLoading || clients.length === 0}
             >
               <FileDown className="w-4 h-4" />
-              Exportar
+              <span className="hidden xs:inline">Exportar</span>
             </button>
 
             <button
               onClick={refreshClients}
-              className="bg-slate-700 hover:bg-slate-600 text-slate-100 px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-2"
+              className="bg-slate-700 hover:bg-slate-600 text-slate-100 px-3 md:px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-2 text-sm md:text-base flex-1 sm:flex-none justify-center"
               disabled={isLoading}
             >
               <RefreshCw
                 className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
               />
-              Actualizar
+              <span className="hidden xs:inline">Actualizar</span>
             </button>
 
             <button
               onClick={handleCreateClick}
-              className="btn-primary-dark px-4 py-2 rounded-lg inline-flex items-center gap-2"
+              className="btn-primary-dark px-3 md:px-4 py-2 rounded-lg inline-flex items-center gap-2 text-sm md:text-base flex-1 sm:flex-none justify-center"
             >
               <Plus className="w-4 h-4" />
-              Nuevo Cliente
+              <span>Nuevo</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="card-dark p-6 hover-lift bg-purple-600/10 border-2 border-purple-600/30">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-purple-600/20">
-              <Users className="w-6 h-6 text-purple-400" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+        <div className="card-dark p-3 md:p-6 hover-lift bg-purple-600/10 border-2 border-purple-600/30">
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="p-2 md:p-3 rounded-lg bg-purple-600/20 flex-shrink-0">
+              <Users className="w-4 h-4 md:w-6 md:h-6 text-purple-400" />
             </div>
-            <div>
-              <h3 className="text-2xl font-bold text-slate-100">
+            <div className="min-w-0">
+              <h3 className="text-lg md:text-2xl font-bold text-slate-100">
                 {totalClients}
               </h3>
-              <p className="text-sm text-slate-400">Total Clientes</p>
+              <p className="text-xs md:text-sm text-slate-400 truncate">Total</p>
             </div>
           </div>
         </div>
 
-        <div className="card-dark p-6 hover-lift bg-green-600/10 border-2 border-green-600/30">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-green-600/20">
-              <Users className="w-6 h-6 text-green-400" />
+        <div className="card-dark p-3 md:p-6 hover-lift bg-green-600/10 border-2 border-green-600/30">
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="p-2 md:p-3 rounded-lg bg-green-600/20 flex-shrink-0">
+              <Users className="w-4 h-4 md:w-6 md:h-6 text-green-400" />
             </div>
-            <div>
-              <h3 className="text-2xl font-bold text-slate-100">
+            <div className="min-w-0">
+              <h3 className="text-lg md:text-2xl font-bold text-slate-100">
                 {activeClientsCount}
               </h3>
-              <p className="text-sm text-slate-400">Activos</p>
+              <p className="text-xs md:text-sm text-slate-400 truncate">Activos</p>
             </div>
           </div>
         </div>
 
-        <div className="card-dark p-6 hover-lift bg-gray-600/10 border-2 border-gray-600/30">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-gray-600/20">
-              <Users className="w-6 h-6 text-gray-400" />
+        <div className="card-dark p-3 md:p-6 hover-lift bg-gray-600/10 border-2 border-gray-600/30">
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="p-2 md:p-3 rounded-lg bg-gray-600/20 flex-shrink-0">
+              <Users className="w-4 h-4 md:w-6 md:h-6 text-gray-400" />
             </div>
-            <div>
-              <h3 className="text-2xl font-bold text-slate-100">
+            <div className="min-w-0">
+              <h3 className="text-lg md:text-2xl font-bold text-slate-100">
                 {inactiveClientsCount}
               </h3>
-              <p className="text-sm text-slate-400">Inactivos</p>
+              <p className="text-xs md:text-sm text-slate-400 truncate">Inactivos</p>
             </div>
           </div>
         </div>
 
-        <div className="card-dark p-6 hover-lift bg-blue-600/10 border-2 border-blue-600/30">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-blue-600/20">
-              <Laptop className="w-6 h-6 text-blue-400" />
+        <div className="card-dark p-3 md:p-6 hover-lift bg-blue-600/10 border-2 border-blue-600/30">
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="p-2 md:p-3 rounded-lg bg-blue-600/20 flex-shrink-0">
+              <Laptop className="w-4 h-4 md:w-6 md:h-6 text-blue-400" />
             </div>
-            <div>
-              <h3 className="text-2xl font-bold text-slate-100">
+            <div className="min-w-0">
+              <h3 className="text-lg md:text-2xl font-bold text-slate-100">
                 {totalEquipments}
               </h3>
-              <p className="text-sm text-slate-400">Equipos Total</p>
+              <p className="text-xs md:text-sm text-slate-400 truncate">Equipos</p>
             </div>
           </div>
         </div>
@@ -318,12 +338,12 @@ export default function ClientesPage() {
       {/* Modales */}
       {/* Create/Edit Modal */}
       {(modalType === "create" || modalType === "edit") && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4">
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={handleCloseModal}
           />
-          <div className="relative w-full max-w-2xl mx-auto max-h-screen overflow-auto">
+          <div className="relative w-full max-w-2xl mx-auto max-h-[95vh] overflow-y-auto">
             <ClientForm
               client={selectedClient}
               onSubmit={handleFormSubmit}
@@ -339,14 +359,14 @@ export default function ClientesPage() {
 
       {/* View Modal */}
       {modalType === "view" && selectedClient && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4">
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={handleCloseModal}
           />
-          <div className="relative card-dark-strong p-6 w-full max-w-2xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-slate-100">
+          <div className="relative card-dark-strong p-4 md:p-6 w-full max-w-2xl mx-auto max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+              <h3 className="text-lg md:text-2xl font-bold text-slate-100">
                 Detalles del Cliente
               </h3>
               <button
@@ -357,70 +377,70 @@ export default function ClientesPage() {
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               <div>
-                <label className="text-sm font-medium text-slate-300">
+                <label className="text-xs md:text-sm font-medium text-slate-300">
                   Nombre
                 </label>
-                <p className="text-slate-100 text-lg">{selectedClient.name}</p>
+                <p className="text-slate-100 text-base md:text-lg">{selectedClient.name}</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                 <div>
-                  <label className="text-sm font-medium text-slate-300">
+                  <label className="text-xs md:text-sm font-medium text-slate-300">
                     Teléfono
                   </label>
-                  <p className="text-slate-100">
+                  <p className="text-slate-100 text-sm md:text-base">
                     +51 {formatPhone(selectedClient.phone)}
                   </p>
                 </div>
 
                 {selectedClient.ruc && (
                   <div>
-                    <label className="text-sm font-medium text-slate-300">
+                    <label className="text-xs md:text-sm font-medium text-slate-300">
                       RUC
                     </label>
-                    <p className="text-slate-100">
+                    <p className="text-slate-100 text-sm md:text-base">
                       {formatRUC(selectedClient.ruc)}
                     </p>
                   </div>
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700">
+              <div className="grid grid-cols-2 gap-3 md:gap-4 pt-3 md:pt-4 border-t border-slate-700">
                 <div>
-                  <label className="text-sm font-medium text-slate-300">
-                    Equipos Registrados
+                  <label className="text-xs md:text-sm font-medium text-slate-300">
+                    Equipos
                   </label>
-                  <p className="text-slate-100 text-2xl font-bold">
+                  <p className="text-slate-100 text-xl md:text-2xl font-bold">
                     {selectedClient.equipmentCount || 0}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-300">
+                  <label className="text-xs md:text-sm font-medium text-slate-300">
                     Última Visita
                   </label>
-                  <p className="text-slate-100">
+                  <p className="text-slate-100 text-sm md:text-base">
                     {selectedClient.lastVisit || "Nunca"}
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-2">
+              <div className="grid grid-cols-2 gap-3 md:gap-4 pt-2">
                 <div>
-                  <label className="text-sm font-medium text-slate-300">
-                    Fecha de Registro
+                  <label className="text-xs md:text-sm font-medium text-slate-300">
+                    Registro
                   </label>
-                  <p className="text-slate-100">
+                  <p className="text-slate-100 text-sm md:text-base">
                     {new Date(selectedClient.createdAt).toLocaleDateString()}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-300">
+                  <label className="text-xs md:text-sm font-medium text-slate-300">
                     Estado
                   </label>
                   <span
-                    className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                    className={`inline-block px-2 md:px-3 py-1 rounded-full text-xs font-medium ${
                       selectedClient.status === "ACTIVE"
                         ? "bg-green-600/20 text-green-400"
                         : "bg-gray-600/20 text-gray-400"
@@ -432,10 +452,10 @@ export default function ClientesPage() {
               </div>
             </div>
 
-            <div className="flex gap-4 mt-6">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mt-4 md:mt-6">
               <button
                 onClick={handleCloseModal}
-                className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-100 py-3 rounded-xl transition-colors"
+                className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-100 py-2.5 md:py-3 rounded-xl transition-colors text-sm md:text-base"
               >
                 Cerrar
               </button>
@@ -444,7 +464,7 @@ export default function ClientesPage() {
                   handleCloseModal();
                   handleEditClick(selectedClient);
                 }}
-                className="btn-primary-dark flex-1 py-3"
+                className="btn-primary-dark flex-1 py-2.5 md:py-3 text-sm md:text-base"
               >
                 Editar Cliente
               </button>
