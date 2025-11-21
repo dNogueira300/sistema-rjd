@@ -204,7 +204,7 @@ export default function SignIn() {
           {/* Footer */}
           <div className="text-center">
             <p className="text-xs text-slate-500">
-              © 2025 Suministro y Servicios RJD - Todos los derechos reservados
+              © {new Date().getFullYear()} Suministro y Servicios RJD - Todos los derechos reservados
             </p>
           </div>
         </div>

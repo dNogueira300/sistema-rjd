@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Laptop, Users, DollarSign, BarChart3 } from "lucide-react";
+import { signOut } from "next-auth/react";
+import { Home, Laptop, Users, DollarSign, BarChart3, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
@@ -36,6 +37,11 @@ const menuItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const currentYear = new Date().getFullYear();
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/auth/signin" });
+  };
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 bg-dark-pattern border-r border-slate-700 z-40">
@@ -90,10 +96,17 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-slate-700">
+        {/* Footer with Logout */}
+        <div className="p-4 border-t border-slate-700 space-y-3">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg w-full text-red-400 hover:bg-red-600/20 hover:text-red-300 transition-all duration-200"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium">Cerrar sesión</span>
+          </button>
           <p className="text-xs text-slate-400 text-center">
-            Sistema RJD © 2025
+            Sistema RJD © {currentYear}
           </p>
         </div>
       </div>

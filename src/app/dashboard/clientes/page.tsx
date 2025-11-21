@@ -2,13 +2,14 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Plus, FileDown, RefreshCw, X } from "lucide-react";
+import { Users, Plus, FileDown, RefreshCw, X, Laptop } from "lucide-react";
 import { useClients } from "@/hooks/useClients";
 import ClientForm from "@/components/clients/ClientForm";
 import ClientTable from "@/components/clients/ClientTable"; // Cambiado de ClientList
 import ConfirmModal from "@/components/clients/ConfirmModal";
 import Pagination from "@/components/clients/Pagination";
 import { formatPhone, formatRUC } from "@/lib/validations/client";
+import * as XLSX from "xlsx";
 import type {
   Client,
   CreateClientData,
@@ -103,9 +104,46 @@ export default function ClientesPage() {
     });
   };
 
-  // Export data (mock implementation)
+  // Export data to Excel
   const handleExport = () => {
-    console.log("Exportando datos de clientes...", clients);
+    if (clients.length === 0) return;
+
+    // Preparar datos para Excel
+    const exportData = clients.map((client) => ({
+      Nombre: client.name,
+      Teléfono: `+51 ${formatPhone(client.phone)}`,
+      RUC: client.ruc ? formatRUC(client.ruc) : "N/A",
+      Estado: client.status === "ACTIVE" ? "Activo" : "Inactivo",
+      "Equipos Registrados": client.equipmentCount || 0,
+      "Última Visita": client.lastVisit || "Nunca",
+      "Fecha de Registro": new Date(client.createdAt).toLocaleDateString(),
+    }));
+
+    // Crear hoja de trabajo
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+    // Ajustar ancho de columnas
+    const columnWidths = [
+      { wch: 30 }, // Nombre
+      { wch: 18 }, // Teléfono
+      { wch: 18 }, // RUC
+      { wch: 12 }, // Estado
+      { wch: 20 }, // Equipos
+      { wch: 15 }, // Última Visita
+      { wch: 18 }, // Fecha Registro
+    ];
+    worksheet["!cols"] = columnWidths;
+
+    // Crear libro de trabajo
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Clientes");
+
+    // Generar nombre de archivo con fecha
+    const fecha = new Date().toISOString().split("T")[0];
+    const fileName = `Clientes_RJD_${fecha}.xlsx`;
+
+    // Descargar archivo
+    XLSX.writeFile(workbook, fileName);
   };
 
   // Estadísticas rápidas
@@ -199,7 +237,7 @@ export default function ClientesPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="card-dark p-6 bg-purple-600/10 border border-purple-600/30">
+        <div className="card-dark p-6 hover-lift bg-purple-600/10 border-2 border-purple-600/30">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-lg bg-purple-600/20">
               <Users className="w-6 h-6 text-purple-400" />
@@ -213,7 +251,7 @@ export default function ClientesPage() {
           </div>
         </div>
 
-        <div className="card-dark p-6 bg-green-600/10 border border-green-600/30">
+        <div className="card-dark p-6 hover-lift bg-green-600/10 border-2 border-green-600/30">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-lg bg-green-600/20">
               <Users className="w-6 h-6 text-green-400" />
@@ -227,7 +265,7 @@ export default function ClientesPage() {
           </div>
         </div>
 
-        <div className="card-dark p-6 bg-gray-600/10 border border-gray-600/30">
+        <div className="card-dark p-6 hover-lift bg-gray-600/10 border-2 border-gray-600/30">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-lg bg-gray-600/20">
               <Users className="w-6 h-6 text-gray-400" />
@@ -241,10 +279,10 @@ export default function ClientesPage() {
           </div>
         </div>
 
-        <div className="card-dark p-6 bg-blue-600/10 border border-blue-600/30">
+        <div className="card-dark p-6 hover-lift bg-blue-600/10 border-2 border-blue-600/30">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-lg bg-blue-600/20">
-              <Users className="w-6 h-6 text-blue-400" />
+              <Laptop className="w-6 h-6 text-blue-400" />
             </div>
             <div>
               <h3 className="text-2xl font-bold text-slate-100">

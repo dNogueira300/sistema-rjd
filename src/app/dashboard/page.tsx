@@ -60,7 +60,7 @@ export default function DashboardPage() {
           return (
             <div
               key={index}
-              className={`card-dark p-6 hover-lift ${stat.bgColor} border ${stat.borderColor}`}
+              className={`card-dark p-6 hover-lift ${stat.bgColor} border-2 ${stat.borderColor}`}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className={`p-3 rounded-lg bg-linear-to-br ${stat.color}`}>

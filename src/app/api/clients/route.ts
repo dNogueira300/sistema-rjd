@@ -89,7 +89,16 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Formatear respuesta
-    const formattedClients: Client[] = clients.map((client) => ({
+    const formattedClients: Client[] = clients.map((client: {
+      id: string;
+      name: string;
+      phone: string;
+      ruc: string | null;
+      createdAt: Date;
+      updatedAt: Date;
+      _count: { equipments: number };
+      equipments: { entryDate: Date | null }[];
+    }) => ({
       id: client.id,
       name: client.name,
       phone: client.phone,
