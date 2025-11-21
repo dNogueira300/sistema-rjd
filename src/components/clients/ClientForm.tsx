@@ -141,10 +141,10 @@ export default function ClientForm({
   const isFormValid = !hasErrors && formData.name && formData.phone;
 
   return (
-    <div key={clientKey} className="card-dark-strong p-6 max-w-2xl mx-auto">
+    <div key={clientKey} className="card-dark-strong p-4 md:p-6 max-w-2xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-slate-100">
+      <div className="flex items-center justify-between mb-4 md:mb-6">
+        <h2 className="text-lg md:text-2xl font-bold text-slate-100">
           {title || (isEditing ? "Editar Cliente" : "Nuevo Cliente")}
         </h2>
         <button
