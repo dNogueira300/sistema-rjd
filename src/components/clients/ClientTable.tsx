@@ -242,11 +242,6 @@ export default function ClientTable({
   // Estado local para el input de búsqueda (sin debounce)
   const [searchInput, setSearchInput] = useState(filters.search);
 
-  // Sincronizar el input con los filtros externos
-  useEffect(() => {
-    setSearchInput(filters.search);
-  }, [filters.search]);
-
   // Debounce para la búsqueda
   useEffect(() => {
     const timer = setTimeout(() => {
