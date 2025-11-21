@@ -18,15 +18,13 @@ export default function Header() {
           <h1 className="text-xl font-bold text-slate-100">
             Panel de Administración
           </h1>
-          <p className="text-sm text-slate-400">
-            Gestión integral del sistema
-          </p>
+          <p className="text-sm text-slate-400">Gestión integral del sistema</p>
         </div>
 
         {/* User Section */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-slate-800 border border-slate-700">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-green-600">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-linear-to-r from-blue-600 to-green-600">
               <User className="w-4 h-4 text-white" />
             </div>
             <div className="hidden md:block">
