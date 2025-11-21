@@ -247,13 +247,6 @@ export default function ClientTable({
   const isTypingRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sincronizar con filtros externos solo cuando NO estamos escribiendo
-  useEffect(() => {
-    if (!isTypingRef.current && filters.search !== searchInput) {
-      setSearchInput(filters.search);
-    }
-  }, [filters.search]);
-
   // Debounce para la búsqueda usando refs
   useEffect(() => {
     // Limpiar timer anterior
