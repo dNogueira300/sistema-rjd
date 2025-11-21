@@ -239,15 +239,23 @@ export default function ClientTable({
   onView,
   isLoading = false,
 }: ClientTableProps) {
-  // Estado local para el input de búsqueda (sin debounce)
+  // Estado local para el input de búsqueda
   const [searchInput, setSearchInput] = useState(filters.search);
 
-  // Refs para mejor control del debounce
+  // Refs para control del debounce y focus
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const isTypingRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const shouldRestoreFocus = useRef(false);
 
-  // Debounce para la búsqueda usando refs
+  // Restaurar focus después de que termine la carga
+  useEffect(() => {
+    if (!isLoading && shouldRestoreFocus.current && inputRef.current) {
+      inputRef.current.focus();
+      shouldRestoreFocus.current = false;
+    }
+  }, [isLoading]);
+
+  // Debounce para la búsqueda - más corto y eficiente
   useEffect(() => {
     // Limpiar timer anterior
     if (timerRef.current) {
@@ -257,9 +265,12 @@ export default function ClientTable({
     // Solo crear nuevo timer si hay diferencia
     if (searchInput !== filters.search) {
       timerRef.current = setTimeout(() => {
+        // Marcar que debemos restaurar el focus después de la búsqueda
+        if (document.activeElement === inputRef.current) {
+          shouldRestoreFocus.current = true;
+        }
         onFiltersChange({ search: searchInput });
-        isTypingRef.current = false;
-      }, 600); // 600ms de debounce
+      }, 300); // 300ms de debounce - más responsivo
     }
 
     return () => {
@@ -270,7 +281,6 @@ export default function ClientTable({
   }, [searchInput, filters.search, onFiltersChange]);
 
   const handleSearchInputChange = useCallback((value: string) => {
-    isTypingRef.current = true;
     setSearchInput(value);
   }, []);
 
@@ -281,7 +291,6 @@ export default function ClientTable({
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
-    isTypingRef.current = false;
     setSearchInput("");
     onFiltersChange({ search: "" });
   }, [onFiltersChange]);
@@ -293,7 +302,6 @@ export default function ClientTable({
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
-    isTypingRef.current = false;
     setSearchInput("");
     onFiltersChange({ search: "", status: "ALL" });
   }, [onFiltersChange]);

@@ -262,21 +262,23 @@
     transform: scale(1);
 }
 
-/* Cards y paneles para tema oscuro */
-.card-dark {
-    background: rgba(30, 41, 59, 0.5);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(51, 65, 85, 0.5);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    border-radius: 1rem;
-}
+/* Cards y paneles para tema oscuro - usando @layer para que Tailwind pueda sobrescribir */
+@layer components {
+    .card-dark {
+        background: rgba(30, 41, 59, 0.5);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(51, 65, 85, 0.5);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        border-radius: 1rem;
+    }
 
-.card-dark-strong {
-    background: rgba(30, 41, 59, 0.8);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(71, 85, 105, 0.5);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
-    border-radius: 1rem;
+    .card-dark-strong {
+        background: rgba(30, 41, 59, 0.8);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(71, 85, 105, 0.5);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+        border-radius: 1rem;
+    }
 }
 
 /* Animación de loading para tema oscuro */
