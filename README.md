@@ -1,345 +1,315 @@
-# 🔧 Sistema de Control Interno RJD
+# 🏢 Sistema de Control Interno - Suministro y Servicios RJD
 
-Sistema web para el control interno del servicio técnico "Suministro y Servicios RJD", especializado en reparación y mantenimiento de equipos de computación (laptops, PC, impresoras y plotters).
+**Sistema web profesional** para el control interno de servicios técnicos especializados en reparación y mantenimiento de equipos de computación (laptops, PC, impresoras y plotters).
 
-## 🚀 Estado Actual del Proyecto
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat&logo=prisma)](https://prisma.io/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-38B2AC?style=flat&logo=tailwind-css)](https://tailwindcss.com/)
 
-### ✅ FASES COMPLETADAS
+## 🎯 Estado del Proyecto
 
-- **✅ FASE 0:** Preparación Inicial (100%)
-- **✅ FASE 1.1:** Infraestructura y Base de Datos (100%)
-- **✅ FASE 1.2:** Sistema de Autenticación (100%)
-- **✅ FASE 1.3:** Layout Base y Dashboard (100%)
+### ✅ FASE 1: INFRAESTRUCTURA (100% Completada)
 
-### 📊 Progreso General: ~70% de la infraestructura base
+- [x] **Proyecto Next.js 15** con TypeScript
+- [x] **Base de datos PostgreSQL** con Prisma ORM
+- [x] **Autenticación NextAuth.js** con roles diferenciados
+- [x] **Layout responsive** con tema oscuro profesional
+- [x] **Variables de entorno** y configuración completa
 
----
+### ✅ FASE 2.1: CRUD DE CLIENTES (100% Completada)
+
+- [x] **API Routes completas** (GET, POST, PUT, DELETE)
+- [x] **Formularios con validación** en tiempo real
+- [x] **Tabla profesional** con ordenamiento y filtros
+- [x] **Acciones directas** (ver, editar, eliminar)
+- [x] **Búsqueda avanzada** por nombre, teléfono, RUC
+- [x] **Paginación funcional** con navegación
+- [x] **Validaciones peruanas** (teléfono y RUC)
+- [x] **Manejo de errores** y notificaciones toast
+
+### 🔄 FASE 2.2: CRUD DE TÉCNICOS (Siguiente)
+
+- [ ] Gestión completa de usuarios técnicos
+- [ ] Control de disponibilidad y especialidades
+- [ ] Asignación de equipos y carga de trabajo
+
+### 🔄 FASE 3: GESTIÓN DE EQUIPOS (Pendiente)
+
+- [ ] Registro de equipos con código único
+- [ ] Estados y flujo de reparación
+- [ ] Asignación automática a técnicos
+- [ ] Comprobantes de ingreso
 
 ## 🛠️ Stack Tecnológico
 
-### Frontend
+### **Frontend**
 
-- **Next.js 16** (App Router) + TypeScript
-- **Tailwind CSS** con tema oscuro personalizado
-- **NextAuth.js** para autenticación
-- **Lucide React** para iconos
+- **Next.js 15** - Framework React con App Router
+- **TypeScript** - Tipado estático y desarrollo robusto
+- **Tailwind CSS** - Styling moderno y responsive
+- **Lucide React** - Iconos profesionales
+- **React Query (TanStack)** - Gestión de estado del servidor
 
-### Backend
+### **Backend**
 
-- **Next.js API Routes**
-- **Prisma ORM** con PostgreSQL
-- **Supabase** como base de datos
+- **Next.js API Routes** - Endpoints RESTful
+- **Prisma ORM** - Manejo de base de datos tipado
+- **NextAuth.js** - Autenticación y autorización
+- **Zod** - Validación de esquemas
 
-### Deployment
+### **Base de Datos**
 
-- **Vercel** (configurado para deploy automático)
+- **PostgreSQL** - Base de datos principal
+- **Supabase** - Hosting de base de datos
+- **Prisma Client** - ORM generado automáticamente
 
----
+### **Herramientas de Desarrollo**
 
-## 📁 Estructura del Proyecto
+- **ESLint & Prettier** - Linting y formateo
+- **Git** - Control de versiones
+- **Vercel** - Deployment y hosting
 
-```
-src/
-├── app/
-│   ├── auth/signin/              # Login con tema oscuro
-│   ├── dashboard/                # Panel principal
-│   │   ├── page.tsx             # Dashboard principal ✨ NUEVO
-│   │   ├── equipos/             # Gestión de equipos
-│   │   ├── clientes/            # Gestión de clientes ✨ NUEVO
-│   │   ├── finanzas/            # Control financiero
-│   │   └── reportes/            # Centro de reportes
-│   ├── layout.tsx               # Layout principal con tema oscuro
-│   ├── page.tsx                 # Splash automática (3 seg)
-│   └── custom-styles.css        # CSS personalizado tema oscuro
-├── components/
-│   ├── layout/
-│   │   ├── Header.tsx           # Header con logout ✨ ACTUALIZADO
-│   │   └── Sidebar.tsx          # Navegación lateral ✨ ACTUALIZADO
-│   └── ui/
-│       └── Logo.tsx             # Componente logo (logo.png)
-├── lib/
-│   ├── auth.ts                  # Configuración NextAuth
-│   ├── prisma.ts               # Cliente Prisma
-│   └── utils.ts                # Utilidades
-└── prisma/
-    └── schema.prisma           # Esquema completo de BD
-```
+## 🚀 Instalación y Configuración
 
----
+### **Prerrequisitos**
 
-## 🎨 Características de Diseño
-
-### Tema Oscuro Profesional
-
-- **Fondo principal:** Gradientes slate-900 → slate-800 → slate-700
-- **Glassmorphism:** Efectos de cristal en paneles
-- **Logo circular:** Contenedor blanco para logo con fondo blanco
-- **Responsive:** Adaptativo a todos los dispositivos
-- **Animaciones:** Suaves y profesionales
-
-### Paleta de Colores
-
-- **Primarios:** Azul (#3b82f6) y Verde (#10b981)
-- **Textos:** slate-100 (principal), slate-300 (secundario)
-- **Fondos:** slate-900, slate-800, slate-700
-- **Estados:** Verde (activo), Ámbar (proceso), Rojo (error)
-
----
-
-## 🔐 Autenticación
-
-### Sistema Implementado
-
-- **NextAuth.js** con Prisma adapter
-- **Roles:** ADMINISTRADOR / TECNICO
-- **Sesiones:** 60 minutos de duración
-- **Middleware:** Protección de rutas por rol
-
-### Credenciales por Defecto
-
-```
-Email: admin@rjd.com
-Contraseña: admin123
-Rol: ADMINISTRADOR
-```
-
----
-
-## 📊 Módulos Implementados
-
-### 🏠 Dashboard Principal
-
-- **Stats cards:** Equipos activos, En reparación, Completados, Pendientes
-- **Accesos rápidos:** Nuevo equipo, Nueva reparación, Ver reportes
-- **Diseño responsive** con tema oscuro
-
-### 💻 Gestión de Equipos
-
-- **Lista de equipos** con estados visuales
-- **Búsqueda y filtros** por estado
-- **Mock data** preparado para CRUD
-
-### 👥 Gestión de Clientes ✨ NUEVO
-
-- **Tarjetas de información** completas
-- **Datos de contacto:** Teléfono, email, RUC
-- **Estados:** Activo/Inactivo con badges
-- **Estadísticas:** Total de equipos por cliente
-
-### 💰 Gestión Financiera
-
-- **Stats financieras:** Ingresos, gastos, balance
-- **Transacciones recientes** con categorías
-- **Indicadores** de tendencia
-
-### 📈 Centro de Reportes
-
-- **Tipos de reportes:** Equipos, financiero, reparaciones, mensual
-- **Filtros por fecha** personalizables
-- **Descarga de reportes** (mock)
-
----
-
-## 🗄️ Base de Datos
-
-### Modelos Implementados
-
-```prisma
-// Principales tablas configuradas:
-- Users (administradores y técnicos)
-- Customers (clientes con RUC)
-- Equipment (equipos con códigos únicos)
-- EquipmentStatusHistory (historial de estados)
-- Payments (pagos y adelantos)
-- Expenses (gastos categorizados)
-- PayrollRecord (pagos semanales)
-- Advances (adelantos de trabajadores)
-```
-
-### Estados de Equipos
-
-1. **RECEIVED** - Recibido
-2. **REPAIR** - En reparación
-3. **REPAIRED** - Reparado
-4. **DELIVERED** - Entregado
-5. **CANCELLED** - Cancelado
-
----
-
-## 🔧 Instalación y Configuración
-
-### Requisitos
-
-- Node.js 18+
-- PostgreSQL (o Supabase)
+- Node.js 18+ LTS
 - Git
+- Cuenta en Supabase (para base de datos)
 
-### Variables de Entorno
+### **1. Clonar el repositorio**
+
+```bash
+git clone https://github.com/tu-usuario/sistema-rjd.git
+cd sistema-rjd
+```
+
+### **2. Instalar dependencias**
+
+```bash
+npm install
+```
+
+### **3. Configurar variables de entorno**
+
+Crear archivo `.env.local`:
 
 ```env
 # Base de datos
 DATABASE_URL="postgresql://..."
 DIRECT_URL="postgresql://..."
 
-# NextAuth
-NEXTAUTH_SECRET="tu-secret-aqui"
+# NextAuth.js
+NEXTAUTH_SECRET="tu-secret-muy-largo-y-seguro"
 NEXTAUTH_URL="http://localhost:3000"
+
+# Opcional: Configuración de sesiones
+NEXTAUTH_SESSION_DURATION=86400
 ```
 
-### Instalación
+### **4. Configurar base de datos**
 
 ```bash
-# Clonar repositorio
-git clone [tu-repo]
-cd sistema-rjd
+# Generar cliente Prisma
+npx prisma generate
 
-# Instalar dependencias
-npm install
-
-# Configurar base de datos
+# Aplicar migraciones
 npx prisma migrate dev
-npx prisma db seed
 
-# Iniciar desarrollo
+# Seedear datos iniciales (opcional)
+npx prisma db seed
+```
+
+### **5. Ejecutar en desarrollo**
+
+```bash
 npm run dev
 ```
 
+La aplicación estará disponible en `http://localhost:3000`
+
+## 👤 Acceso al Sistema
+
+### **Usuario Administrador (Por defecto)**
+
+- **Email:** `admin@rjd.com`
+- **Contraseña:** `admin123`
+- **Rol:** ADMINISTRADOR
+- **Permisos:** Acceso completo a todas las funcionalidades
+
+### **Usuarios Técnicos**
+
+- **Rol:** TECNICO
+- **Permisos:** Solo acceso al módulo de estados de equipos
+
+## 🎨 Características Destacadas
+
+### **🎯 Gestión de Clientes**
+
+- ✅ **CRUD completo** con validaciones
+- ✅ **Tabla profesional** con ordenamiento por columnas
+- ✅ **Filtros avanzados** por estado y búsqueda
+- ✅ **Acciones directas** con colores distintivos
+- ✅ **Paginación** con navegación intuitiva
+- ✅ **Validaciones peruanas** para teléfono (9 dígitos) y RUC (11 dígitos)
+
+### **🔐 Sistema de Autenticación**
+
+- ✅ **Roles diferenciados** (Administrador/Técnico)
+- ✅ **Protección de rutas** por permisos
+- ✅ **Sesiones persistentes** con expiración configurable
+- ✅ **Middleware de seguridad** automático
+
+### **🎨 Interfaz de Usuario**
+
+- ✅ **Tema oscuro profesional** con paleta azul/púrpura
+- ✅ **Componentes reutilizables** y modulares
+- ✅ **Responsive design** para móvil, tablet y desktop
+- ✅ **Transiciones suaves** y efectos de hover
+- ✅ **Notificaciones toast** para feedback del usuario
+
+### **⚡ Performance y Optimización**
+
+- ✅ **React Query** para cache inteligente
+- ✅ **Componentes optimizados** sin re-renders innecesarios
+- ✅ **Lazy loading** y code splitting
+- ✅ **Validación en cliente y servidor**
+
+## 📊 Estructura del Proyecto
+
+```
+sistema-rjd/
+├── 📁 src/
+│   ├── 📁 app/
+│   │   ├── 📁 api/
+│   │   │   ├── 📁 auth/[...nextauth]/    # Autenticación NextAuth
+│   │   │   └── 📁 clients/               # API endpoints de clientes
+│   │   ├── 📁 dashboard/
+│   │   │   ├── 📁 clientes/              # Página de gestión de clientes
+│   │   │   └── 📄 layout.tsx             # Layout del dashboard
+│   │   ├── 📄 layout.tsx                 # Layout principal
+│   │   └── 📄 providers.tsx              # Providers globales
+│   ├── 📁 components/
+│   │   └── 📁 clients/                   # Componentes de clientes
+│   │       ├── 📄 ClientForm.tsx         # Formulario de cliente
+│   │       ├── 📄 ClientTable.tsx        # Tabla de clientes
+│   │       ├── 📄 ConfirmModal.tsx       # Modal de confirmación
+│   │       └── 📄 Pagination.tsx         # Componente de paginación
+│   ├── 📁 hooks/
+│   │   └── 📄 useClients.ts              # Hook personalizado para clientes
+│   ├── 📁 lib/
+│   │   ├── 📄 auth.ts                    # Configuración NextAuth
+│   │   ├── 📄 prisma.ts                  # Cliente Prisma
+│   │   └── 📁 validations/
+│   │       └── 📄 client.ts              # Validaciones Zod
+│   ├── 📁 types/
+│   │   └── 📄 client.ts                  # Tipos TypeScript
+│   └── 📁 styles/
+│       └── 📄 globals.css                # Estilos globales
+├── 📄 prisma/schema.prisma               # Esquema de base de datos
+├── 📄 next.config.js                     # Configuración Next.js
+├── 📄 tailwind.config.ts                 # Configuración Tailwind
+└── 📄 package.json                       # Dependencias y scripts
+```
+
+## 🔧 Scripts Disponibles
+
+```bash
+# Desarrollo
+npm run dev          # Iniciar servidor de desarrollo
+npm run build        # Construir para producción
+npm run start        # Iniciar servidor de producción
+npm run lint         # Ejecutar ESLint
+
+# Base de datos
+npx prisma generate  # Generar cliente Prisma
+npx prisma migrate dev # Aplicar migraciones en desarrollo
+npx prisma studio    # Abrir Prisma Studio (GUI de BD)
+
+# Utilidades
+npm run clean        # Limpiar cache de Next.js
+```
+
+## 🎯 Próximas Características
+
+### **FASE 2.2: Gestión de Técnicos**
+
+- [ ] CRUD completo de usuarios técnicos
+- [ ] Sistema de especialidades y habilidades
+- [ ] Control de disponibilidad y carga de trabajo
+- [ ] Dashboard de productividad
+
+### **FASE 3: Gestión de Equipos**
+
+- [ ] Registro con código único alfanumérico (RJD-YMD-NNNN)
+- [ ] Estados: Recibido → Reparación → Reparado → Entregado
+- [ ] Asignación automática de técnicos
+- [ ] Comprobantes de ingreso automáticos
+- [ ] Sistema de notificaciones
+
+### **FASE 4: Gestión Financiera**
+
+- [ ] Control de ingresos y egresos
+- [ ] Adelantos y saldos pendientes
+- [ ] Reportes de rentabilidad
+- [ ] Análisis por período
+
+### **FASE 5: Reportes y Analytics**
+
+- [ ] Dashboard ejecutivo con KPIs
+- [ ] Reportes operativos y financieros
+- [ ] Análisis de tendencias
+- [ ] Exportación de datos
+
+## 🤝 Contribución
+
+### **Flujo de Desarrollo**
+
+1. Fork del repositorio
+2. Crear rama feature: `git checkout -b feature/nueva-funcionalidad`
+3. Commit cambios: `git commit -m "feat: descripción"`
+4. Push a la rama: `git push origin feature/nueva-funcionalidad`
+5. Crear Pull Request
+
+### **Estándares de Código**
+
+- **Conventional Commits** para mensajes
+- **ESLint** configurado con reglas estrictas
+- **TypeScript strict mode** habilitado
+- **Prettier** para formateo automático
+
+## 📝 Changelog
+
+### **v0.2.0** - CRUD Clientes Completo (Actual)
+
+- ✅ Sistema completo CRUD de clientes
+- ✅ Tabla profesional con acciones directas
+- ✅ Validaciones peruanas (teléfono/RUC)
+- ✅ API routes con manejo de errores
+- ✅ Formularios optimizados sin cascading renders
+- ✅ Fix para Next.js 15 (params como Promise)
+
+### **v0.1.0** - Infraestructura Base
+
+- ✅ Proyecto Next.js 15 + TypeScript
+- ✅ Autenticación con NextAuth.js
+- ✅ Base de datos con Prisma ORM
+- ✅ Layout profesional responsive
+- ✅ Configuración inicial completa
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
+
+## 📞 Soporte
+
+Para preguntas, problemas o sugerencias:
+
+- 📧 **Email:** soporte@rjdsuministros.com
+- 🐛 **Issues:** [GitHub Issues](https://github.com/tu-usuario/sistema-rjd/issues)
+- 📖 **Documentación:** [Wiki del Proyecto](https://github.com/tu-usuario/sistema-rjd/wiki)
+
 ---
 
-## 🎯 Flujo de Usuario Actual
-
-### 1. Splash (3 segundos)
-
-- Logo circular con glow
-- Redirección automática según autenticación
-
-### 2. Login
-
-- Tema oscuro elegante
-- Validación de credenciales
-- Redirección por rol
-
-### 3. Dashboard
-
-- **Administrador:** Acceso completo a todos los módulos
-- **Técnico:** Acceso limitado solo a equipos
-
-### 4. Navegación
-
-- **Sidebar** fijo con logo y menú
-- **Header** con información de usuario y logout
-- **Responsive** en móviles con menú colapsible
-
----
-
-## 🚀 Próximas Implementaciones
-
-### FASE 2: Gestión de Equipos (Siguiente)
-
-- ✅ CRUD completo de equipos
-- ✅ Formularios con validación
-- ✅ Gestión de estados
-- ✅ Asignación de técnicos
-- ✅ Comprobantes automáticos
-
-### FASE 3: Gestión Financiera
-
-- Control de ingresos y egresos
-- Cálculo automático de saldos
-- Métodos de pago múltiples
-
-### FASE 4: Gestión de Personal
-
-- Registro de pagos semanales
-- Control de adelantos
-- Historial por trabajador
-
-### FASE 5: Reportes y Analytics
-
-- Reportes operativos en tiempo real
-- Análisis financiero detallado
-- Dashboard ejecutivo con KPIs
-
----
-
-## 📱 Responsive Design
-
-### Breakpoints Implementados
-
-- **Mobile:** < 768px (sidebar colapsible)
-- **Tablet:** 768px - 1024px (sidebar adaptativo)
-- **Desktop:** > 1024px (sidebar fijo)
-
-### Características Móviles
-
-- Logo optimizado por tamaño
-- Navegación tipo hamburguesa
-- Cards responsive en grid
-- Formularios adaptables
-
----
-
-## 🔒 Seguridad Implementada
-
-### Autenticación
-
-- Passwords hasheados
-- Sesiones JWT seguras
-- Middleware de protección
-
-### Autorización
-
-- Roles diferenciados
-- Rutas protegidas por rol
-- Validación en servidor y cliente
-
----
-
-## 🎨 Assets Incluidos
-
-### Logos
-
-- `logo.png` - Logo principal (fondo blanco)
-- `favicon.ico` - Ícono del navegador
-
-### CSS Personalizado
-
-- Tema oscuro completo
-- Glassmorphism effects
-- Animaciones suaves
-- Variables de color del sistema
-
----
-
-## 📞 Soporte y Contacto
-
-**Sistema desarrollado para:**
-
-- **Cliente:** Suministro y Servicios RJD
-- **Especialidad:** Reparación y mantenimiento de equipos de computación
-- **Ubicación:** Perú (zona horaria UTC-5)
-
----
-
-## 🏷️ Versión Actual
-
-**v1.3.0** - Layout Base y Dashboard Completo
-
-- ✅ Autenticación funcional
-- ✅ Tema oscuro profesional
-- ✅ Dashboard con 5 módulos básicos
-- ✅ Navegación completa responsive
-- ✅ Base de datos configurada
-- 🚀 Listo para FASE 2: CRUD de Equipos
-
----
-
-## 📊 Métricas de Desarrollo
-
-- **Tiempo invertido:** ~3-4 semanas
-- **Líneas de código:** ~2,500+
-- **Componentes:** 15+ componentes reutilizables
-- **Páginas:** 6 páginas principales
-- **Cobertura:** Base sólida para funcionalidades avanzadas
-
-**🎯 Estado: Listo para implementar funcionalidades de negocio**
+**Desarrollado con ❤️ para Suministro y Servicios RJD**
