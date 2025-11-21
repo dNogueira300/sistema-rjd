@@ -74,7 +74,7 @@ function ClientCard({ client, onEdit, onDelete, onView }: ClientCardProps) {
       {/* Header: Nombre y Estado */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="p-2 rounded-lg bg-purple-600/20 border border-purple-600/30 flex-shrink-0">
+          <div className="p-2 rounded-lg bg-purple-600/20 border border-purple-600/30 shrink-0">
             <User className="w-5 h-5 text-purple-400" />
           </div>
           <div className="min-w-0 flex-1">
@@ -90,7 +90,7 @@ function ClientCard({ client, onEdit, onDelete, onView }: ClientCardProps) {
           </div>
         </div>
         <span
-          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border flex-shrink-0 ${getStatusColor(
+          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border shrink-0 ${getStatusColor(
             client.status
           )}`}
         >
@@ -101,21 +101,21 @@ function ClientCard({ client, onEdit, onDelete, onView }: ClientCardProps) {
       {/* Info Grid */}
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div className="flex items-center gap-2 text-slate-300">
-          <Phone className="w-4 h-4 text-slate-400 flex-shrink-0" />
+          <Phone className="w-4 h-4 text-slate-400 shrink-0" />
           <span className="truncate">+51 {formatPhone(client.phone)}</span>
         </div>
         <div className="flex items-center gap-2 text-slate-300">
-          <Laptop className="w-4 h-4 text-slate-400 flex-shrink-0" />
+          <Laptop className="w-4 h-4 text-slate-400 shrink-0" />
           <span>{client.equipmentCount || 0} equipos</span>
         </div>
         <div className="flex items-center gap-2 text-slate-300">
-          <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
+          <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
           <span className="truncate text-xs">
             {client.lastVisit || "Sin visitas"}
           </span>
         </div>
         <div className="flex items-center gap-2 text-slate-300">
-          <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
+          <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
           <span className="text-xs">
             {new Date(client.createdAt).toLocaleDateString()}
           </span>
@@ -295,7 +295,7 @@ export default function ClientTable({
 
           {/* Status Filter */}
           <div className="flex items-center gap-2">
-            <Filter className="w-5 h-5 text-slate-400 flex-shrink-0" />
+            <Filter className="w-5 h-5 text-slate-400 shrink-0" />
             <select
               value={filters.status}
               onChange={(e) =>

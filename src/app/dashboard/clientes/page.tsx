@@ -210,7 +210,7 @@ export default function ClientesPage() {
       <div className="card-dark p-4 md:p-6">
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3 md:gap-4">
-            <div className="p-2 md:p-3 rounded-lg bg-linear-to-br from-purple-600 to-purple-700 flex-shrink-0">
+            <div className="p-2 md:p-3 rounded-lg bg-linear-to-br from-purple-600 to-purple-700 shrink-0">
               <Users className="w-6 h-6 md:w-8 md:h-8 text-white" />
             </div>
             <div className="min-w-0">
@@ -259,56 +259,64 @@ export default function ClientesPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <div className="card-dark p-3 md:p-6 hover-lift bg-purple-600/10 border-2 border-purple-600/30">
           <div className="flex items-center gap-2 md:gap-4">
-            <div className="p-2 md:p-3 rounded-lg bg-purple-600/20 flex-shrink-0">
+            <div className="p-2 md:p-3 rounded-lg bg-purple-600/20 shrink-0">
               <Users className="w-4 h-4 md:w-6 md:h-6 text-purple-400" />
             </div>
             <div className="min-w-0">
               <h3 className="text-lg md:text-2xl font-bold text-slate-100">
                 {totalClients}
               </h3>
-              <p className="text-xs md:text-sm text-slate-400 truncate">Total</p>
+              <p className="text-xs md:text-sm text-slate-400 truncate">
+                Total
+              </p>
             </div>
           </div>
         </div>
 
         <div className="card-dark p-3 md:p-6 hover-lift bg-green-600/10 border-2 border-green-600/30">
           <div className="flex items-center gap-2 md:gap-4">
-            <div className="p-2 md:p-3 rounded-lg bg-green-600/20 flex-shrink-0">
+            <div className="p-2 md:p-3 rounded-lg bg-green-600/20 shrink-0">
               <Users className="w-4 h-4 md:w-6 md:h-6 text-green-400" />
             </div>
             <div className="min-w-0">
               <h3 className="text-lg md:text-2xl font-bold text-slate-100">
                 {activeClientsCount}
               </h3>
-              <p className="text-xs md:text-sm text-slate-400 truncate">Activos</p>
+              <p className="text-xs md:text-sm text-slate-400 truncate">
+                Activos
+              </p>
             </div>
           </div>
         </div>
 
         <div className="card-dark p-3 md:p-6 hover-lift bg-gray-600/10 border-2 border-gray-600/30">
           <div className="flex items-center gap-2 md:gap-4">
-            <div className="p-2 md:p-3 rounded-lg bg-gray-600/20 flex-shrink-0">
+            <div className="p-2 md:p-3 rounded-lg bg-gray-600/20 shrink-0">
               <Users className="w-4 h-4 md:w-6 md:h-6 text-gray-400" />
             </div>
             <div className="min-w-0">
               <h3 className="text-lg md:text-2xl font-bold text-slate-100">
                 {inactiveClientsCount}
               </h3>
-              <p className="text-xs md:text-sm text-slate-400 truncate">Inactivos</p>
+              <p className="text-xs md:text-sm text-slate-400 truncate">
+                Inactivos
+              </p>
             </div>
           </div>
         </div>
 
         <div className="card-dark p-3 md:p-6 hover-lift bg-blue-600/10 border-2 border-blue-600/30">
           <div className="flex items-center gap-2 md:gap-4">
-            <div className="p-2 md:p-3 rounded-lg bg-blue-600/20 flex-shrink-0">
+            <div className="p-2 md:p-3 rounded-lg bg-blue-600/20 shrink-0">
               <Laptop className="w-4 h-4 md:w-6 md:h-6 text-blue-400" />
             </div>
             <div className="min-w-0">
               <h3 className="text-lg md:text-2xl font-bold text-slate-100">
                 {totalEquipments}
               </h3>
-              <p className="text-xs md:text-sm text-slate-400 truncate">Equipos</p>
+              <p className="text-xs md:text-sm text-slate-400 truncate">
+                Equipos
+              </p>
             </div>
           </div>
         </div>
@@ -382,7 +390,9 @@ export default function ClientesPage() {
                 <label className="text-xs md:text-sm font-medium text-slate-300">
                   Nombre
                 </label>
-                <p className="text-slate-100 text-base md:text-lg">{selectedClient.name}</p>
+                <p className="text-slate-100 text-base md:text-lg">
+                  {selectedClient.name}
+                </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">

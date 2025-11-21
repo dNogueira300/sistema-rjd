@@ -11,8 +11,6 @@ import {
   BarChart3,
   LogOut,
   X,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -49,7 +47,7 @@ const menuItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
-  const { isCollapsed, isMobile, toggleSidebar, closeSidebar } = useSidebar();
+  const { isCollapsed, isMobile, closeSidebar } = useSidebar();
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/auth/signin" });
@@ -82,9 +80,9 @@ export default function Sidebar() {
               ? "-translate-x-full w-64"
               : "translate-x-0 w-64"
             : // En desktop: colapsar a mini sidebar
-              isCollapsed
-              ? "w-20"
-              : "w-64"
+            isCollapsed
+            ? "w-20"
+            : "w-64"
         )}
       >
         <div className="flex flex-col h-full">
@@ -102,7 +100,7 @@ export default function Sidebar() {
                     isCollapsed && !isMobile ? "justify-center" : "space-x-3"
                   )}
                 >
-                  <div className="logo-circle-white w-12 h-12 flex-shrink-0 flex items-center justify-center">
+                  <div className="logo-circle-white w-12 h-12 shrink-0 flex items-center justify-center">
                     <Image
                       src="/assets/logo.png"
                       alt="Suministro y Servicios RJD"
@@ -157,7 +155,7 @@ export default function Sidebar() {
                   )}
                   title={isCollapsed && !isMobile ? item.name : undefined}
                 >
-                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  <Icon className="w-5 h-5 shrink-0" />
                   {(!isCollapsed || isMobile) && (
                     <span className="font-medium">{item.name}</span>
                   )}
@@ -169,7 +167,7 @@ export default function Sidebar() {
           {/* Toggle Button - Solo en desktop */}
           {!isMobile && (
             <div className="p-3 border-t border-slate-700">
-              <button
+              {/* <button
                 onClick={toggleSidebar}
                 className="flex items-center justify-center w-full gap-2 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-all duration-200"
                 title={isCollapsed ? "Expandir menú" : "Colapsar menú"}
@@ -182,7 +180,7 @@ export default function Sidebar() {
                     <span className="text-sm font-medium">Colapsar</span>
                   </>
                 )}
-              </button>
+              </button> */}
             </div>
           )}
 
@@ -196,7 +194,7 @@ export default function Sidebar() {
               )}
               title={isCollapsed && !isMobile ? "Cerrar sesión" : undefined}
             >
-              <LogOut className="w-5 h-5 flex-shrink-0" />
+              <LogOut className="w-5 h-5 shrink-0" />
               {(!isCollapsed || isMobile) && (
                 <span className="font-medium">Cerrar sesión</span>
               )}
