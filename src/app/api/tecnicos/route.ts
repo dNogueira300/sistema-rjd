@@ -10,6 +10,18 @@ import {
 } from "@/lib/validations/technician";
 import type { Technician } from "@/types/technician";
 
+// Tipo para resultado de Prisma
+interface PrismaTechnicianResult {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+  _count: { assignedEquipments: number };
+}
+
 // GET /api/tecnicos - Obtener lista de técnicos con filtros
 export async function GET(request: NextRequest) {
   try {
@@ -87,7 +99,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Formatear respuesta
-    const formattedTechnicians: Technician[] = technicians.map((tech) => ({
+    const formattedTechnicians: Technician[] = (technicians as PrismaTechnicianResult[]).map((tech) => ({
       id: tech.id,
       name: tech.name,
       email: tech.email,
