@@ -11,6 +11,7 @@ import {
   BarChart3,
   LogOut,
   X,
+  Wrench,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -31,6 +32,11 @@ const menuItems = [
     name: "Clientes",
     href: "/dashboard/clientes",
     icon: Users,
+  },
+  {
+    name: "Técnicos",
+    href: "/dashboard/tecnicos",
+    icon: Wrench,
   },
   {
     name: "Finanzas",
@@ -189,7 +195,7 @@ export default function Sidebar() {
             <button
               onClick={handleLogout}
               className={cn(
-                "flex items-center gap-3 px-3 py-3 rounded-lg w-full text-red-400 hover:bg-red-600/20 hover:text-red-300 transition-all duration-200",
+                "flex items-center gap-3 px-3 py-3 rounded-lg w-full text-red-400 bg-red-600/10 hover:bg-red-600/20 hover:text-red-300 transition-all duration-200 border border-red-600/30",
                 isCollapsed && !isMobile ? "justify-center" : ""
               )}
               title={isCollapsed && !isMobile ? "Cerrar sesión" : undefined}
