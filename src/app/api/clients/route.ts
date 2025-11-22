@@ -45,11 +45,24 @@ export async function GET(request: NextRequest) {
     const where: Record<string, unknown> = {};
 
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { phone: { contains: search.replace(/\D/g, "") } },
-        { ruc: { contains: search.replace(/\D/g, "") } },
+      const searchTerm = search.trim();
+      const numericSearch = searchTerm.replace(/\D/g, "");
+
+      // Construir condiciones OR dinámicamente
+      const orConditions: Record<string, unknown>[] = [
+        // Siempre buscar por nombre (case insensitive)
+        { name: { contains: searchTerm, mode: "insensitive" } },
       ];
+
+      // Solo buscar en teléfono y RUC si hay dígitos en la búsqueda
+      if (numericSearch.length > 0) {
+        orConditions.push(
+          { phone: { contains: numericSearch } },
+          { ruc: { contains: numericSearch } }
+        );
+      }
+
+      where.OR = orConditions;
     }
 
     if (status !== "ALL") {

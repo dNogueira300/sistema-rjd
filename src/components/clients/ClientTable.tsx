@@ -1,7 +1,7 @@
 // src/components/clients/ClientTable.tsx
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback } from "react";
 import {
   Users,
   User,
@@ -239,70 +239,21 @@ export default function ClientTable({
   onView,
   isLoading = false,
 }: ClientTableProps) {
-  // Estado local para el input de búsqueda
-  const [searchInput, setSearchInput] = useState(filters.search);
+  // Búsqueda directa sin debounce - filtra mientras escribes
+  const handleSearchInputChange = useCallback(
+    (value: string) => {
+      onFiltersChange({ search: value });
+    },
+    [onFiltersChange]
+  );
 
-  // Refs para control del debounce y focus
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const shouldRestoreFocus = useRef(false);
-
-  // Restaurar focus después de que termine la carga
-  useEffect(() => {
-    if (!isLoading && shouldRestoreFocus.current && inputRef.current) {
-      inputRef.current.focus();
-      shouldRestoreFocus.current = false;
-    }
-  }, [isLoading]);
-
-  // Debounce para la búsqueda - más corto y eficiente
-  useEffect(() => {
-    // Limpiar timer anterior
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-
-    // Solo crear nuevo timer si hay diferencia
-    if (searchInput !== filters.search) {
-      timerRef.current = setTimeout(() => {
-        // Marcar que debemos restaurar el focus después de la búsqueda
-        if (document.activeElement === inputRef.current) {
-          shouldRestoreFocus.current = true;
-        }
-        onFiltersChange({ search: searchInput });
-      }, 300); // 300ms de debounce - más responsivo
-    }
-
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, [searchInput, filters.search, onFiltersChange]);
-
-  const handleSearchInputChange = useCallback((value: string) => {
-    setSearchInput(value);
-  }, []);
-
-  // Función para limpiar búsqueda y cancelar timer pendiente
+  // Función para limpiar búsqueda
   const handleClearSearch = useCallback(() => {
-    // Cancelar cualquier búsqueda pendiente
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    setSearchInput("");
     onFiltersChange({ search: "" });
   }, [onFiltersChange]);
 
   // Función para limpiar todos los filtros
   const handleClearAllFilters = useCallback(() => {
-    // Cancelar cualquier búsqueda pendiente
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    setSearchInput("");
     onFiltersChange({ search: "", status: "ALL" });
   }, [onFiltersChange]);
 
@@ -331,13 +282,11 @@ export default function ClientTable({
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none z-10" />
           <input
-            ref={inputRef}
             type="text"
-            value={searchInput}
+            value={filters.search}
             onChange={(e) => handleSearchInputChange(e.target.value)}
             className="input-dark-with-icon w-full text-sm md:text-base"
             placeholder="Buscar por nombre, teléfono o RUC..."
-            disabled={isLoading}
           />
         </div>
 
@@ -350,7 +299,7 @@ export default function ClientTable({
                 : `${clients.length} cliente(s) encontrado(s)`}
             </span>
 
-            {searchInput && !isLoading && (
+            {filters.search && !isLoading && (
               <button
                 onClick={handleClearSearch}
                 className="text-blue-400 hover:text-blue-300 transition-colors"
