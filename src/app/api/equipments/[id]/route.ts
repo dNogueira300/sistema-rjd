@@ -48,6 +48,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             changedAt: true,
           },
         },
+        payments: {
+          orderBy: { paymentDate: "desc" },
+          select: {
+            id: true,
+            equipmentId: true,
+            totalAmount: true,
+            advanceAmount: true,
+            remainingAmount: true,
+            paymentMethod: true,
+            paymentStatus: true,
+            paymentDate: true,
+            voucherType: true,
+            observations: true,
+          },
+        },
       },
     });
 
@@ -75,7 +90,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Obtener nombres de usuarios que cambiaron estados
     interface StatusHistoryEntry {
       id: string;
-      status: string;
+      status: "RECEIVED" | "REPAIR" | "REPAIRED" | "DELIVERED" | "CANCELLED";
       observations: string | null;
       changedBy: string;
       changedAt: Date;
@@ -116,6 +131,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         changedAt: h.changedAt,
         changedByUser: userMap.get(h.changedBy),
       })),
+      payments: equipment.payments,
     };
 
     return NextResponse.json({ equipment: formattedEquipment });

@@ -37,7 +37,10 @@ interface StatusManagerProps {
   isLoading?: boolean;
 }
 
-const STATUS_CONFIG: Record<EquipmentStatus, { label: string; icon: React.ReactNode; color: string }> = {
+const STATUS_CONFIG: Record<
+  EquipmentStatus,
+  { label: string; icon: React.ReactNode; color: string }
+> = {
   RECEIVED: {
     label: "Recibido",
     icon: <Clock className="w-5 h-5" />,
@@ -81,7 +84,9 @@ export default function StatusManager({
   onClose,
   isLoading = false,
 }: StatusManagerProps) {
-  const [selectedStatus, setSelectedStatus] = useState<EquipmentStatus | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<EquipmentStatus | null>(
+    null
+  );
   const [selectedTechnician, setSelectedTechnician] = useState<string>("");
   const [observations, setObservations] = useState("");
   const [technicians, setTechnicians] = useState<Technician[]>([]);
@@ -95,7 +100,9 @@ export default function StatusManager({
     const loadTechnicians = async () => {
       setLoadingTechnicians(true);
       try {
-        const response = await apiFetch("/api/tecnicos?status=ACTIVE&limit=100");
+        const response = await apiFetch(
+          "/api/tecnicos?status=ACTIVE&limit=100"
+        );
         if (response.ok) {
           const data = await response.json();
           setTechnicians(data.technicians);
@@ -117,7 +124,9 @@ export default function StatusManager({
     const loadHistory = async () => {
       setLoadingHistory(true);
       try {
-        const response = await apiFetch(`/api/equipments/status?equipmentId=${equipment.id}`);
+        const response = await apiFetch(
+          `/api/equipments/status?equipmentId=${equipment.id}`
+        );
         if (response.ok) {
           const data = await response.json();
           setHistory(data.history);
@@ -167,15 +176,19 @@ export default function StatusManager({
     }
 
     onStatusChange(changeData);
-  }, [selectedStatus, selectedTechnician, observations, equipment.id, onStatusChange]);
+  }, [
+    selectedStatus,
+    selectedTechnician,
+    observations,
+    equipment.id,
+    onStatusChange,
+  ]);
 
   const transitions = availableTransitions();
   const canChangeStatus = transitions.length > 0;
   const needsTechnician = selectedStatus === "REPAIR";
   const isSubmitDisabled =
-    !selectedStatus ||
-    (needsTechnician && !selectedTechnician) ||
-    isLoading;
+    !selectedStatus || (needsTechnician && !selectedTechnician) || isLoading;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -188,7 +201,10 @@ export default function StatusManager({
                 Gestionar Estado
               </h2>
               <p className="text-sm text-slate-400 mt-1">
-                Equipo: <span className="font-mono text-blue-400">{equipment.code}</span>
+                Equipo:{" "}
+                <span className="font-mono text-blue-400">
+                  {equipment.code}
+                </span>
               </p>
             </div>
             <button
@@ -240,7 +256,9 @@ export default function StatusManager({
                     }`}
                   >
                     {STATUS_CONFIG[status].icon}
-                    <span className="font-medium">{STATUS_CONFIG[status].label}</span>
+                    <span className="font-medium">
+                      {STATUS_CONFIG[status].label}
+                    </span>
                     <ArrowRight className="w-4 h-4 ml-auto" />
                   </button>
                 ))}
@@ -300,7 +318,7 @@ export default function StatusManager({
               <textarea
                 value={observations}
                 onChange={(e) => setObservations(e.target.value)}
-                className="input-dark w-full min-h-[80px] resize-y"
+                className="input-dark w-full min-h-20 resize-y"
                 placeholder="Agregar observaciones sobre el cambio de estado..."
                 disabled={isLoading}
               />

@@ -14,12 +14,12 @@ interface ProvidersProps {
 
 // Componente para manejar el timeout de inactividad y refrescar sesión
 function SessionManager({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const idleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
   const IDLE_TIMEOUT = 60 * 60 * 1000; // 1 hora de inactividad para logout
-  const SESSION_REFRESH_INTERVAL = 10 * 60 * 1000; // Verificar sesión cada 10 minutos
+  const SESSION_REFRESH_INTERVAL = 4 * 60 * 1000; // Refrescar sesión cada 4 minutos (antes de los 5 min de updateAge)
 
   const handleLogout = useCallback(async (showMessage = true) => {
     if (showMessage) {
@@ -31,23 +31,22 @@ function SessionManager({ children }: { children: React.ReactNode }) {
     await signOut({ callbackUrl: "/auth/signin" });
   }, []);
 
-  // Verificar y refrescar sesión periódicamente
-  const checkAndRefreshSession = useCallback(async () => {
+  // Refrescar sesión periódicamente si hay actividad
+  const refreshSession = useCallback(async () => {
     if (status !== "authenticated") return;
 
     try {
-      // getSession fuerza una verificación del token con el servidor
+      // update() de useSession() refresca el token JWT del lado del servidor
+      await update();
+    } catch (error) {
+      console.error("Error al refrescar sesión:", error);
+      // Si falla el refresh, verificar con getSession
       const currentSession = await getSession();
-
       if (!currentSession) {
-        // Si no hay sesión válida, redirigir al login
         handleLogout(true);
       }
-    } catch {
-      // Error al verificar sesión, probablemente expiró
-      handleLogout(true);
     }
-  }, [status, handleLogout]);
+  }, [status, update, handleLogout]);
 
   const resetIdleTimer = useCallback(() => {
     lastActivityRef.current = Date.now();
@@ -79,12 +78,12 @@ function SessionManager({ children }: { children: React.ReactNode }) {
     // Iniciar timer de inactividad
     resetIdleTimer();
 
-    // Iniciar verificación periódica de sesión
+    // Iniciar refresh periódico de sesión
     refreshIntervalRef.current = setInterval(() => {
-      // Solo verificar si ha habido actividad reciente
+      // Solo refrescar si ha habido actividad reciente
       const timeSinceLastActivity = Date.now() - lastActivityRef.current;
       if (timeSinceLastActivity < IDLE_TIMEOUT) {
-        checkAndRefreshSession();
+        refreshSession();
       }
     }, SESSION_REFRESH_INTERVAL);
 
@@ -105,7 +104,7 @@ function SessionManager({ children }: { children: React.ReactNode }) {
         document.removeEventListener(event, resetIdleTimer);
       });
     };
-  }, [session, status, resetIdleTimer, checkAndRefreshSession, IDLE_TIMEOUT, SESSION_REFRESH_INTERVAL]);
+  }, [session, status, resetIdleTimer, refreshSession, IDLE_TIMEOUT, SESSION_REFRESH_INTERVAL]);
 
   return <>{children}</>;
 }

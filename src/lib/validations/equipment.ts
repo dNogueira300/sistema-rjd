@@ -36,7 +36,7 @@ export const createEquipmentSchema = z.object({
   reportedFlaw: z
     .string()
     .min(1, "La falla reportada es requerida")
-    .min(10, "La descripción de la falla debe tener al menos 10 caracteres")
+    .min(5, "La descripción de la falla debe tener al menos 5 caracteres")
     .max(500, "La descripción de la falla no puede exceder 500 caracteres")
     .trim(),
 
@@ -136,9 +136,9 @@ export const isValidStatusTransition = (
   const validTransitions: Record<string, string[]> = {
     RECEIVED: ["REPAIR", "CANCELLED"],
     REPAIR: ["REPAIRED", "CANCELLED"],
-    REPAIRED: ["DELIVERED", "REPAIR"], // Puede volver a reparación
+    REPAIRED: ["DELIVERED", "REPAIR", "CANCELLED"],
     DELIVERED: [], // Estado final
-    CANCELLED: [], // Estado final
+    CANCELLED: ["RECEIVED"], // Puede revertir a recibido
   };
 
   // Administrador puede hacer todas las transiciones válidas

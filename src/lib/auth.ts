@@ -12,6 +12,7 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
     maxAge: 60 * 60, // 60 minutos de sesión
+    updateAge: 5 * 60, // Refrescar el token cada 5 minutos si hay actividad
   },
   providers: [
     CredentialsProvider({
@@ -63,10 +64,16 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.role = (user as { role: Role }).role;
       }
+
+      // Actualizar timestamp cuando el token se refresca
+      if (trigger === "update") {
+        token.iat = Math.floor(Date.now() / 1000);
+      }
+
       return token;
     },
     async session({ session, token }) {

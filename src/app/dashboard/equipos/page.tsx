@@ -3,6 +3,7 @@
 
 import { useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Laptop,
   Plus,
@@ -11,30 +12,26 @@ import {
   Wrench,
   CheckCircle,
   Truck,
-  X,
-  User,
-  Phone,
-  Calendar,
 } from "lucide-react";
-import { useEquipments } from "@/hooks/useEquipments";
+import { useEquipments, useEquipment } from "@/hooks/useEquipments";
 import EquipmentTable from "@/components/equipment/EquipmentTable";
 import EquipmentForm from "@/components/equipment/EquipmentForm";
-import StatusManager from "@/components/equipment/StatusManager";
+import EquipmentManageFullModal from "@/components/equipment/EquipmentManageFullModal";
 import Pagination from "@/components/clients/Pagination";
 import ConfirmModal from "@/components/clients/ConfirmModal";
-import { formatPhone } from "@/lib/validations/client";
 import type {
   Equipment,
   CreateEquipmentData,
   UpdateEquipmentData,
-  ChangeStatusData,
 } from "@/types/equipment";
 
-type ModalType = "create" | "edit" | "view" | "delete" | "status" | null;
+type ModalType = "create" | "edit" | "manage" | "delete" | null;
 
 export default function EquiposPage() {
   const { data: session } = useSession();
-  const userRole = (session?.user?.role as "ADMINISTRADOR" | "TECNICO") || "TECNICO";
+  const queryClient = useQueryClient();
+  const userRole =
+    (session?.user?.role as "ADMINISTRADOR" | "TECNICO") || "TECNICO";
 
   const {
     equipments,
@@ -49,18 +46,25 @@ export default function EquiposPage() {
     isCreating,
     isUpdating,
     isDeleting,
-    isChangingStatus,
     createEquipment,
     updateEquipment,
     deleteEquipment,
-    changeStatus,
     updateFilters,
     refreshEquipments,
     setCurrentPage,
   } = useEquipments();
 
   const [modalType, setModalType] = useState<ModalType>(null);
-  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
+  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(
+    null
+  );
+  const [viewEquipmentId, setViewEquipmentId] = useState<string | null>(null);
+
+  // Hook para obtener equipo completo con pagos cuando se abre modal de detalles
+  const { data: equipmentDetail } = useEquipment(viewEquipmentId);
+
+  // Usar datos del detalle si están disponibles, sino usar el equipo seleccionado básico
+  const displayEquipment = equipmentDetail?.equipment ?? selectedEquipment;
 
   // Handlers para modales
   const handleOpenCreate = useCallback(() => {
@@ -73,9 +77,10 @@ export default function EquiposPage() {
     setModalType("edit");
   }, []);
 
-  const handleOpenView = useCallback((equipment: Equipment) => {
+  const handleOpenManage = useCallback((equipment: Equipment) => {
     setSelectedEquipment(equipment);
-    setModalType("view");
+    setViewEquipmentId(equipment.id); // Cargar datos completos con pagos
+    setModalType("manage");
   }, []);
 
   const handleOpenDelete = useCallback((equipment: Equipment) => {
@@ -83,20 +88,28 @@ export default function EquiposPage() {
     setModalType("delete");
   }, []);
 
-  const handleOpenStatus = useCallback((equipment: Equipment) => {
-    setSelectedEquipment(equipment);
-    setModalType("status");
-  }, []);
-
   const handleCloseModal = useCallback(() => {
     setModalType(null);
     setSelectedEquipment(null);
+    setViewEquipmentId(null);
   }, []);
 
   // Handlers para CRUD
   const handleCreateSubmit = useCallback(
-    (data: CreateEquipmentData | UpdateEquipmentData) => {
-      createEquipment(data as CreateEquipmentData, {
+    (
+      data: CreateEquipmentData | UpdateEquipmentData,
+      extraData?: {
+        assignedTechnicianId?: string;
+        payment?: { type: string; amount: number; method: string };
+      }
+    ) => {
+      // Combinar data con extraData para enviar todo junto a la API
+      const fullData = {
+        ...data,
+        assignedTechnicianId: extraData?.assignedTechnicianId || null,
+        payment: extraData?.payment,
+      };
+      createEquipment(fullData as CreateEquipmentData, {
         onSuccess: () => {
           handleCloseModal();
         },
@@ -131,59 +144,70 @@ export default function EquiposPage() {
     }
   }, [selectedEquipment, deleteEquipment, handleCloseModal]);
 
-  const handleStatusChange = useCallback(
-    (data: ChangeStatusData) => {
-      changeStatus(data, {
-        onSuccess: () => {
-          handleCloseModal();
-        },
-      });
-    },
-    [changeStatus, handleCloseModal]
-  );
+  const handleManageSuccess = useCallback(() => {
+    // Invalidar queries para refrescar datos
+    queryClient.invalidateQueries({ queryKey: ["equipments"] });
+    if (viewEquipmentId) {
+      queryClient.invalidateQueries({ queryKey: ["equipment", viewEquipmentId] });
+    }
+  }, [queryClient, viewEquipmentId]);
 
   // Contar equipos por estado
-  const receivedCount = equipments.filter((e) => e.status === "RECEIVED").length;
+  const receivedCount = equipments.filter(
+    (e) => e.status === "RECEIVED"
+  ).length;
   const repairCount = equipments.filter((e) => e.status === "REPAIR").length;
-  const deliveredCount = equipments.filter((e) => e.status === "DELIVERED").length;
+  const deliveredCount = equipments.filter(
+    (e) => e.status === "DELIVERED"
+  ).length;
 
   // Stats cards
   const stats = [
     {
       label: "Total Equipos",
       value: totalEquipments,
-      icon: <Laptop className="w-6 h-6" />,
-      color: "from-blue-600 to-blue-700",
-      textColor: "text-blue-400",
+      icon: <Laptop className="w-5 h-5 md:w-6 md:h-6" />,
+      iconColor: "text-blue-400",
+      borderColor: "border-blue-500",
+      bgColor: "bg-blue-600/10",
+      iconBg: "bg-blue-600/20",
     },
     {
       label: "Recibidos",
       value: receivedCount,
-      icon: <Clock className="w-6 h-6" />,
-      color: "from-blue-600 to-blue-700",
-      textColor: "text-blue-400",
+      icon: <Clock className="w-5 h-5 md:w-6 md:h-6" />,
+      iconColor: "text-cyan-400",
+      borderColor: "border-cyan-500",
+      bgColor: "bg-cyan-600/10",
+      iconBg: "bg-cyan-600/20",
     },
     {
       label: "En Reparación",
       value: repairCount,
-      icon: <Wrench className="w-6 h-6" />,
-      color: "from-yellow-600 to-yellow-700",
-      textColor: "text-yellow-400",
+      icon: <Wrench className="w-5 h-5 md:w-6 md:h-6" />,
+      iconColor: "text-yellow-400",
+      borderColor: "border-yellow-500",
+      bgColor: "bg-yellow-600/10",
+      iconBg: "bg-yellow-600/20",
     },
     {
       label: "Reparados",
       value: repairedCount,
-      icon: <CheckCircle className="w-6 h-6" />,
-      color: "from-green-600 to-green-700",
-      textColor: "text-green-400",
+      icon: <CheckCircle className="w-5 h-5 md:w-6 md:h-6" />,
+      iconColor: "text-green-400",
+      borderColor: "border-green-500",
+      bgColor: "bg-green-600/10",
+      iconBg: "bg-green-600/20",
       highlight: repairedCount > 0,
     },
     {
       label: "Entregados",
       value: deliveredCount,
-      icon: <Truck className="w-6 h-6" />,
-      color: "from-purple-600 to-purple-700",
-      textColor: "text-purple-400",
+      icon: <Truck className="w-5 h-5 md:w-6 md:h-6" />,
+      iconColor: "text-purple-400",
+      borderColor: "border-purple-500",
+      bgColor: "bg-purple-600/10",
+      iconBg: "bg-purple-600/20",
     },
   ];
 
@@ -193,7 +217,7 @@ export default function EquiposPage() {
       <div className="card-dark p-4 md:p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700">
+            <div className="p-3 rounded-lg bg-linear-to-br from-blue-600 to-blue-700">
               <Laptop className="w-6 h-6 md:w-8 md:h-8 text-white" />
             </div>
             <div>
@@ -211,7 +235,9 @@ export default function EquiposPage() {
               className="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors"
               title="Actualizar lista"
             >
-              <RefreshCw className={`w-5 h-5 ${isLoading ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`w-5 h-5 ${isLoading ? "animate-spin" : ""}`}
+              />
             </button>
             {userRole === "ADMINISTRADOR" && (
               <button
@@ -231,20 +257,22 @@ export default function EquiposPage() {
         {stats.map((stat, index) => (
           <div
             key={index}
-            className={`card-dark p-3 md:p-4 ${
+            className={`card-dark p-3 md:p-4 hover-lift border-2 ${
+              stat.borderColor
+            } ${stat.bgColor} ${
               stat.highlight ? "ring-2 ring-green-500/50 animate-pulse" : ""
             }`}
           >
-            <div className="flex items-center gap-3">
-              <div
-                className={`p-2 rounded-lg bg-gradient-to-br ${stat.color} text-white`}
-              >
-                {stat.icon}
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className={`p-2 md:p-3 rounded-lg ${stat.iconBg} shrink-0`}>
+                <span className={stat.iconColor}>{stat.icon}</span>
               </div>
-              <div>
-                <p className="text-xs text-slate-400">{stat.label}</p>
-                <p className={`text-xl md:text-2xl font-bold ${stat.textColor}`}>
+              <div className="min-w-0">
+                <h3 className="text-lg md:text-2xl font-bold text-slate-100">
                   {stat.value}
+                </h3>
+                <p className="text-xs md:text-sm text-slate-400 truncate">
+                  {stat.label}
                 </p>
               </div>
             </div>
@@ -259,8 +287,8 @@ export default function EquiposPage() {
         onFiltersChange={updateFilters}
         onEdit={handleOpenEdit}
         onDelete={handleOpenDelete}
-        onView={handleOpenView}
-        onManageStatus={handleOpenStatus}
+        onView={handleOpenManage}
+        onManageStatus={handleOpenManage}
         isLoading={isLoading}
         userRole={userRole}
       />
@@ -306,161 +334,13 @@ export default function EquiposPage() {
         </div>
       )}
 
-      {/* View Modal */}
-      {modalType === "view" && selectedEquipment && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
-            {/* Header */}
-            <div className="p-4 md:p-6 border-b border-slate-700">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg md:text-xl font-bold text-slate-100">
-                    Detalles del Equipo
-                  </h2>
-                  <p className="text-sm text-slate-400 font-mono mt-1">
-                    {selectedEquipment.code}
-                  </p>
-                </div>
-                <button
-                  onClick={handleCloseModal}
-                  className="p-2 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
-              {/* Cliente */}
-              {selectedEquipment.customer && (
-                <div className="glass-dark p-4 rounded-lg border border-slate-600">
-                  <h3 className="text-sm font-medium text-slate-200 mb-2 flex items-center gap-2">
-                    <User className="w-4 h-4 text-purple-400" />
-                    Cliente
-                  </h3>
-                  <p className="text-slate-100 font-medium">
-                    {selectedEquipment.customer.name}
-                  </p>
-                  <p className="text-sm text-slate-400 flex items-center gap-1 mt-1">
-                    <Phone className="w-3 h-3" />
-                    +51 {formatPhone(selectedEquipment.customer.phone)}
-                  </p>
-                </div>
-              )}
-
-              {/* Equipo Info */}
-              <div className="glass-dark p-4 rounded-lg border border-slate-600">
-                <h3 className="text-sm font-medium text-slate-200 mb-3 flex items-center gap-2">
-                  <Laptop className="w-4 h-4 text-blue-400" />
-                  Información del Equipo
-                </h3>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="text-slate-500">Tipo:</span>
-                    <p className="text-slate-200">{selectedEquipment.type}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Marca:</span>
-                    <p className="text-slate-200">{selectedEquipment.brand || "-"}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Modelo:</span>
-                    <p className="text-slate-200">{selectedEquipment.model || "-"}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">N° Serie:</span>
-                    <p className="text-slate-200 font-mono text-xs">
-                      {selectedEquipment.serialNumber || "-"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Servicio */}
-              <div className="glass-dark p-4 rounded-lg border border-slate-600">
-                <h3 className="text-sm font-medium text-slate-200 mb-3 flex items-center gap-2">
-                  <Wrench className="w-4 h-4 text-yellow-400" />
-                  Servicio
-                </h3>
-                <div className="space-y-3 text-sm">
-                  <div>
-                    <span className="text-slate-500">Falla Reportada:</span>
-                    <p className="text-slate-200 mt-1">
-                      {selectedEquipment.reportedFlaw}
-                    </p>
-                  </div>
-                  {selectedEquipment.serviceType && (
-                    <div>
-                      <span className="text-slate-500">Tipo de Servicio:</span>
-                      <p className="text-slate-200">{selectedEquipment.serviceType}</p>
-                    </div>
-                  )}
-                  {selectedEquipment.accessories && (
-                    <div>
-                      <span className="text-slate-500">Accesorios:</span>
-                      <p className="text-slate-200">{selectedEquipment.accessories}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Estado y Fechas */}
-              <div className="glass-dark p-4 rounded-lg border border-slate-600">
-                <h3 className="text-sm font-medium text-slate-200 mb-3 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-green-400" />
-                  Estado y Fechas
-                </h3>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="text-slate-500">Estado:</span>
-                    <p className="text-slate-200">{selectedEquipment.status}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Técnico:</span>
-                    <p className="text-slate-200">
-                      {selectedEquipment.assignedTechnician?.name || "Sin asignar"}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Fecha Ingreso:</span>
-                    <p className="text-slate-200">
-                      {new Date(selectedEquipment.entryDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                  {selectedEquipment.deliveryDate && (
-                    <div>
-                      <span className="text-slate-500">Fecha Entrega:</span>
-                      <p className="text-slate-200">
-                        {new Date(selectedEquipment.deliveryDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="p-4 md:p-6 border-t border-slate-700">
-              <button
-                onClick={handleCloseModal}
-                className="w-full bg-slate-700 hover:bg-slate-600 text-slate-100 py-3 px-4 rounded-xl transition-colors"
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Status Manager Modal */}
-      {modalType === "status" && selectedEquipment && (
-        <StatusManager
-          equipment={selectedEquipment}
+      {/* Manage Modal - Modal completo de gestión */}
+      {modalType === "manage" && displayEquipment && (
+        <EquipmentManageFullModal
+          equipment={displayEquipment}
           userRole={userRole}
-          onStatusChange={handleStatusChange}
           onClose={handleCloseModal}
-          isLoading={isChangingStatus}
+          onSuccess={handleManageSuccess}
         />
       )}
 
@@ -468,7 +348,11 @@ export default function EquiposPage() {
       <ConfirmModal
         isOpen={modalType === "delete" && selectedEquipment !== null}
         title="Eliminar Equipo"
-        message={selectedEquipment ? `¿Estás seguro de que deseas eliminar el equipo ${selectedEquipment.code}? Esta acción no se puede deshacer.` : ""}
+        message={
+          selectedEquipment
+            ? `¿Estás seguro de que deseas eliminar el equipo ${selectedEquipment.code}? Esta acción no se puede deshacer.`
+            : ""
+        }
         confirmLabel="Eliminar"
         cancelLabel="Cancelar"
         onConfirm={handleDeleteConfirm}

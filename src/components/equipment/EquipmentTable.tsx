@@ -20,6 +20,7 @@ import {
   Settings,
   AlertTriangle,
   Bell,
+  UserCog,
 } from "lucide-react";
 import { formatPhone } from "@/lib/validations/client";
 import type {
@@ -170,6 +171,14 @@ function EquipmentCard({
         </div>
       )}
 
+      {/* Técnico Asignado */}
+      <div className="flex items-center gap-2 text-sm">
+        <UserCog className="w-4 h-4 text-cyan-400 shrink-0" />
+        <span className={equipment.assignedTechnician ? "text-slate-300" : "text-slate-500 italic"}>
+          {equipment.assignedTechnician?.name || "Sin técnico asignado"}
+        </span>
+      </div>
+
       {/* Falla Reportada */}
       <div className="flex items-start gap-2 text-sm">
         <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
@@ -190,39 +199,22 @@ function EquipmentCard({
         )}
       </div>
 
-      {/* Actions */}
+      {/* Actions - Simplificado */}
       <div className="flex items-center gap-2 pt-2 border-t border-slate-700">
         <button
-          onClick={onView}
-          className="flex-1 flex items-center justify-center gap-1 py-2 px-2 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 hover:text-blue-300 transition-colors border border-blue-600/30 text-xs"
-        >
-          <Eye className="w-3 h-3" />
-          <span>Ver</span>
-        </button>
-        <button
           onClick={onManageStatus}
-          className="flex-1 flex items-center justify-center gap-1 py-2 px-2 rounded-lg bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-400 hover:text-yellow-300 transition-colors border border-yellow-600/30 text-xs"
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 hover:text-blue-300 transition-colors border border-blue-600/30 text-sm font-medium"
         >
-          <Settings className="w-3 h-3" />
-          <span>Estado</span>
+          <Settings className="w-4 h-4" />
+          <span>Gestionar</span>
         </button>
         {userRole === "ADMINISTRADOR" && (
-          <>
-            <button
-              onClick={onEdit}
-              className="flex-1 flex items-center justify-center gap-1 py-2 px-2 rounded-lg bg-green-600/20 hover:bg-green-600/30 text-green-400 hover:text-green-300 transition-colors border border-green-600/30 text-xs"
-            >
-              <Edit3 className="w-3 h-3" />
-              <span>Editar</span>
-            </button>
-            <button
-              onClick={onDelete}
-              className="flex-1 flex items-center justify-center gap-1 py-2 px-2 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 transition-colors border border-red-600/30 text-xs"
-            >
-              <Trash2 className="w-3 h-3" />
-              <span>Eliminar</span>
-            </button>
-          </>
+          <button
+            onClick={onDelete}
+            className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 transition-colors border border-red-600/30 text-sm"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         )}
       </div>
     </div>
@@ -327,40 +319,24 @@ function EquipmentRow({
         </span>
       </td>
 
-      {/* Acciones */}
+      {/* Acciones - Simplificado */}
       <td className="px-4 lg:px-6 py-4">
         <div className="flex items-center justify-center gap-2">
           <button
-            onClick={onView}
-            className="p-2 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 hover:text-blue-300 transition-colors border border-blue-600/30"
-            title="Ver detalles"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-          <button
             onClick={onManageStatus}
-            className="p-2 rounded-lg bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-400 hover:text-yellow-300 transition-colors border border-yellow-600/30"
-            title="Gestionar estado"
+            className="p-2 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 hover:text-blue-300 transition-colors border border-blue-600/30"
+            title="Gestionar equipo"
           >
             <Settings className="w-4 h-4" />
           </button>
           {userRole === "ADMINISTRADOR" && (
-            <>
-              <button
-                onClick={onEdit}
-                className="p-2 rounded-lg bg-green-600/20 hover:bg-green-600/30 text-green-400 hover:text-green-300 transition-colors border border-green-600/30"
-                title="Editar equipo"
-              >
-                <Edit3 className="w-4 h-4" />
-              </button>
-              <button
-                onClick={onDelete}
-                className="p-2 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 transition-colors border border-red-600/30"
-                title="Eliminar equipo"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </>
+            <button
+              onClick={onDelete}
+              className="p-2 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 transition-colors border border-red-600/30"
+              title="Eliminar equipo"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
           )}
         </div>
       </td>

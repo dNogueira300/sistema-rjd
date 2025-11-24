@@ -3,6 +3,22 @@
 // Importar enums del schema Prisma
 export type EquipmentType = "PC" | "LAPTOP" | "PRINTER" | "PLOTTER" | "OTHER";
 export type EquipmentStatus = "RECEIVED" | "REPAIR" | "REPAIRED" | "DELIVERED" | "CANCELLED";
+export type PaymentMethod = "CASH" | "YAPE" | "PLIN" | "TRANSFER";
+export type PaymentStatus = "PENDING" | "PARTIAL" | "COMPLETED";
+export type VoucherType = "RECEIPT" | "INVOICE" | "DELIVERY_NOTE";
+
+export interface Payment {
+  id: string;
+  equipmentId: string;
+  totalAmount: number;
+  advanceAmount: number;
+  remainingAmount: number;
+  paymentDate: Date;
+  paymentMethod: PaymentMethod;
+  voucherType: VoucherType;
+  paymentStatus: PaymentStatus;
+  observations: string | null;
+}
 
 export interface Equipment {
   id: string;
@@ -33,6 +49,7 @@ export interface Equipment {
     email: string;
   } | null;
   statusHistory?: EquipmentStatusHistoryItem[];
+  payments?: Payment[];
 }
 
 export interface EquipmentStatusHistoryItem {
@@ -173,4 +190,19 @@ export const EQUIPMENT_STATUS_COLORS: Record<EquipmentStatus, string> = {
   REPAIRED: "bg-green-600/20 text-green-400 border-green-600/30",
   DELIVERED: "bg-purple-600/20 text-purple-400 border-purple-600/30",
   CANCELLED: "bg-red-600/20 text-red-400 border-red-600/30",
+};
+
+// Labels para métodos de pago
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  CASH: "Efectivo",
+  YAPE: "Yape",
+  PLIN: "Plin",
+  TRANSFER: "Transferencia",
+};
+
+// Labels para estado de pago
+export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  PENDING: "Pendiente",
+  PARTIAL: "Parcial",
+  COMPLETED: "Pagado",
 };

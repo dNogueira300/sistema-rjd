@@ -8,7 +8,18 @@ import {
   equipmentFiltersSchema,
   generateEquipmentCode,
 } from "@/lib/validations/equipment";
-import type { Equipment, EquipmentType, EquipmentStatus } from "@/types/equipment";
+import type { Equipment, EquipmentType, EquipmentStatus, PaymentMethod } from "@/types/equipment";
+import { z } from "zod";
+
+// Schema extendido para incluir técnico y pago
+const createEquipmentWithExtrasSchema = createEquipmentSchema.extend({
+  assignedTechnicianId: z.string().cuid().optional().nullable(),
+  payment: z.object({
+    type: z.enum(["none", "advance", "full"]),
+    amount: z.number().min(0),
+    method: z.enum(["CASH", "YAPE", "PLIN", "TRANSFER"]),
+  }).optional(),
+});
 
 // Tipo para el resultado de Prisma
 interface PrismaEquipmentResult {
@@ -68,8 +79,8 @@ export async function GET(request: NextRequest) {
     // Construir condiciones de filtro
     type WhereCondition = {
       OR?: Array<Record<string, unknown>>;
-      status?: string;
-      type?: string;
+      status?: EquipmentStatus;
+      type?: EquipmentType;
       assignedTechnicianId?: string;
     };
 
@@ -108,12 +119,12 @@ export async function GET(request: NextRequest) {
 
     // Filtrar por estado si no es ALL
     if (status !== "ALL") {
-      where.status = status;
+      where.status = status as EquipmentStatus;
     }
 
     // Filtrar por tipo si no es ALL
     if (type !== "ALL") {
-      where.type = type;
+      where.type = type as EquipmentType;
     }
 
     // Construir ordenamiento
@@ -230,8 +241,8 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    // Validar datos de entrada
-    const validatedData = createEquipmentSchema.parse(body);
+    // Validar datos de entrada (incluyendo extras opcionales)
+    const validatedData = createEquipmentWithExtrasSchema.parse(body);
 
     // Verificar que el cliente existe
     const customer = await prisma.customer.findUnique({
@@ -266,7 +277,7 @@ export async function POST(request: NextRequest) {
       return lastEquipment?.code || null;
     });
 
-    // Crear equipo
+    // Crear equipo con técnico asignado si se proporcionó
     const equipment = await prisma.equipment.create({
       data: {
         code,
@@ -279,6 +290,7 @@ export async function POST(request: NextRequest) {
         serviceType: validatedData.serviceType || null,
         status: "RECEIVED",
         customerId: validatedData.customerId,
+        assignedTechnicianId: validatedData.assignedTechnicianId || null,
       },
       include: {
         customer: {
@@ -286,6 +298,13 @@ export async function POST(request: NextRequest) {
             id: true,
             name: true,
             phone: true,
+          },
+        },
+        assignedTechnician: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
           },
         },
       },
@@ -300,6 +319,24 @@ export async function POST(request: NextRequest) {
         changedBy: session.user.id,
       },
     });
+
+    // Crear pago si se proporcionó
+    if (validatedData.payment && validatedData.payment.type !== "none" && validatedData.payment.amount > 0) {
+      const paymentAmount = validatedData.payment.amount;
+      const isFullPayment = validatedData.payment.type === "full";
+
+      await prisma.payment.create({
+        data: {
+          equipmentId: equipment.id,
+          totalAmount: paymentAmount,
+          advanceAmount: isFullPayment ? paymentAmount : paymentAmount,
+          remainingAmount: isFullPayment ? 0 : 0, // Si es adelanto, el total real se definirá después
+          paymentMethod: validatedData.payment.method as PaymentMethod,
+          voucherType: "RECEIPT",
+          paymentStatus: isFullPayment ? "COMPLETED" : "PARTIAL",
+        },
+      });
+    }
 
     // Formatear respuesta
     const formattedEquipment: Equipment = {
@@ -320,6 +357,7 @@ export async function POST(request: NextRequest) {
       customerId: equipment.customerId,
       assignedTechnicianId: equipment.assignedTechnicianId,
       customer: equipment.customer,
+      assignedTechnician: equipment.assignedTechnician,
     };
 
     return NextResponse.json({ equipment: formattedEquipment }, { status: 201 });
