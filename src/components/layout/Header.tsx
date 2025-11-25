@@ -6,8 +6,11 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 
 export default function Header() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
+
+  // Determinar el rol del usuario para mostrar
+  const userRole = session?.user?.role === "ADMINISTRADOR" ? "Administrador" : "Técnico";
 
   return (
     <header
@@ -58,9 +61,9 @@ export default function Header() {
             </div>
             <div className="hidden sm:block">
               <p className="text-sm font-medium text-slate-100 truncate max-w-[120px] md:max-w-[200px]">
-                {session?.user?.email || "Usuario"}
+                {status === "loading" ? "Cargando..." : session?.user?.email || "Usuario"}
               </p>
-              <p className="text-xs text-slate-400">Administrador</p>
+              <p className="text-xs text-slate-400">{status === "loading" ? "..." : userRole}</p>
             </div>
           </div>
         </div>

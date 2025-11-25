@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./custom-styles.css";
 import { Providers } from "./providers";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Sistema RJD - Control Interno",
@@ -21,17 +23,21 @@ export const viewport: Viewport = {
   themeColor: "#1e293b",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // CRÍTICO: Obtener la sesión del servidor para hidratar el SessionProvider
+  // Esto previene la pérdida de datos de sesión (incluyendo role) en refreshes
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="es" className="dark">
       <body
         className="font-sans antialiased bg-slate-900 text-slate-100"
       >
-        <Providers session={null}>{children}</Providers>
+        <Providers session={session}>{children}</Providers>
       </body>
     </html>
   );

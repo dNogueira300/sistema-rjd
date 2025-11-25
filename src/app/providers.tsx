@@ -2,7 +2,12 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { SessionProvider, signOut, useSession, getSession } from "next-auth/react";
+import {
+  SessionProvider,
+  signOut,
+  useSession,
+  getSession,
+} from "next-auth/react";
 import { Toaster, toast } from "sonner";
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { Session } from "next-auth";
@@ -109,7 +114,14 @@ function SessionManager({ children }: { children: React.ReactNode }) {
         document.removeEventListener(event, resetIdleTimer);
       });
     };
-  }, [session, status, resetIdleTimer, refreshSession, IDLE_TIMEOUT, SESSION_REFRESH_INTERVAL]);
+  }, [
+    session,
+    status,
+    resetIdleTimer,
+    refreshSession,
+    IDLE_TIMEOUT,
+    SESSION_REFRESH_INTERVAL,
+  ]);
 
   return <>{children}</>;
 }
@@ -137,7 +149,7 @@ export function Providers({ children, session }: ProvidersProps) {
           richColors
           expand={true}
           toastOptions={{
-            className: 'bg-slate-800 text-slate-100 border border-slate-700',
+            className: "bg-slate-800 text-slate-100 border border-slate-700",
           }}
         />
       </QueryClientProvider>
