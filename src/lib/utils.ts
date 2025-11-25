@@ -111,3 +111,40 @@ export const getEquipmentStatusText = (status: string) => {
       return status;
   }
 };
+
+// Calcular días transcurridos desde una fecha
+export const calculateDaysSince = (date: Date | string): number => {
+  const startDate = typeof date === "string" ? new Date(date) : date;
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - startDate.getTime());
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+};
+
+// Obtener badge de alerta según días en reparación
+export const getRepairTimeBadge = (
+  status: string,
+  entryDate: Date | string
+): { text: string; color: string; icon: string } | null => {
+  if (status !== "REPAIR") return null;
+
+  const days = calculateDaysSince(entryDate);
+
+  if (days > 14) {
+    return {
+      text: "🚨 Urgente",
+      color: "text-red-700 bg-red-100 border-red-300",
+      icon: "🚨",
+    };
+  }
+
+  if (days > 7) {
+    return {
+      text: "⚠️ Atención",
+      color: "text-yellow-700 bg-yellow-100 border-yellow-300",
+      icon: "⚠️",
+    };
+  }
+
+  return null;
+};

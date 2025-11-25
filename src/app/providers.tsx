@@ -17,7 +17,7 @@ function SessionManager({ children }: { children: React.ReactNode }) {
   const { data: session, status, update } = useSession();
   const idleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const lastActivityRef = useRef<number>(Date.now());
+  const lastActivityRef = useRef<number>(0);
   const IDLE_TIMEOUT = 60 * 60 * 1000; // 1 hora de inactividad para logout
   const SESSION_REFRESH_INTERVAL = 4 * 60 * 1000; // Refrescar sesión cada 4 minutos (antes de los 5 min de updateAge)
 
@@ -64,6 +64,11 @@ function SessionManager({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!session || status !== "authenticated") return;
+
+    // Inicializar lastActivityRef en el primer render
+    if (lastActivityRef.current === 0) {
+      lastActivityRef.current = Date.now();
+    }
 
     // Eventos que reinician el timer de inactividad
     const events = [
@@ -126,7 +131,15 @@ export function Providers({ children, session }: ProvidersProps) {
     <SessionProvider session={session}>
       <QueryClientProvider client={queryClient}>
         <SessionManager>{children}</SessionManager>
-        <Toaster position="top-right" theme="dark" richColors expand={true} />
+        <Toaster
+          position="top-right"
+          theme="dark"
+          richColors
+          expand={true}
+          toastOptions={{
+            className: 'bg-slate-800 text-slate-100 border border-slate-700',
+          }}
+        />
       </QueryClientProvider>
     </SessionProvider>
   );

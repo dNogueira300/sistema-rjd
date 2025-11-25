@@ -8,9 +8,7 @@ import {
   Printer,
   Package,
   Search,
-  Edit3,
   Trash2,
-  Eye,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -21,8 +19,11 @@ import {
   AlertTriangle,
   Bell,
   UserCog,
+  FileText,
 } from "lucide-react";
 import { formatPhone } from "@/lib/validations/client";
+import { getRepairTimeBadge } from "@/lib/utils";
+import { toast } from "sonner";
 import type {
   Equipment,
   EquipmentFilters,
@@ -41,6 +42,49 @@ interface EquipmentTableProps {
   isLoading?: boolean;
   userRole: "ADMINISTRADOR" | "TECNICO";
 }
+
+// Función para abrir comprobante en nueva pestaña
+const handleDownloadComprobante = async (equipmentId: string, code: string) => {
+  // Mostrar toast con spinner girando - estilo verde personalizado
+  const loadingToast = toast.loading("Generando comprobante...", {
+    description: `Preparando documento para ${code}`,
+    style: {
+      background: "rgb(6, 78, 59)", // green-900
+      color: "rgb(134, 239, 172)", // green-300
+      border: "1px solid rgb(22, 163, 74)", // green-600
+    },
+  });
+
+  try {
+    const response = await fetch(`/api/equipments/${equipmentId}/comprobante`);
+    if (!response.ok) throw new Error("Error al generar comprobante");
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    // Abrir en nueva pestaña para permitir imprimir o descargar
+    window.open(url, "_blank");
+
+    // Actualizar toast de éxito con duración de 2 segundos
+    toast.success("Comprobante generado correctamente", {
+      id: loadingToast,
+      description: `El documento se abrió en una nueva pestaña`,
+      duration: 2000,
+    });
+
+    // Limpiar el objeto URL después de un tiempo
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+    }, 100);
+  } catch (error) {
+    console.error("Error generando comprobante:", error);
+    toast.error("Error al generar el comprobante", {
+      id: loadingToast,
+      description: "Por favor, intenta nuevamente",
+      duration: 2000,
+    });
+  }
+};
 
 // Helper functions
 const getStatusColor = (status: EquipmentStatus) => {
@@ -109,9 +153,7 @@ const getTypeLabel = (type: EquipmentType) => {
 // Mobile Card Component
 function EquipmentCard({
   equipment,
-  onEdit,
   onDelete,
-  onView,
   onManageStatus,
   userRole,
 }: {
@@ -123,9 +165,14 @@ function EquipmentCard({
   userRole: "ADMINISTRADOR" | "TECNICO";
 }) {
   const isRepaired = equipment.status === "REPAIRED";
+  const timeBadge = getRepairTimeBadge(equipment.status, equipment.entryDate);
 
   return (
-    <div className={`card-dark p-4 space-y-4 ${isRepaired ? "ring-2 ring-green-500/50" : ""}`}>
+    <div
+      className={`card-dark p-4 space-y-4 ${
+        isRepaired ? "ring-2 ring-green-500/50" : ""
+      }`}
+    >
       {/* Header: Código y Estado */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -157,6 +204,13 @@ function EquipmentCard({
               <span>Listo</span>
             </div>
           )}
+          {timeBadge && (
+            <span
+              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${timeBadge.color}`}
+            >
+              {timeBadge.text}
+            </span>
+          )}
         </div>
       </div>
 
@@ -167,14 +221,22 @@ function EquipmentCard({
           <span className="truncate">{equipment.customer.name}</span>
           <span className="text-slate-500">|</span>
           <Phone className="w-3 h-3 text-slate-400 shrink-0" />
-          <span className="text-xs">+51 {formatPhone(equipment.customer.phone)}</span>
+          <span className="text-xs">
+            +51 {formatPhone(equipment.customer.phone)}
+          </span>
         </div>
       )}
 
       {/* Técnico Asignado */}
       <div className="flex items-center gap-2 text-sm">
         <UserCog className="w-4 h-4 text-cyan-400 shrink-0" />
-        <span className={equipment.assignedTechnician ? "text-slate-300" : "text-slate-500 italic"}>
+        <span
+          className={
+            equipment.assignedTechnician
+              ? "text-slate-300"
+              : "text-slate-500 italic"
+          }
+        >
           {equipment.assignedTechnician?.name || "Sin técnico asignado"}
         </span>
       </div>
@@ -194,7 +256,9 @@ function EquipmentCard({
         {equipment.assignedTechnician && (
           <div className="flex items-center gap-1 truncate">
             <User className="w-3 h-3" />
-            <span className="truncate">{equipment.assignedTechnician.name}</span>
+            <span className="truncate">
+              {equipment.assignedTechnician.name}
+            </span>
           </div>
         )}
       </div>
@@ -207,6 +271,15 @@ function EquipmentCard({
         >
           <Settings className="w-4 h-4" />
           <span>Gestionar</span>
+        </button>
+        <button
+          onClick={() =>
+            handleDownloadComprobante(equipment.id, equipment.code)
+          }
+          className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 hover:text-emerald-300 transition-colors border border-emerald-600/30 text-sm"
+          title="Generar comprobante"
+        >
+          <FileText className="w-4 h-4" />
         </button>
         {userRole === "ADMINISTRADOR" && (
           <button
@@ -224,9 +297,7 @@ function EquipmentCard({
 // Desktop Table Row Component
 function EquipmentRow({
   equipment,
-  onEdit,
   onDelete,
-  onView,
   onManageStatus,
   userRole,
 }: {
@@ -238,6 +309,7 @@ function EquipmentRow({
   userRole: "ADMINISTRADOR" | "TECNICO";
 }) {
   const isRepaired = equipment.status === "REPAIRED";
+  const timeBadge = getRepairTimeBadge(equipment.status, equipment.entryDate);
 
   return (
     <tr
@@ -257,6 +329,13 @@ function EquipmentRow({
               {isRepaired && (
                 <span title="Listo para entrega">
                   <Bell className="w-4 h-4 text-green-400 animate-pulse" />
+                </span>
+              )}
+              {timeBadge && (
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${timeBadge.color}`}
+                >
+                  {timeBadge.text}
                 </span>
               )}
             </div>
@@ -329,6 +408,15 @@ function EquipmentRow({
           >
             <Settings className="w-4 h-4" />
           </button>
+          <button
+            onClick={() =>
+              handleDownloadComprobante(equipment.id, equipment.code)
+            }
+            className="p-2 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 hover:text-emerald-300 transition-colors border border-emerald-600/30"
+            title="Generar comprobante"
+          >
+            <FileText className="w-4 h-4" />
+          </button>
           {userRole === "ADMINISTRADOR" && (
             <button
               onClick={onDelete}
@@ -398,7 +486,9 @@ export default function EquipmentTable({
   };
 
   // Contar equipos reparados
-  const repairedCount = equipments.filter((e) => e.status === "REPAIRED").length;
+  const repairedCount = equipments.filter(
+    (e) => e.status === "REPAIRED"
+  ).length;
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -441,7 +531,9 @@ export default function EquipmentTable({
           <select
             value={filters.status}
             onChange={(e) =>
-              handleStatusFilterChange(e.target.value as EquipmentFilters["status"])
+              handleStatusFilterChange(
+                e.target.value as EquipmentFilters["status"]
+              )
             }
             className="input-dark text-sm"
           >
@@ -503,7 +595,9 @@ export default function EquipmentTable({
             No se encontraron equipos
           </h3>
           <p className="text-slate-400 mb-6 text-sm md:text-base">
-            {filters.search || filters.status !== "ALL" || filters.type !== "ALL"
+            {filters.search ||
+            filters.status !== "ALL" ||
+            filters.type !== "ALL"
               ? "No hay equipos que coincidan con los filtros."
               : "Aún no has registrado ningún equipo."}
           </p>
@@ -541,7 +635,9 @@ export default function EquipmentTable({
                       </button>
                     </th>
                     <th className="px-4 lg:px-6 py-4 text-left">
-                      <div className="font-semibold text-slate-200">Cliente</div>
+                      <div className="font-semibold text-slate-200">
+                        Cliente
+                      </div>
                     </th>
                     <th className="px-4 lg:px-6 py-4 text-left hidden xl:table-cell">
                       <div className="font-semibold text-slate-200">Falla</div>
@@ -556,7 +652,9 @@ export default function EquipmentTable({
                       </button>
                     </th>
                     <th className="px-4 lg:px-6 py-4 text-left hidden lg:table-cell">
-                      <div className="font-semibold text-slate-200">Técnico</div>
+                      <div className="font-semibold text-slate-200">
+                        Técnico
+                      </div>
                     </th>
                     <th className="px-4 lg:px-6 py-4 text-left hidden xl:table-cell">
                       <button

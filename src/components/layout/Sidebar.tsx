@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { useEquipments } from "@/hooks/useEquipments";
 
 const menuItems = [
   {
@@ -27,6 +28,7 @@ const menuItems = [
     name: "Equipos",
     href: "/dashboard/equipos",
     icon: Laptop,
+    showBadge: true,
   },
   {
     name: "Clientes",
@@ -54,6 +56,14 @@ export default function Sidebar() {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
   const { isCollapsed, isMobile, closeSidebar } = useSidebar();
+
+  // Obtener equipos para contar los reparados
+  const { equipments } = useEquipments({
+    initialFilters: {
+      status: "REPAIRED",
+    },
+  });
+  const repairedCount = equipments?.length || 0;
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/auth/signin" });
@@ -146,6 +156,7 @@ export default function Sidebar() {
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
+              const showBadge = item.showBadge && repairedCount > 0;
 
               return (
                 <Link
@@ -153,7 +164,7 @@ export default function Sidebar() {
                   href={item.href}
                   onClick={handleNavClick}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200",
+                    "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 relative",
                     isCollapsed && !isMobile ? "justify-center" : "",
                     isActive
                       ? "bg-linear-to-r from-blue-600 to-green-600 text-white shadow-lg"
@@ -163,7 +174,12 @@ export default function Sidebar() {
                 >
                   <Icon className="w-5 h-5 shrink-0" />
                   {(!isCollapsed || isMobile) && (
-                    <span className="font-medium">{item.name}</span>
+                    <span className="font-medium flex-1">{item.name}</span>
+                  )}
+                  {showBadge && (
+                    <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-green-500 text-white text-xs font-bold animate-pulse">
+                      {repairedCount}
+                    </span>
                   )}
                 </Link>
               );

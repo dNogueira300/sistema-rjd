@@ -425,3 +425,26 @@
 .animate-slide-in {
     animation: slide-in-from-bottom 0.5s ease-out;
 }
+
+/* Spinner verde brillante más grande SOLO para toast de tipo loading */
+[data-sonner-toast][data-type="loading"] [data-icon] {
+    color: #10b981 !important;
+    width: 24px !important;
+    height: 24px !important;
+}
+
+[data-sonner-toast][data-type="loading"] [data-icon] svg {
+    color: #10b981 !important;
+    width: 24px !important;
+    height: 24px !important;
+    animation: spin 1s linear infinite !important;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
