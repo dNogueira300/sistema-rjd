@@ -25,9 +25,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Validar datos de entrada
     const validatedData = changeStatusSchema.parse(body);
 
-    // Verificar que el equipo existe
+    // Verificar que el equipo existe (incluir pagos)
     const equipment = await prisma.equipment.findUnique({
       where: { id },
+      include: {
+        payments: true,
+      },
     });
 
     if (!equipment) {
@@ -64,7 +67,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    // Los administradores pueden cambiar a cualquier estado libremente
+    // Validar que existe pago total antes de marcar como ENTREGADO
+    if (validatedData.newStatus === "DELIVERED") {
+      const hasCompletedPayment = equipment.payments?.some(
+        (payment) => payment.paymentStatus === "COMPLETED"
+      );
+
+      if (!hasCompletedPayment) {
+        return NextResponse.json(
+          { error: "No se puede marcar como entregado sin un pago total completado" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Los administradores pueden cambiar a cualquier estado libremente (con las validaciones anteriores)
 
     // Actualizar estado del equipo
     const updatedEquipment = await prisma.equipment.update({

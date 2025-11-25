@@ -14,6 +14,7 @@ import {
   X,
   Loader2,
   History,
+  AlertTriangle,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import type {
@@ -157,6 +158,11 @@ export default function StatusManager({
     return [];
   }, [equipment.status, userRole]);
 
+  // Verificar si hay pago completo
+  const hasCompletedPayment = equipment.payments?.some(
+    (payment) => payment.paymentStatus === "COMPLETED"
+  );
+
   const handleSubmit = useCallback(() => {
     if (!selectedStatus) return;
 
@@ -187,8 +193,12 @@ export default function StatusManager({
   const transitions = availableTransitions();
   const canChangeStatus = transitions.length > 0;
   const needsTechnician = selectedStatus === "REPAIR";
+  const needsPayment = selectedStatus === "DELIVERED" && !hasCompletedPayment;
   const isSubmitDisabled =
-    !selectedStatus || (needsTechnician && !selectedTechnician) || isLoading;
+    !selectedStatus ||
+    (needsTechnician && !selectedTechnician) ||
+    needsPayment ||
+    isLoading;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -305,6 +315,25 @@ export default function StatusManager({
                   Debe seleccionar un técnico para asignar el equipo
                 </p>
               )}
+            </div>
+          )}
+
+          {/* Advertencia de pago pendiente (solo si se cambia a DELIVERED sin pago) */}
+          {needsPayment && (
+            <div className="glass-dark p-4 rounded-lg border border-amber-600/30 bg-amber-600/10">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-amber-400 font-medium text-sm">
+                    Pago pendiente
+                  </p>
+                  <p className="text-amber-400/80 text-xs mt-1">
+                    No se puede marcar como entregado sin registrar un pago
+                    total completado. Por favor, registre el pago completo antes
+                    de cambiar el estado a entregado.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
