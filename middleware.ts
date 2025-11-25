@@ -6,14 +6,6 @@ export default withAuth(
     const { pathname } = req.nextUrl;
     const token = req.nextauth.token;
 
-    // DEBUG: Log para rastrear el problema del role en middleware
-    console.log("[Middleware]", {
-      pathname,
-      hasToken: !!token,
-      tokenRole: token?.role,
-      tokenSub: token?.sub,
-    });
-
     // Si está autenticado y está en rutas públicas, redirigir según rol
     if (
       token &&
@@ -21,7 +13,6 @@ export default withAuth(
         pathname === "/welcome" ||
         pathname === "/auth/signin")
     ) {
-      console.log("[Middleware] Redirigiendo usuario autenticado, role:", token.role);
       if (token.role === "ADMINISTRADOR") {
         return NextResponse.redirect(new URL("/dashboard", req.url));
       } else {
@@ -31,9 +22,7 @@ export default withAuth(
 
     // Control de acceso por roles para rutas administrativas
     if (token && pathname.startsWith("/admin")) {
-      console.log("[Middleware] Verificando acceso admin, role:", token.role);
       if (token.role !== "ADMINISTRADOR") {
-        console.log("[Middleware] Acceso denegado - role no es ADMINISTRADOR");
         return NextResponse.redirect(new URL("/unauthorized", req.url));
       }
     }
