@@ -155,15 +155,74 @@ export function useEquipments(options: UseEquipmentsOptions = {}) {
     gcTime: 300000, // 5 minutos
   });
 
-  // Mutation para crear equipo
+  // Mutation para crear equipo con optimistic update
   const createEquipmentMutation = useMutation({
     mutationFn: equipmentsAPI.createEquipment,
+    onMutate: async (newEquipment) => {
+      // Cancelar queries existentes para evitar conflictos
+      await queryClient.cancelQueries({ queryKey: ["equipments"] });
+
+      // Snapshot del estado anterior para rollback
+      const previousEquipments = queryClient.getQueryData<EquipmentResponse>([
+        "equipments",
+        filters,
+        currentPage,
+      ]);
+
+      // Actualización optimista: agregar equipo temporal a la UI
+      if (previousEquipments) {
+        const optimisticEquipment: Equipment = {
+          id: `temp-${Date.now()}`,
+          code: "GENERANDO...",
+          type: newEquipment.type,
+          brand: newEquipment.brand || null,
+          model: newEquipment.model || null,
+          serialNumber: newEquipment.serialNumber || null,
+          reportedFlaw: newEquipment.reportedFlaw,
+          accessories: newEquipment.accessories || null,
+          serviceType: newEquipment.serviceType || null,
+          others: newEquipment.others || null,
+          status: "RECEIVED",
+          entryDate: new Date(),
+          deliveryDate: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          customerId: newEquipment.customerId,
+          assignedTechnicianId: null,
+          customer: {
+            id: newEquipment.customerId,
+            name: "Cargando...",
+            phone: "",
+          },
+          assignedTechnician: null,
+        };
+
+        queryClient.setQueryData<EquipmentResponse>(
+          ["equipments", filters, currentPage],
+          {
+            ...previousEquipments,
+            equipments: [optimisticEquipment, ...previousEquipments.equipments],
+            total: previousEquipments.total + 1,
+          }
+        );
+      }
+
+      return { previousEquipments };
+    },
+    onError: (error: Error, _newEquipment, context) => {
+      // Rollback automático en caso de error
+      if (context?.previousEquipments) {
+        queryClient.setQueryData(
+          ["equipments", filters, currentPage],
+          context.previousEquipments
+        );
+      }
+      toast.error(error.message);
+    },
     onSuccess: () => {
+      // Solo invalidar queries necesarias
       queryClient.invalidateQueries({ queryKey: ["equipments"] });
       toast.success("Equipo registrado exitosamente");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
     },
   });
 
@@ -192,18 +251,66 @@ export function useEquipments(options: UseEquipmentsOptions = {}) {
     },
   });
 
-  // Mutation para cambiar estado
+  // Mutation para cambiar estado con optimistic update
   const changeStatusMutation = useMutation({
     mutationFn: equipmentsAPI.changeStatus,
+    onMutate: async (statusChange) => {
+      // Cancelar queries existentes
+      await queryClient.cancelQueries({ queryKey: ["equipments"] });
+      await queryClient.cancelQueries({
+        queryKey: ["equipment", statusChange.equipmentId],
+      });
+
+      // Snapshot para rollback
+      const previousEquipments = queryClient.getQueryData<EquipmentResponse>([
+        "equipments",
+        filters,
+        currentPage,
+      ]);
+
+      // Actualización optimista del estado en la lista
+      if (previousEquipments) {
+        const updatedEquipments = previousEquipments.equipments.map((eq) =>
+          eq.id === statusChange.equipmentId
+            ? {
+                ...eq,
+                status: statusChange.newStatus,
+                assignedTechnicianId:
+                  statusChange.assignedTechnicianId !== undefined
+                    ? statusChange.assignedTechnicianId
+                    : eq.assignedTechnicianId,
+              }
+            : eq
+        );
+
+        queryClient.setQueryData<EquipmentResponse>(
+          ["equipments", filters, currentPage],
+          {
+            ...previousEquipments,
+            equipments: updatedEquipments,
+          }
+        );
+      }
+
+      return { previousEquipments };
+    },
+    onError: (error: Error, _statusChange, context) => {
+      // Rollback automático
+      if (context?.previousEquipments) {
+        queryClient.setQueryData(
+          ["equipments", filters, currentPage],
+          context.previousEquipments
+        );
+      }
+      toast.error(error.message);
+    },
     onSuccess: (data) => {
+      // Invalidar queries específicas
       queryClient.invalidateQueries({ queryKey: ["equipments"] });
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
       queryClient.invalidateQueries({ queryKey: ["finance-metrics"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       toast.success(data.message || "Estado actualizado exitosamente");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
     },
   });
 

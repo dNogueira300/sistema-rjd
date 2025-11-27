@@ -32,6 +32,7 @@ interface PrismaEquipmentResult {
   reportedFlaw: string;
   accessories: string | null;
   serviceType: string | null;
+  others: string | null;
   status: EquipmentStatus;
   entryDate: Date;
   deliveryDate: Date | null;
@@ -146,14 +147,31 @@ export async function GET(request: NextRequest) {
         break;
     }
 
-    // Obtener equipos con relaciones
+    // Obtener equipos con select optimizado (solo campos necesarios para lista)
     const [equipments, total] = await Promise.all([
       prisma.equipment.findMany({
         where,
         orderBy,
         skip,
         take: limit,
-        include: {
+        select: {
+          id: true,
+          code: true,
+          type: true,
+          brand: true,
+          model: true,
+          serialNumber: true,
+          reportedFlaw: true,
+          accessories: true,
+          serviceType: true,
+          others: true,
+          status: true,
+          entryDate: true,
+          deliveryDate: true,
+          createdAt: true,
+          updatedAt: true,
+          customerId: true,
+          assignedTechnicianId: true,
           customer: {
             select: {
               id: true,
@@ -184,6 +202,7 @@ export async function GET(request: NextRequest) {
       reportedFlaw: eq.reportedFlaw,
       accessories: eq.accessories,
       serviceType: eq.serviceType,
+      others: eq.others,
       status: eq.status,
       entryDate: eq.entryDate,
       deliveryDate: eq.deliveryDate,
@@ -288,6 +307,7 @@ export async function POST(request: NextRequest) {
         reportedFlaw: validatedData.reportedFlaw,
         accessories: validatedData.accessories || null,
         serviceType: validatedData.serviceType || null,
+        others: validatedData.others || null,
         status: "RECEIVED",
         customerId: validatedData.customerId,
         assignedTechnicianId: validatedData.assignedTechnicianId || null,
@@ -349,6 +369,7 @@ export async function POST(request: NextRequest) {
       reportedFlaw: equipment.reportedFlaw,
       accessories: equipment.accessories,
       serviceType: equipment.serviceType,
+      others: equipment.others,
       status: equipment.status,
       entryDate: equipment.entryDate,
       deliveryDate: equipment.deliveryDate,

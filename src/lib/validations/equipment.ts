@@ -51,6 +51,12 @@ export const createEquipmentSchema = z.object({
     .max(100, "El tipo de servicio no puede exceder 100 caracteres")
     .optional()
     .or(z.literal("")),
+
+  others: z
+    .string()
+    .max(500, "La información adicional no puede exceder 500 caracteres")
+    .optional()
+    .or(z.literal("")),
 });
 
 export const updateEquipmentSchema = createEquipmentSchema

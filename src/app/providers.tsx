@@ -132,8 +132,12 @@ export function Providers({ children, session }: ProvidersProps) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000, // 1 minuto
-            gcTime: 5 * 60 * 1000, // 5 minutos
+            staleTime: 5 * 1000, // 5 segundos - datos frescos pero reduce refetch
+            gcTime: 5 * 60 * 1000, // 5 minutos - mantener en cache
+            refetchOnWindowFocus: false, // No refetch al cambiar de pestaña
+            refetchOnMount: false, // No refetch al montar si hay cache válido
+            retry: 1, // Solo 1 reintento en caso de error
+            retryDelay: 1000, // 1 segundo entre reintentos
           },
         },
       })

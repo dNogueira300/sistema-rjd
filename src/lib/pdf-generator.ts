@@ -177,6 +177,13 @@ export const generateComprobanteIngreso = (
     ? doc.splitTextToSize(equipment.accessories, pageWidth / 2 - margin - 10)
     : [];
   estimatedHeight += Math.max(6, accessoriesShortLines.length * 6);
+  // Fila 5: Otros (información adicional)
+  const othersLines = equipment.others
+    ? doc.splitTextToSize(equipment.others, pageWidth - 2 * margin - 15)
+    : [];
+  if (othersLines.length > 0) {
+    estimatedHeight += othersLines.length * 5 + 6;
+  }
   estimatedHeight += 5; // padding final
 
   // Dibujar contenedor PRIMERO
@@ -285,24 +292,24 @@ export const generateComprobanteIngreso = (
 
   switch (equipment.status) {
     case "RECEIVED":
-      statusBgColor = [213, 224, 246]; // bg-blue-600/20 mezclado con blanco
-      statusTextColor = [96, 165, 250]; // text-blue-400
+      statusBgColor = [213, 224, 246];
+      statusTextColor = [4, 86, 199];
       break;
     case "REPAIR":
-      statusBgColor = [250, 242, 204]; // bg-yellow-600/20 mezclado con blanco
-      statusTextColor = [250, 204, 21]; // text-yellow-400
+      statusBgColor = [250, 242, 204];
+      statusTextColor = [161, 144, 8];
       break;
     case "REPAIRED":
-      statusBgColor = [205, 240, 229]; // bg-green-600/20 mezclado con blanco
-      statusTextColor = [52, 211, 153]; // text-green-400
+      statusBgColor = [205, 240, 229];
+      statusTextColor = [6, 125, 38];
       break;
     case "DELIVERED":
-      statusBgColor = [234, 214, 250]; // bg-purple-600/20 mezclado con blanco
-      statusTextColor = [192, 132, 252]; // text-purple-400
+      statusBgColor = [234, 214, 250];
+      statusTextColor = [108, 14, 194];
       break;
     case "CANCELLED":
-      statusBgColor = [248, 215, 215]; // bg-red-600/20 mezclado con blanco
-      statusTextColor = [248, 113, 113]; // text-red-400
+      statusBgColor = [248, 215, 215];
+      statusTextColor = [189, 4, 4];
       break;
     default:
       statusBgColor = [234, 214, 250];
@@ -343,6 +350,21 @@ export const generateComprobanteIngreso = (
     currentY += Math.max(6, accessoriesShort.length * 6);
   } else {
     currentY += 6;
+  }
+
+  // FILA 5: Información Adicional (Otros) - ancho completo
+  if (equipment.others) {
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...mediumGray);
+    doc.text("Informacion Adicional:", col1X, currentY);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...black);
+    const othersFullWidth = doc.splitTextToSize(
+      equipment.others,
+      pageWidth - 2 * margin - 15
+    );
+    doc.text(othersFullWidth, col1X, currentY + 3);
+    currentY += othersFullWidth.length * 5 + 6;
   }
 
   yPos = equipmentSectionStartY + estimatedHeight + 8; // Espacio después del contenedor

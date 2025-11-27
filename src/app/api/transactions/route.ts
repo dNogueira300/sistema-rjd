@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
         ? filters.paymentMethod
         : undefined;
 
-    // Obtener Ingresos (Payments) - Excluyendo equipos cancelados
+    // Obtener Ingresos (Payments) con select optimizado - Excluyendo equipos cancelados
     const includeIncome = filters.type === "ALL" || filters.type === "INGRESO";
     const incomePromise = includeIncome
       ? prisma.payment.findMany({
@@ -73,9 +73,20 @@ export async function GET(request: NextRequest) {
               }),
             },
           },
-          include: {
+          select: {
+            id: true,
+            paymentDate: true,
+            totalAmount: true,
+            advanceAmount: true,
+            paymentMethod: true,
+            paymentStatus: true,
+            voucherType: true,
+            observations: true,
+            beneficiary: true,
             equipment: {
-              include: {
+              select: {
+                code: true,
+                serviceType: true,
                 customer: {
                   select: {
                     id: true,
@@ -92,7 +103,7 @@ export async function GET(request: NextRequest) {
         })
       : Promise.resolve([]);
 
-    // Obtener Egresos (Expenses)
+    // Obtener Egresos (Expenses) con select optimizado
     const includeExpenses = filters.type === "ALL" || filters.type === "EGRESO";
     const expensesPromise = includeExpenses
       ? prisma.expense.findMany({
@@ -107,6 +118,16 @@ export async function GET(request: NextRequest) {
                 { beneficiary: { contains: filters.search, mode: "insensitive" } },
               ],
             }),
+          },
+          select: {
+            id: true,
+            expenseDate: true,
+            description: true,
+            amount: true,
+            paymentMethod: true,
+            type: true,
+            observations: true,
+            beneficiary: true,
           },
           orderBy: {
             expenseDate:

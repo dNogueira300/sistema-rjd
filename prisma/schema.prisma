@@ -53,6 +53,10 @@ model Customer {
   equipments Equipment[]
 
   @@map("customers")
+
+  // Indices
+  @@index([name], name: "customer_name_idx")
+  @@index([phone], name: "customer_phone_idx")
 }
 
 model Equipment {
@@ -83,6 +87,14 @@ model Equipment {
   payments      Payment[]
 
   @@map("equipments")
+
+  // Indices
+  @@index([status, entryDate(sort: Desc)], name: "equipment_status_date_idx")
+  @@index([customerId], name: "equipment_customer_idx") 
+  @@index([assignedTechnicianId], name: "equipment_technician_idx")
+  @@index([status], name: "equipment_status_idx")
+  @@index([entryDate(sort: Desc)], name: "equipment_date_idx")
+  @@index([code], name: "equipment_code_idx")
 }
 
 model EquipmentStatusHistory {
@@ -95,6 +107,10 @@ model EquipmentStatusHistory {
   changedAt   DateTime        @default(now())
 
   @@map("equipment_status_history")
+
+  // Indices
+  @@index([equipmentId, changedAt(sort: Desc)], name: "history_equipment_date_idx")
+  @@index([changedAt(sort: Desc)], name: "history_date_idx")
 }
 
 enum EquipmentType {
@@ -132,6 +148,12 @@ model Payment {
   updatedAt        DateTime      @updatedAt
 
   @@map("payments")
+
+  // Indices
+  @@index([equipmentId], name: "payment_equipment_idx")
+  @@index([paymentDate(sort: Desc)], name: "payment_date_idx") 
+  @@index([paymentStatus], name: "payment_status_idx")
+  @@index([paymentDate, paymentStatus], name: "payment_date_status_idx")
 }
 
 enum PaymentMethod {
@@ -167,6 +189,12 @@ model Expense {
   updatedAt     DateTime      @updatedAt
 
   @@map("expenses")
+
+  // Indices
+  @@index([expenseDate(sort: Desc)], name: "expense_date_idx")
+  @@index([type], name: "expense_type_idx")
+  @@index([beneficiary], name: "expense_beneficiary_idx") 
+  @@index([type, expenseDate], name: "expense_type_date_idx")
 }
 
 enum ExpenseType {

@@ -184,7 +184,9 @@ export default function EquipmentForm({
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Customer[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null
+  );
   const [isCreatingClient, setIsCreatingClient] = useState(false);
 
   // Estado del formulario de nuevo cliente
@@ -193,7 +195,9 @@ export default function EquipmentForm({
     phone: "",
     ruc: "",
   });
-  const [clientTouched, setClientTouched] = useState<Record<string, boolean>>({});
+  const [clientTouched, setClientTouched] = useState<Record<string, boolean>>(
+    {}
+  );
 
   // Estado de técnicos
   const [technicians, setTechnicians] = useState<Technician[]>([]);
@@ -246,7 +250,9 @@ export default function EquipmentForm({
     const loadTechnicians = async () => {
       setIsLoadingTechnicians(true);
       try {
-        const response = await apiFetch("/api/tecnicos?status=ACTIVE&limit=100");
+        const response = await apiFetch(
+          "/api/tecnicos?status=ACTIVE&limit=100"
+        );
         if (response.ok) {
           const data = await response.json();
           setTechnicians(data.technicians || []);
@@ -292,8 +298,9 @@ export default function EquipmentForm({
     // Check if serviceType is custom (not in the predefined list or is "Otro")
     if (equipment?.serviceType) {
       const availableServices = serviceTypes[equipment.type] || [];
-      const isCustomService = !availableServices.includes(equipment.serviceType) ||
-                              equipment.serviceType === "Otro";
+      const isCustomService =
+        !availableServices.includes(equipment.serviceType) ||
+        equipment.serviceType === "Otro";
       if (isCustomService && equipment.serviceType !== "Otro") {
         setCustomServiceType(equipment.serviceType);
         setIsOtroSelected(true);
@@ -488,20 +495,17 @@ export default function EquipmentForm({
   }, []);
 
   // Handler para cambio de tipo de servicio
-  const handleServiceTypeChange = useCallback(
-    (value: string) => {
-      if (value === "Otro") {
-        setIsOtroSelected(true);
-        setFormData((prev) => ({ ...prev, serviceType: "" }));
-        setCustomServiceType("");
-      } else {
-        setIsOtroSelected(false);
-        setFormData((prev) => ({ ...prev, serviceType: value }));
-        setCustomServiceType("");
-      }
-    },
-    []
-  );
+  const handleServiceTypeChange = useCallback((value: string) => {
+    if (value === "Otro") {
+      setIsOtroSelected(true);
+      setFormData((prev) => ({ ...prev, serviceType: "" }));
+      setCustomServiceType("");
+    } else {
+      setIsOtroSelected(false);
+      setFormData((prev) => ({ ...prev, serviceType: value }));
+      setCustomServiceType("");
+    }
+  }, []);
 
   // Navegación entre pasos
   const handleNextStep = useCallback(
@@ -558,7 +562,9 @@ export default function EquipmentForm({
             : formData.serviceType,
       };
 
-      const allFields = Object.keys(finalFormData) as (keyof CreateEquipmentData)[];
+      const allFields = Object.keys(
+        finalFormData
+      ) as (keyof CreateEquipmentData)[];
       const allTouched = allFields.reduce(
         (acc, field) => ({ ...acc, [field]: true }),
         {}
@@ -566,7 +572,9 @@ export default function EquipmentForm({
       setTouched(allTouched);
 
       try {
-        const schema = isEditing ? updateEquipmentSchema : createEquipmentSchema;
+        const schema = isEditing
+          ? updateEquipmentSchema
+          : createEquipmentSchema;
         const validatedData = schema.parse(finalFormData);
 
         // Incluir datos extra (técnico y pago)
@@ -611,20 +619,29 @@ export default function EquipmentForm({
         }
       }
     },
-    [formData, customServiceType, isEditing, onSubmit, selectedTechnicianId, paymentData]
+    [
+      formData,
+      customServiceType,
+      isEditing,
+      onSubmit,
+      selectedTechnicianId,
+      paymentData,
+    ]
   );
 
   // Validaciones
   const isStep1Valid = !!selectedCustomer || !!formData.customerId;
   // Paso 2 válido si hay descripción de falla (mínimo 1 caracter para avanzar, la validación completa se hace al submit)
-  const isStep2Valid = !!formData.reportedFlaw && formData.reportedFlaw.trim().length > 0;
+  const isStep2Valid =
+    !!formData.reportedFlaw && formData.reportedFlaw.trim().length > 0;
   const isClientFormValid =
     clientMode === "create" &&
     newClientData.name &&
     newClientData.phone &&
     Object.keys(clientErrors).length === 0;
   const hasErrors = Object.keys(errors).length > 0;
-  const isFormValid = !hasErrors && formData.customerId && formData.reportedFlaw;
+  const isFormValid =
+    !hasErrors && formData.customerId && formData.reportedFlaw;
   const availableServices = serviceTypes[formData.type] || [];
   // Solo mostrar input personalizado cuando se selecciona "Otro" explícitamente
   const showCustomServiceInput = isOtroSelected;
@@ -833,19 +850,23 @@ export default function EquipmentForm({
                         </div>
                       )}
 
-                      {searchQuery && !isSearching && searchResults.length === 0 && (
-                        <div className="text-center py-6">
-                          <User className="w-10 h-10 text-slate-600 mx-auto mb-2" />
-                          <p className="text-slate-400">No se encontraron clientes</p>
-                          <button
-                            type="button"
-                            onClick={() => setClientMode("create")}
-                            className="mt-2 text-blue-400 hover:text-blue-300 text-sm"
-                          >
-                            Crear nuevo cliente →
-                          </button>
-                        </div>
-                      )}
+                      {searchQuery &&
+                        !isSearching &&
+                        searchResults.length === 0 && (
+                          <div className="text-center py-6">
+                            <User className="w-10 h-10 text-slate-600 mx-auto mb-2" />
+                            <p className="text-slate-400">
+                              No se encontraron clientes
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => setClientMode("create")}
+                              className="mt-2 text-blue-400 hover:text-blue-300 text-sm"
+                            >
+                              Crear nuevo cliente →
+                            </button>
+                          </div>
+                        )}
 
                       {!searchQuery && (
                         <p className="text-sm text-slate-500 text-center py-4">
@@ -866,14 +887,20 @@ export default function EquipmentForm({
                         <input
                           type="text"
                           value={newClientData.name}
-                          onChange={(e) => handleClientInputChange("name", e.target.value)}
+                          onChange={(e) =>
+                            handleClientInputChange("name", e.target.value)
+                          }
                           onBlur={() => handleClientBlur("name")}
-                          className={`input-dark w-full ${clientErrors.name ? "border-red-500" : ""}`}
+                          className={`input-dark w-full ${
+                            clientErrors.name ? "border-red-500" : ""
+                          }`}
                           placeholder="Ingresa el nombre completo"
                           disabled={isCreatingClient}
                         />
                         {clientErrors.name && (
-                          <p className="text-red-400 text-xs mt-1">{clientErrors.name}</p>
+                          <p className="text-red-400 text-xs mt-1">
+                            {clientErrors.name}
+                          </p>
                         )}
                       </div>
 
@@ -886,16 +913,24 @@ export default function EquipmentForm({
                           <span className="input-group-prefix">+51</span>
                           <input
                             type="tel"
-                            value={newClientData.phone ? formatPhone(newClientData.phone) : ""}
+                            value={
+                              newClientData.phone
+                                ? formatPhone(newClientData.phone)
+                                : ""
+                            }
                             onChange={(e) => handlePhoneChange(e.target.value)}
                             onBlur={() => handleClientBlur("phone")}
-                            className={`input-group-input ${clientErrors.phone ? "border-red-500" : ""}`}
+                            className={`input-group-input ${
+                              clientErrors.phone ? "border-red-500" : ""
+                            }`}
                             placeholder="987 654 321"
                             disabled={isCreatingClient}
                           />
                         </div>
                         {clientErrors.phone && (
-                          <p className="text-red-400 text-xs mt-1">{clientErrors.phone}</p>
+                          <p className="text-red-400 text-xs mt-1">
+                            {clientErrors.phone}
+                          </p>
                         )}
                       </div>
 
@@ -906,10 +941,16 @@ export default function EquipmentForm({
                         </label>
                         <input
                           type="text"
-                          value={newClientData.ruc ? formatRUC(newClientData.ruc) : ""}
+                          value={
+                            newClientData.ruc
+                              ? formatRUC(newClientData.ruc)
+                              : ""
+                          }
                           onChange={(e) => handleRUCChange(e.target.value)}
                           onBlur={() => handleClientBlur("ruc")}
-                          className={`input-dark w-full ${clientErrors.ruc ? "border-red-500" : ""}`}
+                          className={`input-dark w-full ${
+                            clientErrors.ruc ? "border-red-500" : ""
+                          }`}
                           placeholder="10 o 20 + 9 dígitos"
                           disabled={isCreatingClient}
                         />
@@ -976,22 +1017,26 @@ export default function EquipmentForm({
                   <span>Tipo de Equipo *</span>
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                  {(Object.keys(equipmentTypeLabels) as EquipmentType[]).map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => handleTypeChange(type)}
-                      disabled={isLoading}
-                      className={`p-3 rounded-lg border transition-all flex flex-col items-center gap-2 ${
-                        formData.type === type
-                          ? "bg-blue-600/20 border-blue-500 text-blue-300"
-                          : "bg-slate-800/50 border-slate-600 text-slate-400 hover:border-slate-500"
-                      }`}
-                    >
-                      {getEquipmentTypeIcon(type)}
-                      <span className="text-xs font-medium">{equipmentTypeLabels[type]}</span>
-                    </button>
-                  ))}
+                  {(Object.keys(equipmentTypeLabels) as EquipmentType[]).map(
+                    (type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => handleTypeChange(type)}
+                        disabled={isLoading}
+                        className={`p-3 rounded-lg border transition-all flex flex-col items-center gap-2 ${
+                          formData.type === type
+                            ? "bg-blue-600/20 border-blue-500 text-blue-300"
+                            : "bg-slate-800/50 border-slate-600 text-slate-400 hover:border-slate-500"
+                        }`}
+                      >
+                        {getEquipmentTypeIcon(type)}
+                        <span className="text-xs font-medium">
+                          {equipmentTypeLabels[type]}
+                        </span>
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
 
@@ -1037,7 +1082,9 @@ export default function EquipmentForm({
                   <input
                     type="text"
                     value={formData.serialNumber || ""}
-                    onChange={(e) => handleInputChange("serialNumber", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("serialNumber", e.target.value)
+                    }
                     className="input-dark w-full"
                     placeholder="Opcional"
                     disabled={isLoading}
@@ -1051,7 +1098,9 @@ export default function EquipmentForm({
                   <input
                     type="text"
                     value={formData.accessories || ""}
-                    onChange={(e) => handleInputChange("accessories", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("accessories", e.target.value)
+                    }
                     className="input-dark w-full"
                     placeholder="Ej: Cargador, mouse..."
                     disabled={isLoading}
@@ -1067,7 +1116,9 @@ export default function EquipmentForm({
                 </label>
                 <textarea
                   value={formData.reportedFlaw}
-                  onChange={(e) => handleInputChange("reportedFlaw", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("reportedFlaw", e.target.value)
+                  }
                   onBlur={() => handleBlur("reportedFlaw")}
                   className={`input-dark w-full min-h-24 resize-y ${
                     errors.reportedFlaw ? "border-red-500" : ""
@@ -1077,30 +1128,14 @@ export default function EquipmentForm({
                 />
                 <div className="flex justify-between mt-1">
                   {errors.reportedFlaw && (
-                    <p className="text-red-400 text-xs">{errors.reportedFlaw}</p>
+                    <p className="text-red-400 text-xs">
+                      {errors.reportedFlaw}
+                    </p>
                   )}
                   <span className="text-xs text-slate-500 ml-auto">
                     {formData.reportedFlaw.length}/500
                   </span>
                 </div>
-              </div>
-
-              {/* Otros (Contraseñas, indicaciones adicionales) */}
-              <div>
-                <label className="text-sm font-medium text-slate-200 flex items-center space-x-2 mb-2">
-                  <FileText className="w-4 h-4 text-purple-400" />
-                  <span>Otros</span>
-                </label>
-                <textarea
-                  value={formData.others || ""}
-                  onChange={(e) => handleInputChange("others", e.target.value)}
-                  className="input-dark w-full min-h-20 resize-y"
-                  placeholder="Contraseñas, indicaciones adicionales, etc..."
-                  disabled={isLoading}
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  Información adicional como contraseñas del equipo o indicaciones especiales
-                </p>
               </div>
 
               {/* Tipo de Servicio - DESPUÉS de la falla */}
@@ -1110,7 +1145,9 @@ export default function EquipmentForm({
                   <span>Tipo de Servicio</span>
                 </label>
                 <select
-                  value={customServiceType ? "Otro" : formData.serviceType || ""}
+                  value={
+                    customServiceType ? "Otro" : formData.serviceType || ""
+                  }
                   onChange={(e) => handleServiceTypeChange(e.target.value)}
                   className="input-dark w-full"
                   disabled={isLoading}
@@ -1144,6 +1181,25 @@ export default function EquipmentForm({
                 )}
               </div>
 
+              {/* Otros (Contraseñas, indicaciones adicionales) */}
+              <div>
+                <label className="text-sm font-medium text-slate-200 flex items-center space-x-2 mb-2">
+                  <FileText className="w-4 h-4 text-purple-400" />
+                  <span>Otros</span>
+                </label>
+                <textarea
+                  value={formData.others || ""}
+                  onChange={(e) => handleInputChange("others", e.target.value)}
+                  className="input-dark w-full min-h-20 resize-y"
+                  placeholder="Contraseñas, indicaciones adicionales, etc..."
+                  disabled={isLoading}
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Información adicional como contraseñas del equipo o
+                  indicaciones especiales
+                </p>
+              </div>
+
               {/* Info de edición */}
               {isEditing && equipment && (
                 <div className="glass-dark p-4 rounded-lg border border-slate-600">
@@ -1153,7 +1209,9 @@ export default function EquipmentForm({
                   <div className="grid grid-cols-2 gap-4 text-xs text-slate-400">
                     <div>
                       <span className="font-medium">Código:</span>
-                      <span className="ml-2 text-blue-400 font-mono">{equipment.code}</span>
+                      <span className="ml-2 text-blue-400 font-mono">
+                        {equipment.code}
+                      </span>
                     </div>
                     <div>
                       <span className="font-medium">Fecha:</span>
@@ -1178,7 +1236,9 @@ export default function EquipmentForm({
               <div className="glass-dark p-4 rounded-xl border border-slate-600 space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <User className="w-4 h-4 text-green-400" />
-                  <span className="text-slate-300">{selectedCustomer?.name}</span>
+                  <span className="text-slate-300">
+                    {selectedCustomer?.name}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Laptop className="w-4 h-4 text-blue-400" />
@@ -1216,7 +1276,8 @@ export default function EquipmentForm({
                   ))}
                 </select>
                 <p className="text-xs text-slate-500 mt-1">
-                  Puedes asignar un técnico ahora o hacerlo después al cambiar el estado
+                  Puedes asignar un técnico ahora o hacerlo después al cambiar
+                  el estado
                 </p>
               </div>
 
@@ -1231,7 +1292,9 @@ export default function EquipmentForm({
                 <div className="flex gap-2 mb-4">
                   <button
                     type="button"
-                    onClick={() => setPaymentData((prev) => ({ ...prev, type: "none" }))}
+                    onClick={() =>
+                      setPaymentData((prev) => ({ ...prev, type: "none" }))
+                    }
                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all border ${
                       paymentData.type === "none"
                         ? "bg-slate-600 border-slate-500 text-white"
@@ -1242,7 +1305,9 @@ export default function EquipmentForm({
                   </button>
                   <button
                     type="button"
-                    onClick={() => setPaymentData((prev) => ({ ...prev, type: "advance" }))}
+                    onClick={() =>
+                      setPaymentData((prev) => ({ ...prev, type: "advance" }))
+                    }
                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all border ${
                       paymentData.type === "advance"
                         ? "bg-yellow-600/20 border-yellow-500 text-yellow-300"
@@ -1253,7 +1318,9 @@ export default function EquipmentForm({
                   </button>
                   <button
                     type="button"
-                    onClick={() => setPaymentData((prev) => ({ ...prev, type: "full" }))}
+                    onClick={() =>
+                      setPaymentData((prev) => ({ ...prev, type: "full" }))
+                    }
                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all border ${
                       paymentData.type === "full"
                         ? "bg-green-600/20 border-green-500 text-green-300"
@@ -1268,7 +1335,9 @@ export default function EquipmentForm({
                 {paymentData.type !== "none" && (
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs text-slate-400 mb-1 block">Monto</label>
+                      <label className="text-xs text-slate-400 mb-1 block">
+                        Monto
+                      </label>
                       <div className="relative flex items-center">
                         <span className="absolute left-3 text-slate-400 text-sm font-medium">
                           S/
@@ -1290,7 +1359,9 @@ export default function EquipmentForm({
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-slate-400 mb-1 block">Método</label>
+                      <label className="text-xs text-slate-400 mb-1 block">
+                        Método
+                      </label>
                       <select
                         value={paymentData.method}
                         onChange={(e) =>
@@ -1301,7 +1372,9 @@ export default function EquipmentForm({
                         }
                         className="input-dark w-full"
                       >
-                        {(Object.keys(paymentMethodLabels) as PaymentMethod[]).map((method) => (
+                        {(
+                          Object.keys(paymentMethodLabels) as PaymentMethod[]
+                        ).map((method) => (
                           <option key={method} value={method}>
                             {paymentMethodLabels[method]}
                           </option>
@@ -1378,7 +1451,9 @@ export default function EquipmentForm({
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>{isEditing ? "Actualizando..." : "Registrando..."}</span>
+                  <span>
+                    {isEditing ? "Actualizando..." : "Registrando..."}
+                  </span>
                 </div>
               ) : isEditing ? (
                 "Actualizar Equipo"

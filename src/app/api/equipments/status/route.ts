@@ -198,6 +198,7 @@ export async function POST(request: NextRequest) {
       reportedFlaw: updatedEquipment.reportedFlaw,
       accessories: updatedEquipment.accessories,
       serviceType: updatedEquipment.serviceType,
+      others: updatedEquipment.others,
       status: updatedEquipment.status,
       entryDate: updatedEquipment.entryDate,
       deliveryDate: updatedEquipment.deliveryDate,

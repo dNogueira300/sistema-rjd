@@ -297,10 +297,10 @@ function EquipmentCard({
 // Desktop Table Row Component
 function EquipmentRow({
   equipment,
-  onDelete,
+  //onDelete,
   onManageStatus,
-  userRole,
-}: {
+}: //userRole,
+{
   equipment: Equipment;
   onEdit: () => void;
   onDelete: () => void;
@@ -417,7 +417,7 @@ function EquipmentRow({
           >
             <FileText className="w-4 h-4" />
           </button>
-          {userRole === "ADMINISTRADOR" && (
+          {/* {userRole === "ADMINISTRADOR" && (
             <button
               onClick={onDelete}
               className="p-2 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 transition-colors border border-red-600/30"
@@ -425,7 +425,7 @@ function EquipmentRow({
             >
               <Trash2 className="w-4 h-4" />
             </button>
-          )}
+          )} */}
         </div>
       </td>
     </tr>

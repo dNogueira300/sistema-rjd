@@ -114,6 +114,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       reportedFlaw: equipment.reportedFlaw,
       accessories: equipment.accessories,
       serviceType: equipment.serviceType,
+      others: equipment.others,
       status: equipment.status,
       entryDate: equipment.entryDate,
       deliveryDate: equipment.deliveryDate,
@@ -202,6 +203,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       reportedFlaw?: string;
       accessories?: string | null;
       serviceType?: string | null;
+      others?: string | null;
       customerId?: string;
       assignedTechnicianId?: string | null;
     };
@@ -221,6 +223,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       updateData.accessories = validatedData.accessories || null;
     if (validatedData.serviceType !== undefined)
       updateData.serviceType = validatedData.serviceType || null;
+    if (validatedData.others !== undefined)
+      updateData.others = validatedData.others || null;
     if (validatedData.customerId) updateData.customerId = validatedData.customerId;
     if (validatedData.assignedTechnicianId !== undefined)
       updateData.assignedTechnicianId = validatedData.assignedTechnicianId;
@@ -257,6 +261,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       reportedFlaw: equipment.reportedFlaw,
       accessories: equipment.accessories,
       serviceType: equipment.serviceType,
+      others: equipment.others,
       status: equipment.status,
       entryDate: equipment.entryDate,
       deliveryDate: equipment.deliveryDate,
