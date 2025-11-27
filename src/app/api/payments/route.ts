@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       paymentStatus = "PARTIAL";
     }
 
-    // Crear pago
+    // Crear pago (beneficiario es RJD - el negocio)
     const payment = await prisma.payment.create({
       data: {
         equipmentId: validatedData.equipmentId,
@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
         paymentMethod: validatedData.paymentMethod,
         voucherType: validatedData.voucherType,
         paymentStatus,
+        beneficiary: "RJD",
         observations: validatedData.observations || null,
       },
     });

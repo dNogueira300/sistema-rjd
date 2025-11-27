@@ -133,6 +133,29 @@ export async function POST(request: NextRequest) {
       updateData.deliveryDate = new Date();
     }
 
+    // Si se cambia a CANCELLED, verificar si hay adelanto y crear egreso de devolución
+    if (validatedData.newStatus === "CANCELLED") {
+      // Obtener el pago del equipo
+      const payment = await prisma.payment.findFirst({
+        where: { equipmentId: validatedData.equipmentId },
+      });
+
+      // Si hay adelanto, crear un egreso por devolución
+      if (payment && payment.advanceAmount > 0) {
+        await prisma.expense.create({
+          data: {
+            type: "OTHER",
+            description: `Devolución de adelanto - Equipo ${equipment.code} cancelado`,
+            amount: payment.advanceAmount,
+            beneficiary: equipment.customer.name,
+            paymentMethod: payment.paymentMethod,
+            observations: `Cancelación de servicio. ${validatedData.observations || ""}`.trim(),
+            createdBy: session.user.id,
+          },
+        });
+      }
+    }
+
     // Actualizar equipo
     const updatedEquipment = await prisma.equipment.update({
       where: { id: validatedData.equipmentId },

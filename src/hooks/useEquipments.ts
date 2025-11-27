@@ -198,6 +198,8 @@ export function useEquipments(options: UseEquipmentsOptions = {}) {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["equipments"] });
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
+      queryClient.invalidateQueries({ queryKey: ["finance-metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
       toast.success(data.message || "Estado actualizado exitosamente");
     },
     onError: (error: Error) => {

@@ -30,6 +30,7 @@ export interface Equipment {
   reportedFlaw: string;
   accessories: string | null;
   serviceType: string | null;
+  others: string | null; // Contraseñas, indicaciones adicionales, etc.
   status: EquipmentStatus;
   entryDate: Date;
   deliveryDate: Date | null;
@@ -73,6 +74,7 @@ export interface CreateEquipmentData {
   reportedFlaw: string;
   accessories?: string;
   serviceType?: string;
+  others?: string; // Contraseñas, indicaciones adicionales
 }
 
 export interface UpdateEquipmentData extends Partial<CreateEquipmentData> {

@@ -272,9 +272,61 @@ export const generateComprobanteIngreso = (
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...mediumGray);
   doc.text("Estado Actual:", col1X, currentY);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...black);
-  doc.text(EQUIPMENT_STATUS_LABELS[equipment.status], col1X + 30, currentY);
+
+  // Resaltar estado actual con color de fondo según el estado
+  const statusText = EQUIPMENT_STATUS_LABELS[equipment.status];
+  const statusX = col1X + 30;
+  const statusY = currentY;
+
+  // Colores según estado (igual que en la tabla de equipos)
+  // Fondo con 20% de opacidad simulado mezclando con blanco
+  let statusBgColor: [number, number, number];
+  let statusTextColor: [number, number, number];
+
+  switch (equipment.status) {
+    case "RECEIVED":
+      statusBgColor = [213, 224, 246]; // bg-blue-600/20 mezclado con blanco
+      statusTextColor = [96, 165, 250]; // text-blue-400
+      break;
+    case "REPAIR":
+      statusBgColor = [250, 242, 204]; // bg-yellow-600/20 mezclado con blanco
+      statusTextColor = [250, 204, 21]; // text-yellow-400
+      break;
+    case "REPAIRED":
+      statusBgColor = [205, 240, 229]; // bg-green-600/20 mezclado con blanco
+      statusTextColor = [52, 211, 153]; // text-green-400
+      break;
+    case "DELIVERED":
+      statusBgColor = [234, 214, 250]; // bg-purple-600/20 mezclado con blanco
+      statusTextColor = [192, 132, 252]; // text-purple-400
+      break;
+    case "CANCELLED":
+      statusBgColor = [248, 215, 215]; // bg-red-600/20 mezclado con blanco
+      statusTextColor = [248, 113, 113]; // text-red-400
+      break;
+    default:
+      statusBgColor = [234, 214, 250];
+      statusTextColor = [192, 132, 252];
+  }
+
+  // Dibujar rectángulo de fondo
+  const statusTextWidth = doc.getTextWidth(statusText);
+  const padding = 3;
+  doc.setFillColor(...statusBgColor);
+  doc.roundedRect(
+    statusX - padding,
+    statusY - 4,
+    statusTextWidth + padding * 2,
+    6,
+    1,
+    1,
+    "F"
+  );
+
+  // Texto del estado con color
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...statusTextColor);
+  doc.text(statusText, statusX, statusY);
 
   // Accesorios a la derecha de Estado Actual
   if (equipment.accessories) {
@@ -340,7 +392,7 @@ export const generateComprobanteIngreso = (
     if (payment.advanceAmount > 0) {
       doc.setFont("helvetica", "bold");
       doc.setTextColor(...mediumGray);
-      doc.text("Adelanto Pagado:", margin + 5, yPos);
+      doc.text("Monto Pagado:", margin + 5, yPos);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(...primaryGreen);
       doc.text(formatCurrency(payment.advanceAmount), margin + 40, yPos);

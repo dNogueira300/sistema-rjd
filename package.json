@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "prisma db seed"
+    "seed": "prisma db seed",
+    "db:reset": "tsx scripts/reset-database.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -50,6 +51,7 @@
     "prisma": "^6.15.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
     "typescript": "5.9.3"
   }
 }

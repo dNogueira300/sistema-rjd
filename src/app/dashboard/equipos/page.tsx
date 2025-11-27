@@ -147,6 +147,8 @@ export default function EquiposPage() {
   const handleManageSuccess = useCallback(() => {
     // Invalidar queries para refrescar datos
     queryClient.invalidateQueries({ queryKey: ["equipments"] });
+    queryClient.invalidateQueries({ queryKey: ["finance-metrics"] });
+    queryClient.invalidateQueries({ queryKey: ["transactions"] });
     if (viewEquipmentId) {
       queryClient.invalidateQueries({ queryKey: ["equipment", viewEquipmentId] });
     }

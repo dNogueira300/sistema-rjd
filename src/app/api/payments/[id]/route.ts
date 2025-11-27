@@ -65,7 +65,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       paymentStatus = "PARTIAL";
     }
 
-    // Actualizar pago (actualizar fecha para que se ordene correctamente)
+    // Actualizar pago (NO actualizar la fecha - mantener la fecha original)
     const payment = await prisma.payment.update({
       where: { id },
       data: {
@@ -76,7 +76,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         paymentMethod: validatedData.paymentMethod,
         voucherType: validatedData.voucherType,
         observations: validatedData.observations,
-        paymentDate: new Date(), // Actualizar fecha para ordenamiento correcto
+        // NO actualizar paymentDate - mantener la fecha original del registro
       },
     });
 

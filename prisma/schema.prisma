@@ -65,6 +65,7 @@ model Equipment {
   reportedFlaw String
   accessories  String?
   serviceType  String?
+  others       String?         // Contraseñas, indicaciones adicionales, etc.
   status       EquipmentStatus @default(RECEIVED)
   entryDate    DateTime        @default(now())
   deliveryDate DateTime?
@@ -125,6 +126,7 @@ model Payment {
   paymentMethod    PaymentMethod
   voucherType      VoucherType
   paymentStatus    PaymentStatus @default(PENDING)
+  beneficiary      String?       // Receptor del pago (generalmente "RJD")
   observations     String?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
@@ -159,6 +161,8 @@ model Expense {
   beneficiary   String?       // Para pagos a trabajadores
   paymentMethod PaymentMethod
   expenseDate   DateTime      @default(now())
+  observations  String?
+  createdBy     String        // User ID quien creó el gasto
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -166,9 +170,13 @@ model Expense {
 }
 
 enum ExpenseType {
-  PURCHASE    // Compras
-  ADVANCE     // Adelantos
-  OTHER       // Otros gastos
+  ADVANCE      // Adelanto a trabajador
+  SALARY       // Pago de salario
+  SUPPLIES     // Materiales/insumos
+  RENT         // Alquiler
+  SERVICES     // Servicios (luz, agua, internet)
+  MAINTENANCE  // Mantenimiento
+  OTHER        // Otros gastos
 }
 
 // ============ MODELOS DE PERSONAL ============

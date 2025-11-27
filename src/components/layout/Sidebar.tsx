@@ -31,6 +31,11 @@ const menuItems = [
     showBadge: true,
   },
   {
+    name: "Finanzas",
+    href: "/dashboard/finanzas",
+    icon: DollarSign,
+  },
+  {
     name: "Clientes",
     href: "/dashboard/clientes",
     icon: Users,
@@ -39,11 +44,6 @@ const menuItems = [
     name: "Técnicos",
     href: "/dashboard/tecnicos",
     icon: Wrench,
-  },
-  {
-    name: "Finanzas",
-    href: "/dashboard/finanzas",
-    icon: DollarSign,
   },
   {
     name: "Reportes",
@@ -177,7 +177,7 @@ export default function Sidebar() {
                     <span className="font-medium flex-1">{item.name}</span>
                   )}
                   {showBadge && (
-                    <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-green-500 text-white text-xs font-bold animate-pulse">
+                    <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold animate-pulse">
                       {repairedCount}
                     </span>
                   )}

@@ -1,162 +1,315 @@
 // src/app/dashboard/finanzas/page.tsx
-import { DollarSign, TrendingUp, TrendingDown, Calendar } from "lucide-react";
+"use client";
 
-const financialStats = [
-  {
-    title: "Ingresos Totales",
-    value: "$45,230",
-    change: "+12.5%",
-    trend: "up",
-    icon: TrendingUp,
-  },
-  {
-    title: "Gastos Totales",
-    value: "$28,450",
-    change: "-8.3%",
-    trend: "down",
-    icon: TrendingDown,
-  },
-  {
-    title: "Balance",
-    value: "$16,780",
-    change: "+20.8%",
-    trend: "up",
-    icon: DollarSign,
-  },
-];
+import { useState } from "react";
+import {
+  Plus,
+  Filter,
+  Search,
+  Calendar,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  TrendingUpDown,
+  Clock,
+} from "lucide-react";
+import TransactionTable from "@/components/finance/TransactionTable";
+import TransactionForm from "@/components/finance/TransactionForm";
+import { useTransactions, useFinanceMetrics } from "@/hooks/useTransactions";
+import type { TransactionFilters, TransactionType } from "@/types/finance";
+import type { PaymentMethod } from "@/types/equipment";
+import { PAYMENT_METHOD_LABELS } from "@/types/equipment";
 
 export default function FinanzasPage() {
+  const [showForm, setShowForm] = useState(false);
+  const [filters, setFilters] = useState<TransactionFilters>({
+    type: "ALL",
+    search: "",
+    paymentMethod: "ALL",
+    sortBy: "date",
+    sortOrder: "desc",
+  });
+
+  const { data, isLoading, refetch } = useTransactions(filters);
+  const { data: metrics } = useFinanceMetrics();
+
+  const handleFilterChange = (
+    key: keyof TransactionFilters,
+    value: string | Date | undefined
+  ) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  // Stats cards con el mismo diseño que equipos
+  const stats = [
+    {
+      label: "Ingresos del Día",
+      value: `S/ ${metrics?.todayIncome.toFixed(2) || "0.00"}`,
+      icon: <TrendingUp className="w-5 h-5 md:w-6 md:h-6" />,
+      iconColor: "text-green-400",
+      borderColor: "border-green-500",
+      bgColor: "bg-green-600/10",
+      iconBg: "bg-green-600/20",
+    },
+    {
+      label: "Egresos del Día",
+      value: `S/ ${metrics?.todayExpenses.toFixed(2) || "0.00"}`,
+      icon: <TrendingDown className="w-5 h-5 md:w-6 md:h-6" />,
+      iconColor: "text-red-400",
+      borderColor: "border-red-500",
+      bgColor: "bg-red-600/10",
+      iconBg: "bg-red-600/20",
+    },
+    {
+      label: "Balance del Día",
+      value: `S/ ${metrics?.balance.toFixed(2) || "0.00"}`,
+      icon: <DollarSign className="w-5 h-5 md:w-6 md:h-6" />,
+      iconColor:
+        (metrics?.balance || 0) >= 0 ? "text-blue-400" : "text-red-400",
+      borderColor:
+        (metrics?.balance || 0) >= 0 ? "border-blue-500" : "border-red-500",
+      bgColor:
+        (metrics?.balance || 0) >= 0 ? "bg-blue-600/10" : "bg-red-600/10",
+      iconBg: (metrics?.balance || 0) >= 0 ? "bg-blue-600/20" : "bg-red-600/20",
+    },
+    {
+      label: "Rentabilidad Mes",
+      value: `${metrics?.monthlyProfitability.toFixed(1) || "0.0"}%`,
+      icon: <TrendingUpDown className="w-5 h-5 md:w-6 md:h-6" />,
+      iconColor:
+        (metrics?.monthlyProfitability || 0) >= 0
+          ? "text-purple-400"
+          : "text-red-400",
+      borderColor:
+        (metrics?.monthlyProfitability || 0) >= 0
+          ? "border-purple-500"
+          : "border-red-500",
+      bgColor:
+        (metrics?.monthlyProfitability || 0) >= 0
+          ? "bg-purple-600/10"
+          : "bg-red-600/10",
+      iconBg:
+        (metrics?.monthlyProfitability || 0) >= 0
+          ? "bg-purple-600/20"
+          : "bg-red-600/20",
+    },
+    {
+      label: "Pagos Pendientes",
+      value: metrics?.pendingPayments || 0,
+      icon: <Clock className="w-5 h-5 md:w-6 md:h-6" />,
+      iconColor: "text-amber-400",
+      borderColor: "border-amber-500",
+      bgColor: "bg-amber-600/10",
+      iconBg: "bg-amber-600/20",
+      highlight: (metrics?.pendingPayments || 0) > 0,
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="card-dark p-6">
-        <div className="flex items-center justify-between">
+      <div className="card-dark p-4 md:p-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-lg bg-linear-to-br from-green-600 to-green-700">
-              <DollarSign className="w-8 h-8 text-white" />
+              <DollarSign className="w-6 h-6 md:w-8 md:h-8 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-100">
+              <h2 className="text-xl md:text-2xl font-bold text-slate-100">
                 Gestión Financiera
               </h2>
-              <p className="text-slate-400">Control de ingresos y gastos</p>
+              <p className="text-sm text-slate-400">
+                Control de ingresos y egresos del sistema
+              </p>
             </div>
           </div>
-          <button className="btn-primary-dark flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
-            Este Mes
+          <button
+            onClick={() => setShowForm(true)}
+            className="btn-primary-dark flex items-center gap-2 px-4 py-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="hidden sm:inline">Nueva Transacción</span>
           </button>
         </div>
       </div>
 
-      {/* Financial Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {financialStats.map((stat, index) => {
-          const Icon = stat.icon;
-          const isPositive = stat.trend === "up";
-          return (
-            <div key={index} className="card-dark p-6 hover-lift">
-              <div className="flex items-start justify-between mb-4">
-                <div
-                  className={`p-3 rounded-lg ${
-                    isPositive
-                      ? "bg-green-600/20 text-green-400"
-                      : "bg-red-600/20 text-red-400"
-                  }`}
-                >
-                  <Icon className="w-6 h-6" />
-                </div>
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    isPositive
-                      ? "bg-green-600/20 text-green-400"
-                      : "bg-red-600/20 text-red-400"
-                  }`}
-                >
-                  {stat.change}
-                </span>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+        {stats.map((stat, index) => (
+          <div
+            key={index}
+            className={`card-dark p-3 md:p-4 hover-lift border-2 ${
+              stat.borderColor
+            } ${stat.bgColor} ${
+              stat.highlight ? "ring-2 ring-amber-500/50 animate-pulse" : ""
+            }`}
+          >
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className={`p-2 md:p-3 rounded-lg ${stat.iconBg} shrink-0`}>
+                <span className={stat.iconColor}>{stat.icon}</span>
               </div>
-              <h3 className="text-3xl font-bold text-slate-100 mb-1">
-                {stat.value}
-              </h3>
-              <p className="text-sm text-slate-400">{stat.title}</p>
+              <div className="min-w-0">
+                <p className="text-lg md:text-2xl font-bold text-slate-100 truncate">
+                  {stat.value}
+                </p>
+                <p className="text-xs text-slate-400 truncate">{stat.label}</p>
+              </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
 
-      {/* Recent Transactions */}
-      <div className="card-dark p-6">
-        <h3 className="text-xl font-bold text-slate-100 mb-4">
-          Transacciones Recientes
-        </h3>
-        <div className="space-y-3">
-          {[
-            {
-              type: "Ingreso",
-              description: "Servicio de reparación",
-              amount: "+$1,250",
-              date: "2024-11-20",
-              positive: true,
-            },
-            {
-              type: "Gasto",
-              description: "Compra de repuestos",
-              amount: "-$450",
-              date: "2024-11-19",
-              positive: false,
-            },
-            {
-              type: "Ingreso",
-              description: "Venta de equipo",
-              amount: "+$3,200",
-              date: "2024-11-18",
-              positive: true,
-            },
-            {
-              type: "Gasto",
-              description: "Servicios generales",
-              amount: "-$180",
-              date: "2024-11-18",
-              positive: false,
-            },
-          ].map((transaction, index) => (
-            <div
-              key={index}
-              className="glass-dark p-4 rounded-lg border border-slate-700 flex items-center justify-between"
-            >
-              <div className="flex items-center gap-4">
-                <div
-                  className={`p-2 rounded-lg ${
-                    transaction.positive ? "bg-green-600/20" : "bg-red-600/20"
-                  }`}
-                >
-                  <DollarSign
-                    className={`w-5 h-5 ${
-                      transaction.positive ? "text-green-400" : "text-red-400"
-                    }`}
-                  />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-slate-100">
-                    {transaction.description}
-                  </h4>
-                  <p className="text-sm text-slate-400">
-                    {transaction.type} • {transaction.date}
-                  </p>
-                </div>
-              </div>
-              <span
-                className={`text-lg font-bold ${
-                  transaction.positive ? "text-green-400" : "text-red-400"
-                }`}
-              >
-                {transaction.amount}
-              </span>
+      {/* Filtros */}
+      <div className="card-dark p-4 md:p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Filter className="w-5 h-5 text-blue-400" />
+          <h2 className="text-lg font-semibold text-slate-100">Filtros</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Búsqueda */}
+          <div>
+            <label className="text-sm font-medium text-slate-300 mb-2 block">
+              Buscar
+            </label>
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none z-10" />
+              <input
+                type="text"
+                value={filters.search}
+                onChange={(e) => handleFilterChange("search", e.target.value)}
+                placeholder="Descripción, equipo, cliente..."
+                className="input-dark-with-icon w-full text-sm md:text-base"
+              />
             </div>
-          ))}
+          </div>
+
+          {/* Tipo */}
+          <div>
+            <label className="text-sm font-medium text-slate-300 mb-2 block">
+              Tipo
+            </label>
+            <select
+              value={filters.type}
+              onChange={(e) =>
+                handleFilterChange(
+                  "type",
+                  e.target.value as TransactionType | "ALL"
+                )
+              }
+              className="input-dark w-full"
+            >
+              <option value="ALL">Todos</option>
+              <option value="INGRESO">Ingresos</option>
+              <option value="EGRESO">Egresos</option>
+            </select>
+          </div>
+
+          {/* Método de pago */}
+          <div>
+            <label className="text-sm font-medium text-slate-300 mb-2 block">
+              Método de Pago
+            </label>
+            <select
+              value={filters.paymentMethod}
+              onChange={(e) =>
+                handleFilterChange(
+                  "paymentMethod",
+                  e.target.value as PaymentMethod | "ALL"
+                )
+              }
+              className="input-dark w-full"
+            >
+              <option value="ALL">Todos</option>
+              {Object.entries(PAYMENT_METHOD_LABELS).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Ordenar */}
+          <div>
+            <label className="text-sm font-medium text-slate-300 mb-2 block">
+              Ordenar por
+            </label>
+            <select
+              value={`${filters.sortBy}-${filters.sortOrder}`}
+              onChange={(e) => {
+                const [sortBy, sortOrder] = e.target.value.split("-") as [
+                  "date" | "amount" | "type",
+                  "asc" | "desc"
+                ];
+                setFilters((prev) => ({ ...prev, sortBy, sortOrder }));
+              }}
+              className="input-dark w-full"
+            >
+              <option value="date-desc">Fecha (Más reciente)</option>
+              <option value="date-asc">Fecha (Más antiguo)</option>
+              <option value="amount-desc">Monto (Mayor a menor)</option>
+              <option value="amount-asc">Monto (Menor a mayor)</option>
+              <option value="type-asc">Tipo (A-Z)</option>
+              <option value="type-desc">Tipo (Z-A)</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Rango de fechas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div>
+            <label className="text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-blue-400" />
+              Fecha inicio
+            </label>
+            <input
+              type="date"
+              value={filters.startDate?.toISOString().split("T")[0] || ""}
+              onChange={(e) =>
+                handleFilterChange(
+                  "startDate",
+                  e.target.value ? new Date(e.target.value) : undefined
+                )
+              }
+              className="input-dark w-full"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-blue-400" />
+              Fecha fin
+            </label>
+            <input
+              type="date"
+              value={filters.endDate?.toISOString().split("T")[0] || ""}
+              onChange={(e) =>
+                handleFilterChange(
+                  "endDate",
+                  e.target.value ? new Date(e.target.value) : undefined
+                )
+              }
+              className="input-dark w-full"
+            />
+          </div>
         </div>
       </div>
+
+      {/* Tabla de transacciones */}
+      <TransactionTable
+        transactions={data?.transactions || []}
+        isLoading={isLoading}
+      />
+
+      {/* Modal de formulario */}
+      {showForm && (
+        <TransactionForm
+          onClose={() => setShowForm(false)}
+          onSuccess={() => {
+            refetch();
+            setShowForm(false);
+          }}
+        />
+      )}
     </div>
   );
 }

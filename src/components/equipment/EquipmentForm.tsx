@@ -223,6 +223,7 @@ export default function EquipmentForm({
         reportedFlaw: equipment.reportedFlaw || "",
         accessories: equipment.accessories || "",
         serviceType: equipment.serviceType || "",
+        others: equipment.others || "",
       };
     }
     return {
@@ -234,6 +235,7 @@ export default function EquipmentForm({
       reportedFlaw: "",
       accessories: "",
       serviceType: "",
+      others: "",
     };
   });
 
@@ -257,6 +259,20 @@ export default function EquipmentForm({
     };
     loadTechnicians();
   }, []);
+
+  // Cerrar modal con tecla ESC
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isLoading) {
+        onCancel();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isLoading, onCancel]);
 
   // Cargar cliente seleccionado si estamos editando
   useEffect(() => {
@@ -1067,6 +1083,24 @@ export default function EquipmentForm({
                     {formData.reportedFlaw.length}/500
                   </span>
                 </div>
+              </div>
+
+              {/* Otros (Contraseñas, indicaciones adicionales) */}
+              <div>
+                <label className="text-sm font-medium text-slate-200 flex items-center space-x-2 mb-2">
+                  <FileText className="w-4 h-4 text-purple-400" />
+                  <span>Otros</span>
+                </label>
+                <textarea
+                  value={formData.others || ""}
+                  onChange={(e) => handleInputChange("others", e.target.value)}
+                  className="input-dark w-full min-h-20 resize-y"
+                  placeholder="Contraseñas, indicaciones adicionales, etc..."
+                  disabled={isLoading}
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Información adicional como contraseñas del equipo o indicaciones especiales
+                </p>
               </div>
 
               {/* Tipo de Servicio - DESPUÉS de la falla */}
