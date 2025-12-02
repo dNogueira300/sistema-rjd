@@ -23,6 +23,7 @@ export function useTransactions(filters: TransactionFilters) {
   if (filters.search) queryParams.set("search", filters.search);
   if (filters.paymentMethod !== "ALL")
     queryParams.set("paymentMethod", filters.paymentMethod);
+  if (filters.technicianId) queryParams.set("technicianId", filters.technicianId);
   queryParams.set("sortBy", filters.sortBy);
   queryParams.set("sortOrder", filters.sortOrder);
 

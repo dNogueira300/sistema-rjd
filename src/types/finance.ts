@@ -109,6 +109,7 @@ export interface TransactionFilters {
   endDate?: Date;
   search: string;
   paymentMethod: "ALL" | PaymentMethod;
+  technicianId?: string; // Filtro por técnico asignado
   sortBy: "date" | "amount" | "type";
   sortOrder: "asc" | "desc";
 }

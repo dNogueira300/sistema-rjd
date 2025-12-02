@@ -43,7 +43,7 @@ interface EquipmentTableProps {
   userRole: "ADMINISTRADOR" | "TECNICO";
 }
 
-// Función para abrir comprobante en nueva pestaña
+// Función para descargar comprobante directamente
 const handleDownloadComprobante = async (equipmentId: string, code: string) => {
   // Mostrar toast con spinner girando - estilo verde personalizado
   const loadingToast = toast.loading("Generando comprobante...", {
@@ -62,20 +62,23 @@ const handleDownloadComprobante = async (equipmentId: string, code: string) => {
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
 
-    // Abrir en nueva pestaña para permitir imprimir o descargar
-    window.open(url, "_blank");
+    // Descargar directamente en lugar de abrir en nueva pestaña
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `comprobante-${code}-${new Date().toISOString().split("T")[0]}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
     // Actualizar toast de éxito con duración de 2 segundos
-    toast.success("Comprobante generado correctamente", {
+    toast.success("Comprobante descargado correctamente", {
       id: loadingToast,
-      description: `El documento se abrió en una nueva pestaña`,
+      description: `Documento guardado: comprobante-${code}.pdf`,
       duration: 2000,
     });
 
-    // Limpiar el objeto URL después de un tiempo
-    setTimeout(() => {
-      window.URL.revokeObjectURL(url);
-    }, 100);
+    // Limpiar el objeto URL
+    window.URL.revokeObjectURL(url);
   } catch (error) {
     console.error("Error generando comprobante:", error);
     toast.error("Error al generar el comprobante", {

@@ -5,7 +5,11 @@ import { useState, useEffect, useMemo } from "react";
 import { X, Loader2, DollarSign, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCreatePayment, useUpdatePayment, useCreateExpense } from "@/hooks/useTransactions";
+import {
+  useCreatePayment,
+  useUpdatePayment,
+  useCreateExpense,
+} from "@/hooks/useTransactions";
 import { useEquipments } from "@/hooks/useEquipments";
 import type {
   TransactionType,
@@ -34,7 +38,9 @@ export default function TransactionForm({
   const [totalAmount, setTotalAmount] = useState("");
   const [paidAmount, setPaidAmount] = useState(""); // Antes era advanceAmount
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
-  const [existingPaymentId, setExistingPaymentId] = useState<string | null>(null);
+  const [existingPaymentId, setExistingPaymentId] = useState<string | null>(
+    null
+  );
   const [markAsDelivered, setMarkAsDelivered] = useState(false);
 
   // Estados para Egreso (Expense)
@@ -50,7 +56,9 @@ export default function TransactionForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Estado para técnicos (beneficiarios de egresos)
-  const [technicians, setTechnicians] = useState<Array<{ id: string; name: string }>>([]);
+  const [technicians, setTechnicians] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
   const [isLoadingTechnicians, setIsLoadingTechnicians] = useState(false);
 
   const queryClient = useQueryClient();
@@ -59,7 +67,10 @@ export default function TransactionForm({
   const createExpense = useCreateExpense();
 
   // Definir isLoading primero
-  const isLoading = createPayment.isPending || updatePayment.isPending || createExpense.isPending;
+  const isLoading =
+    createPayment.isPending ||
+    updatePayment.isPending ||
+    createExpense.isPending;
 
   // Cargar equipos solo si es ingreso
   const shouldLoadEquipments = transactionType === "INGRESO";
@@ -83,7 +94,10 @@ export default function TransactionForm({
 
       // Si tiene pago, verificar que sea PENDING o PARTIAL
       const payment = equip.payments[0];
-      return payment.paymentStatus === "PENDING" || payment.paymentStatus === "PARTIAL";
+      return (
+        payment.paymentStatus === "PENDING" ||
+        payment.paymentStatus === "PARTIAL"
+      );
     });
   }, [shouldLoadEquipments, allEquipments]);
 
@@ -126,9 +140,12 @@ export default function TransactionForm({
     fetchTechnicians();
   }, [transactionType]);
 
-  // Auto-seleccionar receptor según tipo de egreso
+  // Auto-seleccionar receptor según tipo de egreso y limpiar descripción
   useEffect(() => {
     if (transactionType !== "EGRESO") return;
+
+    // Limpiar descripción cuando cambia el tipo de egreso
+    setDescription("");
 
     // Si NO es adelanto ni salario, el receptor es RJD
     if (expenseType !== "ADVANCE" && expenseType !== "SALARY") {
@@ -155,9 +172,11 @@ export default function TransactionForm({
     };
   }, [isLoading, onClose]);
 
-  // Calcular descripción efectiva (auto para adelantos)
+  // Calcular descripción efectiva (usar "Adelanto" solo si el usuario no ha escrito nada)
   const effectiveDescription =
-    transactionType === "EGRESO" && expenseType === "ADVANCE"
+    transactionType === "EGRESO" &&
+    expenseType === "ADVANCE" &&
+    !description.trim()
       ? "Adelanto"
       : description;
 
@@ -216,7 +235,10 @@ export default function TransactionForm({
       if (!effectiveDescription.trim())
         newErrors.description = "La descripción es obligatoria";
       // Receptor solo es requerido para ADELANTO y SALARIO
-      if ((expenseType === "ADVANCE" || expenseType === "SALARY") && !beneficiary.trim())
+      if (
+        (expenseType === "ADVANCE" || expenseType === "SALARY") &&
+        !beneficiary.trim()
+      )
         newErrors.beneficiary = "Seleccione un técnico";
     }
 
@@ -281,7 +303,9 @@ export default function TransactionForm({
           if (!statusResponse.ok) {
             const errorData = await statusResponse.json();
             console.error("Error al actualizar estado:", errorData);
-            throw new Error(errorData.error || "Error al actualizar el estado del equipo");
+            throw new Error(
+              errorData.error || "Error al actualizar el estado del equipo"
+            );
           }
 
           // Invalidar queries para actualizar el sidebar y otras vistas
@@ -308,9 +332,10 @@ export default function TransactionForm({
       onClose();
     } catch (error) {
       console.error("Error al crear transacción:", error);
-      const errorMessage = error instanceof Error
-        ? error.message
-        : "Error al crear la transacción";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Error al crear la transacción";
 
       toast.error(errorMessage);
       setErrors({
@@ -569,25 +594,29 @@ export default function TransactionForm({
                 </select>
               </div>
 
-              {/* Descripción (auto para adelantos) */}
+              {/* Descripción (valor por defecto para adelantos pero editable) */}
               <div>
                 <label className="text-sm font-medium text-slate-200 mb-2 block">
                   Descripción *
                 </label>
                 <input
                   type="text"
-                  value={expenseType === "ADVANCE" ? "Adelanto" : description}
+                  value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className={`input-dark w-full ${
                     errors.description ? "border-red-500" : ""
                   }`}
-                  placeholder="Descripción del egreso"
-                  disabled={isLoading || expenseType === "ADVANCE"}
-                  readOnly={expenseType === "ADVANCE"}
+                  placeholder={
+                    expenseType === "ADVANCE"
+                      ? "Adelanto"
+                      : "Descripción del egreso"
+                  }
+                  disabled={isLoading}
                 />
-                {expenseType === "ADVANCE" && (
-                  <p className="text-amber-400 text-xs mt-1">
-                    Descripción automática para adelantos
+                {expenseType === "ADVANCE" && !description && (
+                  <p className="text-blue-400 text-xs mt-1">
+                    Se usará Adelanto por defecto si no especificas otra
+                    descripción
                   </p>
                 )}
                 {errors.description && (
@@ -621,11 +650,13 @@ export default function TransactionForm({
 
                 <div>
                   <label className="text-sm font-medium text-slate-200 mb-2 block">
-                    Receptor {(expenseType === "ADVANCE" || expenseType === "SALARY") && "*"}
+                    Receptor{" "}
+                    {(expenseType === "ADVANCE" || expenseType === "SALARY") &&
+                      "*"}
                   </label>
 
                   {/* Selector de técnicos solo para ADELANTO y SALARIO */}
-                  {(expenseType === "ADVANCE" || expenseType === "SALARY") ? (
+                  {expenseType === "ADVANCE" || expenseType === "SALARY" ? (
                     <>
                       <select
                         value={beneficiary}

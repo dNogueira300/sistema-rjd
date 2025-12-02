@@ -12,10 +12,12 @@ import {
   TrendingDown,
   TrendingUpDown,
   Clock,
+  X,
 } from "lucide-react";
 import TransactionTable from "@/components/finance/TransactionTable";
 import TransactionForm from "@/components/finance/TransactionForm";
 import { useTransactions, useFinanceMetrics } from "@/hooks/useTransactions";
+import { useTechnicians } from "@/hooks/useTechnicians";
 import type { TransactionFilters, TransactionType } from "@/types/finance";
 import type { PaymentMethod } from "@/types/equipment";
 import { PAYMENT_METHOD_LABELS } from "@/types/equipment";
@@ -32,12 +34,25 @@ export default function FinanzasPage() {
 
   const { data, isLoading, refetch } = useTransactions(filters);
   const { data: metrics } = useFinanceMetrics();
+  const { technicians } = useTechnicians({
+    initialFilters: { status: "ACTIVE" }
+  });
 
   const handleFilterChange = (
     key: keyof TransactionFilters,
     value: string | Date | undefined
   ) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      type: "ALL",
+      search: "",
+      paymentMethod: "ALL",
+      sortBy: "date",
+      sortOrder: "desc",
+    });
   };
 
   // Stats cards con el mismo diseño que equipos
@@ -161,29 +176,22 @@ export default function FinanzasPage() {
 
       {/* Filtros */}
       <div className="card-dark p-4 md:p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Filter className="w-5 h-5 text-blue-400" />
-          <h2 className="text-lg font-semibold text-slate-100">Filtros</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Filter className="w-5 h-5 text-blue-400" />
+            <h2 className="text-lg font-semibold text-slate-100">Filtros</h2>
+          </div>
+          <button
+            onClick={handleClearFilters}
+            className="btn-secondary-dark flex items-center gap-2 px-3 py-1.5 text-sm transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/20 active:scale-95 group"
+          >
+            <X className="w-4 h-4 transition-transform duration-300 group-hover:rotate-90" />
+            <span className="hidden sm:inline">Limpiar Filtros</span>
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Búsqueda */}
-          <div>
-            <label className="text-sm font-medium text-slate-300 mb-2 block">
-              Buscar
-            </label>
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none z-10" />
-              <input
-                type="text"
-                value={filters.search}
-                onChange={(e) => handleFilterChange("search", e.target.value)}
-                placeholder="Descripción, equipo, cliente..."
-                className="input-dark-with-icon w-full text-sm md:text-base"
-              />
-            </div>
-          </div>
-
+        {/* Primera fila: Filtros principales */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Tipo */}
           <div>
             <label className="text-sm font-medium text-slate-300 mb-2 block">
@@ -229,6 +237,30 @@ export default function FinanzasPage() {
             </select>
           </div>
 
+          {/* Técnico */}
+          <div>
+            <label className="text-sm font-medium text-slate-300 mb-2 block">
+              Técnico
+            </label>
+            <select
+              value={filters.technicianId || ""}
+              onChange={(e) =>
+                handleFilterChange(
+                  "technicianId",
+                  e.target.value || undefined
+                )
+              }
+              className="input-dark w-full"
+            >
+              <option value="">Todos los técnicos</option>
+              {technicians.map((tech) => (
+                <option key={tech.id} value={tech.id}>
+                  {tech.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Ordenar */}
           <div>
             <label className="text-sm font-medium text-slate-300 mb-2 block">
@@ -253,9 +285,26 @@ export default function FinanzasPage() {
               <option value="type-desc">Tipo (Z-A)</option>
             </select>
           </div>
+
+          {/* Búsqueda */}
+          <div>
+            <label className="text-sm font-medium text-slate-300 mb-2 block">
+              Buscar
+            </label>
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none z-10" />
+              <input
+                type="text"
+                value={filters.search}
+                onChange={(e) => handleFilterChange("search", e.target.value)}
+                placeholder="Descripción, equipo, cliente..."
+                className="input-dark-with-icon w-full text-sm md:text-base"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Rango de fechas */}
+        {/* Segunda fila: Rango de fechas */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           <div>
             <label className="text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">

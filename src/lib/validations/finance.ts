@@ -61,6 +61,7 @@ export const transactionFiltersSchema = z.object({
   endDate: z.string().or(z.date()).optional(),
   search: z.string().optional(),
   paymentMethod: z.enum(["ALL", "CASH", "YAPE", "PLIN", "TRANSFER"]).optional(),
+  technicianId: z.string().optional(),
   page: z.number().int().min(1).optional(),
   limit: z.number().int().min(1).max(100).optional(),
   sortBy: z.enum(["date", "amount", "type"]).optional(),

@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
       endDate: searchParams.get("endDate") || undefined,
       search: searchParams.get("search") || "",
       paymentMethod: searchParams.get("paymentMethod") || "ALL",
+      technicianId: searchParams.get("technicianId") || undefined,
       page: parseInt(searchParams.get("page") || "1"),
       limit: parseInt(searchParams.get("limit") || "20"),
       sortBy: searchParams.get("sortBy") || "date",
@@ -61,6 +62,9 @@ export async function GET(request: NextRequest) {
               status: {
                 not: "CANCELLED",
               },
+              ...(filters.technicianId && {
+                assignedTechnicianId: filters.technicianId,
+              }),
               ...(filters.search && {
                 OR: [
                   { code: { contains: filters.search, mode: "insensitive" } },
