@@ -1,16 +1,21 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { User, Menu } from "lucide-react";
+import { User, Menu, Settings } from "lucide-react";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import ChangePasswordModal from "@/components/user/ChangePasswordModal";
 
 export default function Header() {
   const { data: session, status } = useSession();
   const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   // Determinar el rol del usuario para mostrar
   const userRole = session?.user?.role === "ADMINISTRADOR" ? "Administrador" : "Técnico";
+  const isAdmin = session?.user?.role === "ADMINISTRADOR";
 
   return (
     <header
@@ -54,8 +59,12 @@ export default function Header() {
         </div>
 
         {/* User Section */}
-        <div className="flex items-center gap-2 md:gap-4">
-          <div className="flex items-center gap-2 md:gap-3 px-2 md:px-4 py-2 rounded-lg bg-slate-800 border border-slate-700">
+        <div className="flex items-center gap-2 md:gap-4 relative">
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="flex items-center gap-2 md:gap-3 px-2 md:px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 transition-colors cursor-pointer"
+            title="Opciones de usuario"
+          >
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-linear-to-r from-blue-600 to-green-600">
               <User className="w-4 h-4 text-white" />
             </div>
@@ -65,9 +74,40 @@ export default function Header() {
               </p>
               <p className="text-xs text-slate-400">{status === "loading" ? "..." : userRole}</p>
             </div>
-          </div>
+          </button>
+
+          {/* Dropdown Menu */}
+          {showUserMenu && isAdmin && (
+            <>
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setShowUserMenu(false)}
+              />
+
+              {/* Menu */}
+              <div className="absolute top-full right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-50 overflow-hidden">
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    setShowPasswordModal(true);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-200 hover:bg-slate-700 transition-colors"
+                >
+                  <Settings className="w-4 h-4 text-blue-400" />
+                  <span>Configuración</span>
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+      />
     </header>
   );
 }
