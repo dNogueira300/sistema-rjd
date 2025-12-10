@@ -118,7 +118,7 @@ export default function Sidebar() {
                 >
                   <div className="logo-circle-white w-12 h-12 shrink-0 flex items-center justify-center">
                     <Image
-                      src="/assets/logo.png"
+                      src="/logo.png"
                       alt="Suministro y Servicios RJD"
                       width={48}
                       height={48}

@@ -34,14 +34,16 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
 
-        // Permitir acceso a rutas públicas
+        // Permitir acceso a rutas públicas y archivos estáticos
         if (
           pathname === "/" ||
           pathname === "/welcome" ||
           pathname.startsWith("/auth") ||
           pathname.startsWith("/_next") ||
           pathname === "/favicon.ico" ||
-          pathname.startsWith("/api/auth")
+          pathname.startsWith("/api/auth") ||
+          // Permitir archivos estáticos (imágenes, etc.)
+          pathname.match(/\.(png|jpg|jpeg|svg|gif|ico|webp)$/)
         ) {
           return true;
         }
@@ -61,8 +63,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder
+     * - archivos estáticos (png, jpg, svg, etc.)
      */
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|public).*)",
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|gif|ico|webp)).*)",
   ],
 };

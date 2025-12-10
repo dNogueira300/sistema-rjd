@@ -40,16 +40,16 @@ export default function Logo({
   // Determinar qué formato usar
   const logoSrc =
     format === "svg"
-      ? "/assets/logo.svg"
+      ? "/logo.svg"
       : format === "png"
-      ? "/assets/logon.png"
-      : "/assets/logo.svg"; // Default a SVG
+      ? "/logo.png"
+      : "/logo.svg"; // Default a SVG
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     // Fallback a PNG si SVG falla
     const target = e.target as HTMLImageElement;
     if (target.src.includes(".svg")) {
-      target.src = "/assets/logon.png";
+      target.src = "/logo.png";
     }
   };
 

@@ -1,0 +1,11 @@
+{
+  "buildCommand": "prisma generate && next build",
+  "functions": {
+    "app/**/*.{js,ts}": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "TZ": "America/Lima"
+  }
+}

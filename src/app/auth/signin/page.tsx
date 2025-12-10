@@ -45,14 +45,6 @@ export default function SignIn() {
     }
   };
 
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    // Fallback a PNG si SVG falla
-    const target = e.target as HTMLImageElement;
-    if (target.src.includes(".svg")) {
-      target.src = "/assets/logon.png";
-    }
-  };
-
   return (
     <div className="min-h-screen bg-dark-pattern relative overflow-hidden">
       {/* Elementos decorativos de fondo para tema oscuro */}
@@ -70,14 +62,13 @@ export default function SignIn() {
             {/* Logo en círculo */}
             <div className="flex justify-center">
               <div className="logo-circle-glow w-32 h-32 flex items-center justify-center">
-                <div className="w-20 h-20 relative flex items-center justify-center">
+                <div className="w-20 h-20 flex items-center justify-center">
                   <Image
-                    src="/assets/logo.png"
+                    src="/logo.png"
                     alt="Suministro y Servicios RJD"
                     width={80}
                     height={80}
-                    className="drop-shadow-xl object-contain absolute inset-0 m-auto"
-                    onError={handleImageError}
+                    className="drop-shadow-xl object-contain"
                     priority
                   />
                 </div>
@@ -204,7 +195,8 @@ export default function SignIn() {
           {/* Footer */}
           <div className="text-center">
             <p className="text-xs text-slate-500">
-              © {new Date().getFullYear()} Suministro y Servicios RJD - Todos los derechos reservados
+              © {new Date().getFullYear()} Suministro y Servicios RJD - Todos
+              los derechos reservados
             </p>
           </div>
         </div>

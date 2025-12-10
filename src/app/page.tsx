@@ -30,14 +30,6 @@ export default function SplashPage() {
     return () => clearTimeout(timer);
   }, [session, status, router]);
 
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    // Fallback a PNG si SVG falla
-    const target = e.target as HTMLImageElement;
-    if (target.src.includes(".svg")) {
-      target.src = "/assets/logon.png";
-    }
-  };
-
   return (
     <div className="min-h-screen bg-dark-pattern relative overflow-hidden">
       {/* Elementos decorativos de fondo para tema oscuro */}
@@ -65,14 +57,13 @@ export default function SplashPage() {
           {/* Logo en círculo con efecto glow */}
           <div className="flex justify-center">
             <div className="logo-circle-glow w-40 h-40 flex items-center justify-center">
-              <div className="w-24 h-24 relative flex items-center justify-center">
+              <div className="w-24 h-24 flex items-center justify-center">
                 <Image
-                  src="/assets/logo.png"
+                  src="/logo.png"
                   alt="Suministro y Servicios RJD"
                   width={96}
                   height={96}
-                  className="drop-shadow-2xl object-contain absolute inset-0 m-auto"
-                  onError={handleImageError}
+                  className="drop-shadow-2xl object-contain"
                   priority
                 />
               </div>
