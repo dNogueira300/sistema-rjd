@@ -4,6 +4,7 @@ const prisma = new PrismaClient();
 
 async function resetDatabase() {
   console.log("🧹 Iniciando limpieza de base de datos...");
+  console.log("⚠️  CONSERVANDO SOLO USUARIOS - Eliminando todo lo demás");
 
   try {
     // Orden correcto: eliminar dependencias primero
@@ -16,6 +17,9 @@ async function resetDatabase() {
     console.log("Eliminando equipments...");
     await prisma.equipment.deleteMany();
 
+    console.log("Eliminando customers...");
+    await prisma.customer.deleteMany();
+
     console.log("Eliminando expenses...");
     await prisma.expense.deleteMany();
 
@@ -25,14 +29,31 @@ async function resetDatabase() {
     console.log("Eliminando advances...");
     await prisma.advance.deleteMany();
 
-    // Verificar que users y customers siguen ahí
+    // Verificar que solo users quedan
     const userCount = await prisma.user.count();
     const customerCount = await prisma.customer.count();
+    const equipmentCount = await prisma.equipment.count();
+    const paymentCount = await prisma.payment.count();
+    const expenseCount = await prisma.expense.count();
 
     console.log("✅ Limpieza completada!");
-    console.log(`📊 Datos conservados:`);
-    console.log(`   - Usuarios: ${userCount}`);
-    console.log(`   - Clientes: ${customerCount}`);
+    console.log(`📊 Estado final de la base de datos:`);
+    console.log(`   - Usuarios: ${userCount} ✅`);
+    console.log(`   - Clientes: ${customerCount} (eliminados)`);
+    console.log(`   - Equipos: ${equipmentCount} (eliminados)`);
+    console.log(`   - Pagos: ${paymentCount} (eliminados)`);
+    console.log(`   - Gastos: ${expenseCount} (eliminados)`);
+
+    if (
+      customerCount === 0 &&
+      equipmentCount === 0 &&
+      paymentCount === 0 &&
+      expenseCount === 0
+    ) {
+      console.log("🎯 ÉXITO: Solo usuarios conservados");
+    } else {
+      console.log("⚠️  Advertencia: Algunos registros no fueron eliminados");
+    }
   } catch (error) {
     console.error("❌ Error durante la limpieza:", error);
   } finally {
