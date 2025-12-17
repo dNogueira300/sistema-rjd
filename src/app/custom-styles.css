@@ -360,7 +360,7 @@
         linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
     background-origin: border-box;
     background-clip: padding-box, border-box;
-    padding: 0.25rem 0.5rem; /* Espaciado: vertical 4px | horizontal 8px */
+    padding: 0.25rem 0.25rem 0.25rem 0.75rem; /* Espaciado: arriba 4px | derecha 4px | abajo 4px | izquierda 12px */
     backdrop-filter: blur(10px);
     transform: scale(1);
     transition: all 0.3s ease;
@@ -390,7 +390,7 @@
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15),
                 0 0 15px rgba(59, 130, 246, 0.2),
                 0 0 20px rgba(16, 185, 129, 0.15);
-    padding: 0.25rem 0.5rem; /* Espaciado: vertical 4px | horizontal 8px */
+    padding: 0.25rem 0.25rem 0.25rem 0.75rem; /* Espaciado: arriba 4px | derecha 4px | abajo 4px | izquierda 12px */
     transform: scale(1);
     transition: all 0.3s ease;
 }
@@ -412,7 +412,7 @@
         linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
     background-origin: border-box;
     background-clip: padding-box, border-box;
-    padding: 0.25rem 0.5rem; /* Espaciado: vertical 4px | horizontal 8px */
+    padding: 0.25rem 0.25rem 0.25rem 0.75rem; /* Espaciado: arriba 4px | derecha 4px | abajo 4px | izquierda 12px */
     transform: scale(1);
     transition: all 0.3s ease;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2),
