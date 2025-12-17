@@ -116,13 +116,13 @@ export default function Sidebar() {
                     isCollapsed && !isMobile ? "items-center" : "items-center"
                   )}
                 >
-                  <div className="logo-circle-white w-12 h-12 shrink-0 flex items-center justify-center">
+                  <div className="logo-circle-white w-14 h-14 shrink-0 flex items-center justify-center">
                     <Image
                       src="/logo.png"
                       alt="Suministro y Servicios RJD"
-                      width={48}
-                      height={48}
-                      className="object-contain"
+                      width={54}
+                      height={54}
+                      className="object-contain w-full h-full"
                       priority
                     />
                   </div>

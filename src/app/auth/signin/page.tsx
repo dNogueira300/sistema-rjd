@@ -62,16 +62,14 @@ export default function SignIn() {
             {/* Logo en círculo */}
             <div className="flex justify-center">
               <div className="logo-circle-glow w-32 h-32 flex items-center justify-center">
-                <div className="w-20 h-20 flex items-center justify-center">
-                  <Image
-                    src="/logo.png"
-                    alt="Suministro y Servicios RJD"
-                    width={80}
-                    height={80}
-                    className="drop-shadow-xl object-contain"
-                    priority
-                  />
-                </div>
+                <Image
+                  src="/logo.png"
+                  alt="Suministro y Servicios RJD"
+                  width={124}
+                  height={124}
+                  className="drop-shadow-xl object-contain w-full h-full"
+                  priority
+                />
               </div>
             </div>
 

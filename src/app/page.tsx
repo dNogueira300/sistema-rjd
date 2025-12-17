@@ -57,16 +57,14 @@ export default function SplashPage() {
           {/* Logo en círculo con efecto glow */}
           <div className="flex justify-center">
             <div className="logo-circle-glow w-40 h-40 flex items-center justify-center">
-              <div className="w-24 h-24 flex items-center justify-center">
-                <Image
-                  src="/logo.png"
-                  alt="Suministro y Servicios RJD"
-                  width={96}
-                  height={96}
-                  className="drop-shadow-2xl object-contain"
-                  priority
-                />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="Suministro y Servicios RJD"
+                width={152}
+                height={152}
+                className="drop-shadow-2xl object-contain w-full h-full"
+                priority
+              />
             </div>
           </div>
 

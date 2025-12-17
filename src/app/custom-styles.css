@@ -353,48 +353,78 @@
 .logo-circle-glow {
     border-radius: 50%;
     background: #ffffff;
-    border: 2px solid rgba(148, 163, 184, 0.2);
-    padding: 0.5rem;
+    /* Borde con gradiente azul-verde del sistema */
+    border: 3px solid transparent;
+    background-image:
+        linear-gradient(white, white),
+        linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    padding: 0.25rem 0.5rem; /* Espaciado: vertical 4px | horizontal 8px */
     backdrop-filter: blur(10px);
     transform: scale(1);
     transition: all 0.3s ease;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(59, 130, 246, 0.3),
+                0 0 30px rgba(16, 185, 129, 0.2);
 }
 
 .logo-circle-glow:hover {
     transform: scale(1.05);
-    box-shadow: 0 35px 70px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 35px 70px rgba(0, 0, 0, 0.4),
+                0 0 30px rgba(59, 130, 246, 0.5),
+                0 0 40px rgba(16, 185, 129, 0.3);
 }
 
 /* Variantes adicionales para diferentes contextos */
 .logo-circle-white {
     border-radius: 50%;
     background: #ffffff;
-    border: 2px solid rgba(203, 213, 225, 0.3);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    padding: 0.5rem;
+    /* Borde con gradiente azul-verde del sistema */
+    border: 2px solid transparent;
+    background-image:
+        linear-gradient(white, white),
+        linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15),
+                0 0 15px rgba(59, 130, 246, 0.2),
+                0 0 20px rgba(16, 185, 129, 0.15);
+    padding: 0.25rem 0.5rem; /* Espaciado: vertical 4px | horizontal 8px */
     transform: scale(1);
     transition: all 0.3s ease;
 }
 
 .logo-circle-white:hover {
     transform: scale(1.05);
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2),
+                0 0 20px rgba(59, 130, 246, 0.3),
+                0 0 25px rgba(16, 185, 129, 0.2);
 }
 
 .logo-circle-white-glow {
     border-radius: 50%;
     background: #ffffff;
-    border: 2px solid rgba(203, 213, 225, 0.3);
-    padding: 0.5rem;
+    /* Borde con gradiente azul-verde del sistema */
+    border: 2px solid transparent;
+    background-image:
+        linear-gradient(white, white),
+        linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    padding: 0.25rem 0.5rem; /* Espaciado: vertical 4px | horizontal 8px */
     transform: scale(1);
     transition: all 0.3s ease;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2),
+                0 0 15px rgba(59, 130, 246, 0.25),
+                0 0 20px rgba(16, 185, 129, 0.2);
 }
 
 .logo-circle-white-glow:hover {
     transform: scale(1.05);
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25),
+                0 0 20px rgba(59, 130, 246, 0.35),
+                0 0 25px rgba(16, 185, 129, 0.25);
 }
 
 /* Animaciones adicionales */
