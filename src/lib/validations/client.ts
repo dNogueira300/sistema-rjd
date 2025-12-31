@@ -55,8 +55,12 @@ export type UpdateClientInput = z.infer<typeof updateClientSchema>;
 export type ClientFiltersInput = z.infer<typeof clientFiltersSchema>;
 
 // Helper para formatear RUC
+// export const formatRUC = (ruc: string): string => {
+//   return ruc.replace(/(\d{2})(\d{9})/, "$1-$2");
+// };
 export const formatRUC = (ruc: string): string => {
-  return ruc.replace(/(\d{2})(\d{9})/, "$1-$2");
+  // Quitar todo lo que no sea dígito y devolver los dígitos concatenados (sin guion)
+  return ruc.replace(/\D/g, "");
 };
 
 // Helper para formatear teléfono
