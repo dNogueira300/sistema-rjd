@@ -1,7 +1,7 @@
 // src/app/dashboard/finanzas/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Plus,
   Filter,
@@ -35,7 +35,7 @@ export default function FinanzasPage() {
   const { data, isLoading, refetch } = useTransactions(filters);
   const { data: metrics } = useFinanceMetrics();
   const { technicians } = useTechnicians({
-    initialFilters: { status: "ACTIVE" }
+    initialFilters: { status: "ACTIVE" },
   });
 
   const handleFilterChange = (
@@ -58,8 +58,20 @@ export default function FinanzasPage() {
   // Determinar si hay filtros de fecha personalizados
   const hasDateFilters = filters.startDate || filters.endDate;
 
+  // Tipo para las tarjetas de estadística
+  type Stat = {
+    label: string;
+    value: string | number;
+    icon: ReactNode;
+    iconColor: string;
+    borderColor: string;
+    bgColor: string;
+    iconBg: string;
+    highlight?: boolean;
+  };
+
   // Stats cards cuando hay filtros de fecha (mostrar métricas del periodo)
-  const periodStats = [
+  const periodStats: Stat[] = [
     {
       label: "Ingresos del Periodo",
       value: `S/ ${data?.periodMetrics?.income.toFixed(2) || "0.00"}`,
@@ -83,18 +95,26 @@ export default function FinanzasPage() {
       value: `S/ ${data?.periodMetrics?.difference.toFixed(2) || "0.00"}`,
       icon: <DollarSign className="w-5 h-5 md:w-6 md:h-6" />,
       iconColor:
-        (data?.periodMetrics?.difference || 0) >= 0 ? "text-blue-400" : "text-red-400",
+        (data?.periodMetrics?.difference || 0) >= 0
+          ? "text-blue-400"
+          : "text-red-400",
       borderColor:
-        (data?.periodMetrics?.difference || 0) >= 0 ? "border-blue-500" : "border-red-500",
+        (data?.periodMetrics?.difference || 0) >= 0
+          ? "border-blue-500"
+          : "border-red-500",
       bgColor:
-        (data?.periodMetrics?.difference || 0) >= 0 ? "bg-blue-600/10" : "bg-red-600/10",
+        (data?.periodMetrics?.difference || 0) >= 0
+          ? "bg-blue-600/10"
+          : "bg-red-600/10",
       iconBg:
-        (data?.periodMetrics?.difference || 0) >= 0 ? "bg-blue-600/20" : "bg-red-600/20",
+        (data?.periodMetrics?.difference || 0) >= 0
+          ? "bg-blue-600/20"
+          : "bg-red-600/20",
     },
   ];
 
   // Stats cards cuando NO hay filtros de fecha (mostrar métricas generales)
-  const generalStats = [
+  const generalStats: Stat[] = [
     {
       label: "Ingresos del Día",
       value: `S/ ${metrics?.todayIncome.toFixed(2) || "0.00"}`,
@@ -159,7 +179,7 @@ export default function FinanzasPage() {
   ];
 
   // Seleccionar las estadísticas a mostrar según si hay filtros de fecha
-  const stats = hasDateFilters ? periodStats : generalStats;
+  const stats: Stat[] = hasDateFilters ? periodStats : generalStats;
 
   return (
     <div className="space-y-6">
@@ -190,7 +210,13 @@ export default function FinanzasPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className={`grid ${hasDateFilters ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-5'} gap-3 md:gap-4`}>
+      <div
+        className={`grid ${
+          hasDateFilters
+            ? "grid-cols-1 md:grid-cols-3"
+            : "grid-cols-2 md:grid-cols-5"
+        } gap-3 md:gap-4`}
+      >
         {stats.map((stat, index) => (
           <div
             key={index}
@@ -286,10 +312,7 @@ export default function FinanzasPage() {
             <select
               value={filters.technicianId || ""}
               onChange={(e) =>
-                handleFilterChange(
-                  "technicianId",
-                  e.target.value || undefined
-                )
+                handleFilterChange("technicianId", e.target.value || undefined)
               }
               className="input-dark w-full"
             >
