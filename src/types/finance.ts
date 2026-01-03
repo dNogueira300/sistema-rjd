@@ -124,6 +124,13 @@ export interface FinanceMetrics {
   pendingAdvances: number;
 }
 
+// Métricas del periodo filtrado
+export interface PeriodMetrics {
+  income: number;      // Total de ingresos del periodo
+  expenses: number;    // Total de egresos del periodo
+  difference: number;  // Diferencia (ingresos - egresos)
+}
+
 // Respuesta de la API
 export interface TransactionsResponse {
   transactions: ConsolidatedTransaction[];
@@ -132,6 +139,7 @@ export interface TransactionsResponse {
   totalPages: number;
   hasNextPage: boolean;
   hasPreviousPage: boolean;
+  periodMetrics?: PeriodMetrics; // Métricas del periodo filtrado (si hay filtros de fecha)
 }
 
 // Labels para tipos de egreso

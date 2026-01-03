@@ -206,6 +206,24 @@ export async function GET(request: NextRequest) {
       return 0;
     });
 
+    // Calcular métricas del periodo si hay filtros de fecha
+    let periodMetrics = undefined;
+    if (filters.startDate || filters.endDate) {
+      const income = transactions
+        .filter(t => t.type === "INGRESO")
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const expenses = transactions
+        .filter(t => t.type === "EGRESO")
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      periodMetrics = {
+        income,
+        expenses,
+        difference: income - expenses,
+      };
+    }
+
     // Paginación
     const page = filters.page || 1;
     const limit = filters.limit || 20;
@@ -223,6 +241,7 @@ export async function GET(request: NextRequest) {
       totalPages,
       hasNextPage: page < totalPages,
       hasPreviousPage: page > 1,
+      periodMetrics,
     });
   } catch (error) {
     console.error("Error obteniendo transacciones:", error);

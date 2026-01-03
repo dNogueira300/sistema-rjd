@@ -12,7 +12,7 @@ import {
   DollarSign,
   TrendingUp,
   TrendingDown,
-  Percent,
+  TrendingUpDown,
   AlertTriangle,
   Download,
   Calendar,
@@ -20,7 +20,7 @@ import {
   Filter,
   X,
 } from "lucide-react";
-import { formatCurrency, formatPercentage } from "@/lib/reports";
+import { formatCurrency } from "@/lib/reports";
 import { generateFinancialReportPDF } from "@/lib/report-pdf-generator";
 import { toast } from "sonner";
 
@@ -142,14 +142,14 @@ export default function ReportesPage() {
           main: "del Día",
           income: "Ingresos Hoy",
           expenses: "Gastos Hoy",
-          margin: "Margen Hoy",
+          difference: "Diferencia Hoy",
         };
       case "week":
         return {
           main: "de la Semana",
           income: "Ingresos de la Semana",
           expenses: "Gastos de la Semana",
-          margin: "Margen de la Semana",
+          difference: "Diferencia de la Semana",
         };
       case "custom":
         // Si no hay fechas aplicadas, mostrar etiquetas genéricas
@@ -158,7 +158,7 @@ export default function ReportesPage() {
             main: "Total",
             income: "Ingresos Totales",
             expenses: "Gastos Totales",
-            margin: "Margen Total",
+            difference: "Diferencia Total",
           };
         }
         // Si ambas fechas aplicadas son iguales, es un día específico
@@ -167,7 +167,7 @@ export default function ReportesPage() {
             main: "del Día",
             income: "Ingresos del Día",
             expenses: "Gastos del Día",
-            margin: "Margen del Día",
+            difference: "Diferencia del Día",
           };
         }
         // Fechas diferentes = período personalizado
@@ -175,7 +175,7 @@ export default function ReportesPage() {
           main: "del Período",
           income: "Ingresos del Período",
           expenses: "Egresos del Período",
-          margin: "Margen del Período",
+          difference: "Diferencia del Período",
         };
       case "month":
       default:
@@ -183,7 +183,7 @@ export default function ReportesPage() {
           main: "del Mes",
           income: "Ingresos del Mes",
           expenses: "Gastos del Mes",
-          margin: "Margen del Mes",
+          difference: "Diferencia del Mes",
         };
     }
   };
@@ -191,8 +191,10 @@ export default function ReportesPage() {
   const labels = getPeriodLabel();
 
   // Verificar si hay filtro personalizado aplicado
-  const hasCustomFilterApplied = appliedPeriod === "custom" && appliedStartDate && appliedEndDate;
-  const hasAnyFilterApplied = appliedPeriod !== "custom" || hasCustomFilterApplied;
+  const hasCustomFilterApplied =
+    appliedPeriod === "custom" && appliedStartDate && appliedEndDate;
+  const hasAnyFilterApplied =
+    appliedPeriod !== "custom" || hasCustomFilterApplied;
 
   if (isLoading) {
     return (
@@ -227,7 +229,7 @@ export default function ReportesPage() {
         {
           income: labels.income,
           expenses: labels.expenses,
-          margin: labels.margin,
+          difference: labels.difference,
         },
         dateRange
           ? {
@@ -409,7 +411,9 @@ export default function ReportesPage() {
           borderColor="border-blue-500"
           bgColor="bg-blue-600/10"
           iconBg="bg-blue-600/20"
-          subtitle={hasAnyFilterApplied ? "Según filtro" : "Sin filtro aplicado"}
+          subtitle={
+            hasAnyFilterApplied ? "Según filtro" : "Sin filtro aplicado"
+          }
         />
         <MetricCard
           title={labels.expenses}
@@ -419,17 +423,25 @@ export default function ReportesPage() {
           borderColor="border-orange-500"
           bgColor="bg-orange-600/10"
           iconBg="bg-orange-600/20"
-          subtitle={hasAnyFilterApplied ? "Según filtro" : "Sin filtro aplicado"}
+          subtitle={
+            hasAnyFilterApplied ? "Según filtro" : "Sin filtro aplicado"
+          }
         />
         <MetricCard
-          title={labels.margin}
-          value={hasAnyFilterApplied ? formatPercentage(kpis.profitMargin) : "—"}
-          icon={Percent}
-          iconColor="text-purple-400"
-          borderColor="border-purple-500"
-          bgColor="bg-purple-600/10"
-          iconBg="bg-purple-600/20"
-          subtitle={hasAnyFilterApplied ? `Hoy: ${formatPercentage(kpis.todayProfitMargin)}` : "Sin filtro aplicado"}
+          title={labels.difference}
+          value={hasAnyFilterApplied ? formatCurrency(kpis.monthProfit) : "—"}
+          icon={TrendingUpDown}
+          iconColor={kpis.monthProfit >= 0 ? "text-purple-400" : "text-red-400"}
+          borderColor={
+            kpis.monthProfit >= 0 ? "border-purple-500" : "border-red-500"
+          }
+          bgColor={kpis.monthProfit >= 0 ? "bg-purple-600/10" : "bg-red-600/10"}
+          iconBg={kpis.monthProfit >= 0 ? "bg-purple-600/20" : "bg-red-600/20"}
+          subtitle={
+            hasAnyFilterApplied
+              ? `Hoy: ${formatCurrency(kpis.todayProfit)}`
+              : "Sin filtro aplicado"
+          }
         />
       </div>
 

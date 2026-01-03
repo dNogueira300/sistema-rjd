@@ -204,7 +204,7 @@ export const generateFinancialReportPDF = (
   periodLabel?: {
     income: string;
     expenses: string;
-    margin: string;
+    difference: string;
   },
   dateRange?: {
     startDate?: string;
@@ -311,7 +311,7 @@ export const generateFinancialReportPDF = (
   const labels = periodLabel || {
     income: "Ingresos del Mes",
     expenses: "Gastos del Mes",
-    margin: "Margen del Mes",
+    difference: "Diferencia del Mes",
   };
 
   const kpis = [
@@ -336,9 +336,9 @@ export const generateFinancialReportPDF = (
       color: [239, 68, 68] as [number, number, number],
     },
     {
-      label: labels.margin,
-      value: formatPercentage(data.kpis.profitMargin),
-      color: [168, 85, 247] as [number, number, number],
+      label: labels.difference,
+      value: formatCurrency(data.kpis.monthProfit),
+      color: data.kpis.monthProfit >= 0 ? ([168, 85, 247] as [number, number, number]) : ([239, 68, 68] as [number, number, number]),
     },
   ];
 
