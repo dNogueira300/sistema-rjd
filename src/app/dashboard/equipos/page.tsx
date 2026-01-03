@@ -231,10 +231,10 @@ export default function EquiposPage() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full md:w-auto">
             <button
               onClick={refreshEquipments}
-              className="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors"
+              className="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors shrink-0"
               title="Actualizar lista"
             >
               <RefreshCw
@@ -244,10 +244,10 @@ export default function EquiposPage() {
             {userRole === "ADMINISTRADOR" && (
               <button
                 onClick={handleOpenCreate}
-                className="btn-primary-dark flex items-center gap-2 px-4 py-2"
+                className="btn-primary-dark flex items-center justify-center gap-2 px-4 py-2 flex-1 md:flex-initial"
               >
                 <Plus className="w-5 h-5" />
-                <span className="hidden sm:inline">Nuevo Equipo</span>
+                <span>Nuevo Equipo</span>
               </button>
             )}
           </div>

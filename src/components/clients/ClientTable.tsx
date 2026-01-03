@@ -1,7 +1,7 @@
 // src/components/clients/ClientTable.tsx
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import {
   Users,
   User,
@@ -16,6 +16,8 @@ import {
   FileText,
   Calendar,
   Laptop,
+  Copy,
+  Check,
 } from "lucide-react";
 import { formatPhone, formatRUC } from "@/lib/validations/client";
 import type { Client, ClientFilters } from "@/types/client";
@@ -67,6 +69,36 @@ const getStatusLabel = (status: string) => {
   }
 };
 
+// Copy RUC Button Component
+function CopyRucButton({ ruc }: { ruc: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyRuc = async () => {
+    try {
+      // Copiar el RUC sin formato (solo números)
+      await navigator.clipboard.writeText(ruc);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error("Error al copiar RUC:", error);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopyRuc}
+      className="ml-1 p-1 rounded hover:bg-slate-700/50 transition-colors group relative"
+      title="Copiar RUC"
+    >
+      {copied ? (
+        <Check className="w-3 h-3 text-green-400" />
+      ) : (
+        <Copy className="w-3 h-3 text-slate-400 group-hover:text-slate-300" />
+      )}
+    </button>
+  );
+}
+
 // Mobile Card Component
 function ClientCard({ client, onEdit, onDelete, onView }: ClientCardProps) {
   return (
@@ -85,6 +117,7 @@ function ClientCard({ client, onEdit, onDelete, onView }: ClientCardProps) {
               <div className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
                 <FileText className="w-3 h-3" />
                 {formatRUC(client.ruc)}
+                <CopyRucButton ruc={client.ruc} />
               </div>
             )}
           </div>
@@ -163,8 +196,9 @@ function ClientRow({ client, onEdit, onDelete, onView }: ClientRowProps) {
           <div>
             <div className="font-semibold text-slate-100">{client.name}</div>
             {client.ruc && (
-              <div className="text-xs text-slate-400">
+              <div className="text-xs text-slate-400 flex items-center">
                 RUC: {formatRUC(client.ruc)}
+                <CopyRucButton ruc={client.ruc} />
               </div>
             )}
           </div>
