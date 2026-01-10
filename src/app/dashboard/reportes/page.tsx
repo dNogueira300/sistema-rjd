@@ -8,6 +8,7 @@ import MetricCard from "@/components/reports/MetricCard";
 import LineChart from "@/components/reports/LineChart";
 import TechnicianPaymentsTable from "@/components/reports/TechnicianPaymentsTable";
 import TechnicianPaymentsChart from "@/components/reports/TechnicianPaymentsChart";
+import PaymentCalculatorModal from "@/components/reports/PaymentCalculatorModal";
 import {
   DollarSign,
   TrendingUp,
@@ -19,6 +20,7 @@ import {
   Users,
   Filter,
   X,
+  Calculator,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/reports";
 import { generateFinancialReportPDF } from "@/lib/report-pdf-generator";
@@ -37,6 +39,9 @@ export default function ReportesPage() {
   const [appliedStartDate, setAppliedStartDate] = useState("");
   const [appliedEndDate, setAppliedEndDate] = useState("");
   const [appliedTechnicianId, setAppliedTechnicianId] = useState<string>("");
+
+  // Estado para el modal de cálculo de pago
+  const [showPaymentCalculator, setShowPaymentCalculator] = useState(false);
 
   const { technicians } = useTechnicians();
 
@@ -258,7 +263,7 @@ export default function ReportesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">
             Reportes Financieros
@@ -267,13 +272,26 @@ export default function ReportesPage() {
             Análisis de ingresos, gastos y rentabilidad
           </p>
         </div>
-        <button
-          onClick={handleExportPDF}
-          className="btn-primary-dark flex items-center gap-2"
-        >
-          <Download className="w-4 h-4" />
-          Exportar PDF
-        </button>
+        <div className="flex flex-wrap gap-2">
+          {hasCustomFilterApplied && (
+            <button
+              onClick={() => setShowPaymentCalculator(true)}
+              className="px-4 py-2 rounded-xl bg-gradient-to-br from-purple-600/20 to-blue-600/20 border-2 border-purple-500 hover:border-purple-400 text-slate-100 font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30 active:scale-95 flex items-center gap-2 group"
+            >
+              <Calculator className="w-4 h-4 text-purple-400 group-hover:text-purple-300 transition-colors" />
+              <span className="hidden sm:inline">Calcular Pago</span>
+              <span className="sm:hidden">Calcular</span>
+            </button>
+          )}
+          <button
+            onClick={handleExportPDF}
+            className="btn-primary-dark flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Exportar PDF</span>
+            <span className="sm:hidden">PDF</span>
+          </button>
+        </div>
       </div>
 
       {/* Filtros */}
@@ -575,6 +593,15 @@ export default function ReportesPage() {
           technicianId={filters.technicianId}
         />
       </div>
+
+      {/* Modal de Calculadora de Pago */}
+      {showPaymentCalculator && (
+        <PaymentCalculatorModal
+          onClose={() => setShowPaymentCalculator(false)}
+          totalIncome={kpis.monthIncome}
+          periodLabel={labels.income}
+        />
+      )}
     </div>
   );
 }
