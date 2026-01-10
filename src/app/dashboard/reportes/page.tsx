@@ -599,6 +599,7 @@ export default function ReportesPage() {
         <PaymentCalculatorModal
           onClose={() => setShowPaymentCalculator(false)}
           totalIncome={kpis.monthIncome}
+          totalExpenses={kpis.monthExpenses}
           periodLabel={labels.income}
         />
       )}

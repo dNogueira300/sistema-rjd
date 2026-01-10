@@ -8,12 +8,14 @@ import { formatCurrency } from "@/lib/reports";
 interface PaymentCalculatorModalProps {
   onClose: () => void;
   totalIncome: number;
+  totalExpenses: number;
   periodLabel: string;
 }
 
 export default function PaymentCalculatorModal({
   onClose,
   totalIncome,
+  totalExpenses,
   periodLabel,
 }: PaymentCalculatorModalProps) {
   const [technicians, setTechnicians] = useState<
@@ -57,17 +59,20 @@ export default function PaymentCalculatorModal({
 
   const numTechnicians = technicians.length;
 
+  // Calcular la diferencia (ingreso - egreso)
+  const difference = totalIncome - totalExpenses;
+
   // Calcular pago por técnico (redondeado hacia abajo al múltiplo de 10 más cercano)
   const calculatePaymentPerTechnician = () => {
     if (numTechnicians === 0) return 0;
-    const rawPayment = totalIncome / numTechnicians;
+    const rawPayment = difference / numTechnicians;
     // Redondear hacia abajo al múltiplo de 10 más cercano
     return Math.floor(rawPayment / 10) * 10;
   };
 
   const paymentPerTechnician = calculatePaymentPerTechnician();
   const totalDistributed = paymentPerTechnician * numTechnicians;
-  const remainder = totalIncome - totalDistributed;
+  const remainder = difference - totalDistributed;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -109,31 +114,60 @@ export default function PaymentCalculatorModal({
             </div>
           ) : (
             <>
-              {/* Información del Período */}
-              <div className="glass-dark p-4 rounded-lg border border-blue-600/30 bg-blue-600/10">
-                <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="w-5 h-5 text-blue-400" />
-                  <h3 className="text-sm font-medium text-slate-200">
-                    Ingreso {periodLabel}
-                  </h3>
+              {/* Información Financiera del Período */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Ingreso */}
+                <div className="glass-dark p-4 rounded-lg border border-green-600/30 bg-green-600/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign className="w-5 h-5 text-green-400" />
+                    <h3 className="text-xs font-medium text-slate-300">
+                      Ingreso {periodLabel}
+                    </h3>
+                  </div>
+                  <p className="text-xl font-bold text-green-400">
+                    {formatCurrency(totalIncome)}
+                  </p>
                 </div>
-                <p className="text-2xl font-bold text-blue-400">
-                  {formatCurrency(totalIncome)}
-                </p>
-                <p className="text-xs text-slate-400 mt-1">
-                  Monto total a distribuir entre los trabajadores
-                </p>
+
+                {/* Egreso */}
+                <div className="glass-dark p-4 rounded-lg border border-red-600/30 bg-red-600/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign className="w-5 h-5 text-red-400" />
+                    <h3 className="text-xs font-medium text-slate-300">
+                      Egreso {periodLabel}
+                    </h3>
+                  </div>
+                  <p className="text-xl font-bold text-red-400">
+                    {formatCurrency(totalExpenses)}
+                  </p>
+                </div>
+
+                {/* Diferencia */}
+                <div className="glass-dark p-4 rounded-lg border border-blue-600/30 bg-blue-600/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign className="w-5 h-5 text-blue-400" />
+                    <h3 className="text-xs font-medium text-slate-300">
+                      Diferencia
+                    </h3>
+                  </div>
+                  <p className="text-xl font-bold text-blue-400">
+                    {formatCurrency(difference)}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Monto a distribuir
+                  </p>
+                </div>
               </div>
 
               {/* Información de Trabajadores */}
-              <div className="glass-dark p-4 rounded-lg border border-green-600/30 bg-green-600/10">
+              <div className="glass-dark p-4 rounded-lg border border-purple-600/30 bg-purple-600/10">
                 <div className="flex items-center gap-2 mb-2">
-                  <Users className="w-5 h-5 text-green-400" />
+                  <Users className="w-5 h-5 text-purple-400" />
                   <h3 className="text-sm font-medium text-slate-200">
                     Trabajadores Activos
                   </h3>
                 </div>
-                <p className="text-2xl font-bold text-green-400">
+                <p className="text-2xl font-bold text-purple-400">
                   {numTechnicians}
                 </p>
                 {numTechnicians > 0 && (
@@ -143,7 +177,7 @@ export default function PaymentCalculatorModal({
                         key={tech.id}
                         className="text-sm text-slate-300 flex items-center gap-2"
                       >
-                        <span className="w-6 h-6 rounded-full bg-green-600/20 text-green-400 flex items-center justify-center text-xs font-medium">
+                        <span className="w-6 h-6 rounded-full bg-purple-600/20 text-purple-400 flex items-center justify-center text-xs font-medium">
                           {index + 1}
                         </span>
                         {tech.name}
@@ -156,9 +190,9 @@ export default function PaymentCalculatorModal({
               {/* Cálculo del Pago */}
               {numTechnicians > 0 ? (
                 <>
-                  <div className="glass-dark p-4 rounded-lg border border-purple-600/30 bg-purple-600/10">
+                  <div className="glass-dark p-4 rounded-lg border border-amber-600/30 bg-amber-600/10">
                     <div className="flex items-center gap-2 mb-3">
-                      <Calculator className="w-5 h-5 text-purple-400" />
+                      <Calculator className="w-5 h-5 text-amber-400" />
                       <h3 className="text-sm font-medium text-slate-200">
                         Cálculo del Pago
                       </h3>
@@ -167,9 +201,9 @@ export default function PaymentCalculatorModal({
                     {/* Fórmula */}
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-400">Ingreso Total:</span>
-                        <span className="font-medium text-slate-200">
-                          {formatCurrency(totalIncome)}
+                        <span className="text-slate-400">Diferencia (Ingreso - Egreso):</span>
+                        <span className="font-medium text-blue-400">
+                          {formatCurrency(difference)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
@@ -186,18 +220,18 @@ export default function PaymentCalculatorModal({
                             División (sin redondeo):
                           </span>
                           <span className="font-medium text-slate-200">
-                            {formatCurrency(totalIncome / numTechnicians)}
+                            {formatCurrency(difference / numTechnicians)}
                           </span>
                         </div>
                       </div>
                     </div>
 
                     {/* Resultado Final */}
-                    <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg p-4">
+                    <div className="bg-amber-600/20 border border-amber-500/30 rounded-lg p-4">
                       <p className="text-xs text-slate-400 mb-1">
                         Pago por Trabajador (múltiplo de 10):
                       </p>
-                      <p className="text-3xl font-bold text-purple-400">
+                      <p className="text-3xl font-bold text-amber-400">
                         {formatCurrency(paymentPerTechnician)}
                       </p>
                     </div>
