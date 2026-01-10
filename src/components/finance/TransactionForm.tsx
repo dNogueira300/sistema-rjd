@@ -140,12 +140,22 @@ export default function TransactionForm({
     fetchTechnicians();
   }, [transactionType]);
 
-  // Auto-seleccionar receptor según tipo de egreso y limpiar descripción
+  // Establecer descripción por defecto según tipo de egreso
   useEffect(() => {
     if (transactionType !== "EGRESO") return;
 
-    // Limpiar descripción cuando cambia el tipo de egreso
-    setDescription("");
+    // Establecer descripción por defecto según tipo de egreso
+    if (expenseType === "SALARY") {
+      setDescription("PAGO SEMANA");
+    } else {
+      // Limpiar descripción para otros tipos de egreso
+      setDescription("");
+    }
+  }, [expenseType, transactionType]);
+
+  // Auto-seleccionar receptor según tipo de egreso
+  useEffect(() => {
+    if (transactionType !== "EGRESO") return;
 
     // Si NO es adelanto ni salario, el receptor es RJD
     if (expenseType !== "ADVANCE" && expenseType !== "SALARY") {
@@ -594,7 +604,7 @@ export default function TransactionForm({
                 </select>
               </div>
 
-              {/* Descripción (valor por defecto para adelantos pero editable) */}
+              {/* Descripción (valor por defecto para adelantos y salarios pero editable) */}
               <div>
                 <label className="text-sm font-medium text-slate-200 mb-2 block">
                   Descripción *
@@ -609,6 +619,8 @@ export default function TransactionForm({
                   placeholder={
                     expenseType === "ADVANCE"
                       ? "Adelanto"
+                      : expenseType === "SALARY"
+                      ? "PAGO SEMANA"
                       : "Descripción del egreso"
                   }
                   disabled={isLoading}
@@ -617,6 +629,11 @@ export default function TransactionForm({
                   <p className="text-blue-400 text-xs mt-1">
                     Se usará Adelanto por defecto si no especificas otra
                     descripción
+                  </p>
+                )}
+                {expenseType === "SALARY" && (
+                  <p className="text-blue-400 text-xs mt-1">
+                    Puedes modificar la descripción si lo necesitas
                   </p>
                 )}
                 {errors.description && (
