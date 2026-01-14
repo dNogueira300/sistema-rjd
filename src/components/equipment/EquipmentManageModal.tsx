@@ -37,7 +37,8 @@ export default function EquipmentManageModal({
   const [paymentData, setPaymentData] = useState({
     totalAmount: equipment.payments?.[0]?.totalAmount || 0,
     advanceAmount: equipment.payments?.[0]?.advanceAmount || 0,
-    paymentMethod: (equipment.payments?.[0]?.paymentMethod || "CASH") as PaymentMethod,
+    paymentMethod: (equipment.payments?.[0]?.paymentMethod ||
+      "CASH") as PaymentMethod,
   });
   const existingPayment = equipment.payments?.[0];
 
@@ -79,7 +80,9 @@ export default function EquipmentManageModal({
       toast.success("Técnico asignado correctamente");
       onSuccess();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error al asignar técnico");
+      toast.error(
+        error instanceof Error ? error.message : "Error al asignar técnico"
+      );
     } finally {
       setIsSavingTechnician(false);
     }
@@ -119,7 +122,9 @@ export default function EquipmentManageModal({
       toast.success(existingPayment ? "Pago actualizado" : "Pago registrado");
       onSuccess();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error al guardar pago");
+      toast.error(
+        error instanceof Error ? error.message : "Error al guardar pago"
+      );
     } finally {
       setIsSavingPayment(false);
     }
@@ -172,7 +177,11 @@ export default function EquipmentManageModal({
               </select>
               <button
                 onClick={handleSaveTechnician}
-                disabled={isSavingTechnician || selectedTechnicianId === (equipment.assignedTechnicianId || "")}
+                disabled={
+                  isSavingTechnician ||
+                  selectedTechnicianId ===
+                    (equipment.assignedTechnicianId || "")
+                }
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2"
               >
                 {isSavingTechnician ? (
@@ -267,7 +276,11 @@ export default function EquipmentManageModal({
                 <div className="flex justify-between text-slate-400">
                   <span>Pendiente:</span>
                   <span className="text-slate-200 font-medium">
-                    S/ {Math.max(0, paymentData.totalAmount - paymentData.advanceAmount).toFixed(2)}
+                    S/{" "}
+                    {Math.max(
+                      0,
+                      paymentData.totalAmount - paymentData.advanceAmount
+                    ).toFixed(2)}
                   </span>
                 </div>
               </div>

@@ -150,7 +150,9 @@ export default function EquiposPage() {
     queryClient.invalidateQueries({ queryKey: ["finance-metrics"] });
     queryClient.invalidateQueries({ queryKey: ["transactions"] });
     if (viewEquipmentId) {
-      queryClient.invalidateQueries({ queryKey: ["equipment", viewEquipmentId] });
+      queryClient.invalidateQueries({
+        queryKey: ["equipment", viewEquipmentId],
+      });
     }
   }, [queryClient, viewEquipmentId]);
 
@@ -178,10 +180,10 @@ export default function EquiposPage() {
       label: "Recibidos",
       value: receivedCount,
       icon: <Clock className="w-5 h-5 md:w-6 md:h-6" />,
-      iconColor: "text-cyan-400",
-      borderColor: "border-cyan-500",
-      bgColor: "bg-cyan-600/10",
-      iconBg: "bg-cyan-600/20",
+      iconColor: "text-purple-400",
+      borderColor: "border-purple-500",
+      bgColor: "bg-purple-600/10",
+      iconBg: "bg-purple-600/20",
     },
     {
       label: "En Reparación",
@@ -196,20 +198,20 @@ export default function EquiposPage() {
       label: "Reparados",
       value: repairedCount,
       icon: <CheckCircle className="w-5 h-5 md:w-6 md:h-6" />,
-      iconColor: "text-green-400",
-      borderColor: "border-green-500",
-      bgColor: "bg-green-600/10",
-      iconBg: "bg-green-600/20",
+      iconColor: "text-blue-400",
+      borderColor: "border-blue-500",
+      bgColor: "bg-blue-600/10",
+      iconBg: "bg-blue-600/20",
       highlight: repairedCount > 0,
     },
     {
       label: "Entregados",
       value: deliveredCount,
       icon: <Truck className="w-5 h-5 md:w-6 md:h-6" />,
-      iconColor: "text-purple-400",
-      borderColor: "border-purple-500",
-      bgColor: "bg-purple-600/10",
-      iconBg: "bg-purple-600/20",
+      iconColor: "text-green-400",
+      borderColor: "border-green-500",
+      bgColor: "bg-green-600/10",
+      iconBg: "bg-green-600/20",
     },
   ];
 
@@ -262,7 +264,7 @@ export default function EquiposPage() {
             className={`card-dark p-3 md:p-4 hover-lift border-2 ${
               stat.borderColor
             } ${stat.bgColor} ${
-              stat.highlight ? "ring-2 ring-green-500/50 animate-pulse" : ""
+              stat.highlight ? "ring-2 ring-blue-500/50 animate-pulse" : ""
             }`}
           >
             <div className="flex items-center gap-2 md:gap-3">

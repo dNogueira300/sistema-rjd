@@ -292,20 +292,20 @@ export const generateComprobanteIngreso = (
 
   switch (equipment.status) {
     case "RECEIVED":
-      statusBgColor = [213, 224, 246];
-      statusTextColor = [4, 86, 199];
+      statusBgColor = [234, 214, 250];
+      statusTextColor = [108, 14, 194];
       break;
     case "REPAIR":
       statusBgColor = [250, 242, 204];
       statusTextColor = [161, 144, 8];
       break;
     case "REPAIRED":
-      statusBgColor = [205, 240, 229];
-      statusTextColor = [6, 125, 38];
+      statusBgColor = [213, 224, 246];
+      statusTextColor = [4, 86, 199];
       break;
     case "DELIVERED":
-      statusBgColor = [234, 214, 250];
-      statusTextColor = [108, 14, 194];
+      statusBgColor = [205, 240, 229];
+      statusTextColor = [6, 125, 38];
       break;
     case "CANCELLED":
       statusBgColor = [248, 215, 215];

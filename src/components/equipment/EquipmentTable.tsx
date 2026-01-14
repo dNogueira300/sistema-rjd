@@ -65,7 +65,9 @@ const handleDownloadComprobante = async (equipmentId: string, code: string) => {
     // Descargar directamente en lugar de abrir en nueva pestaña
     const link = document.createElement("a");
     link.href = url;
-    link.download = `comprobante-${code}-${new Date().toISOString().split("T")[0]}.pdf`;
+    link.download = `comprobante-${code}-${
+      new Date().toISOString().split("T")[0]
+    }.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -93,13 +95,13 @@ const handleDownloadComprobante = async (equipmentId: string, code: string) => {
 const getStatusColor = (status: EquipmentStatus) => {
   switch (status) {
     case "RECEIVED":
-      return "bg-blue-600/20 text-blue-400 border-blue-600/30";
+      return "bg-purple-600/20 text-purple-400 border-purple-600/30";
     case "REPAIR":
       return "bg-yellow-600/20 text-yellow-400 border-yellow-600/30";
     case "REPAIRED":
-      return "bg-green-600/20 text-green-400 border-green-600/30";
+      return "bg-blue-600/20 text-blue-400 border-blue-600/30";
     case "DELIVERED":
-      return "bg-purple-600/20 text-purple-400 border-purple-600/30";
+      return "bg-green-600/20 text-green-400 border-green-600/30";
     case "CANCELLED":
       return "bg-red-600/20 text-red-400 border-red-600/30";
     default:
@@ -173,7 +175,7 @@ function EquipmentCard({
   return (
     <div
       className={`card-dark p-4 space-y-4 ${
-        isRepaired ? "ring-2 ring-green-500/50" : ""
+        isRepaired ? "ring-2 ring-blue-500/50" : ""
       }`}
     >
       {/* Header: Código y Estado */}
@@ -202,7 +204,7 @@ function EquipmentCard({
             {getStatusLabel(equipment.status)}
           </span>
           {isRepaired && (
-            <div className="flex items-center gap-1 text-green-400 text-xs">
+            <div className="flex items-center gap-1 text-blue-400 text-xs">
               <Bell className="w-3 h-3 animate-pulse" />
               <span>Listo</span>
             </div>
@@ -317,7 +319,7 @@ function EquipmentRow({
   return (
     <tr
       className={`border-b border-slate-700 hover:bg-slate-800/50 transition-colors ${
-        isRepaired ? "bg-green-900/10" : ""
+        isRepaired ? "bg-blue-900/10" : ""
       }`}
     >
       {/* Código */}
@@ -331,7 +333,7 @@ function EquipmentRow({
               {equipment.code}
               {isRepaired && (
                 <span title="Listo para entrega">
-                  <Bell className="w-4 h-4 text-green-400 animate-pulse" />
+                  <Bell className="w-4 h-4 text-blue-400 animate-pulse" />
                 </span>
               )}
               {timeBadge && (
@@ -497,16 +499,16 @@ export default function EquipmentTable({
     <div className="space-y-4 md:space-y-6">
       {/* Notificación de equipos reparados */}
       {repairedCount > 0 && (
-        <div className="card-dark p-4 bg-green-900/20 border-green-600/30">
+        <div className="card-dark p-4 bg-blue-900/20 border-blue-600/30">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-600/20">
-              <Bell className="w-5 h-5 text-green-400 animate-pulse" />
+            <div className="p-2 rounded-lg bg-blue-600/20">
+              <Bell className="w-5 h-5 text-blue-400 animate-pulse" />
             </div>
             <div>
-              <p className="text-green-400 font-medium">
+              <p className="text-blue-400 font-medium">
                 {repairedCount} equipo(s) listo(s) para entrega
               </p>
-              <p className="text-green-400/70 text-sm">
+              <p className="text-blue-400/70 text-sm">
                 Contactar al cliente para coordinar la entrega
               </p>
             </div>
