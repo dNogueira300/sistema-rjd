@@ -39,7 +39,14 @@ export async function GET(request: NextRequest) {
     // Construir filtros de fecha
     const dateFilter = {
       ...(filters.startDate && { gte: new Date(filters.startDate) }),
-      ...(filters.endDate && { lte: new Date(filters.endDate) }),
+      ...(filters.endDate && {
+        lte: (() => {
+          // Ajustar la fecha de fin para incluir todo el día (hasta las 23:59:59)
+          const endDate = new Date(filters.endDate);
+          endDate.setHours(23, 59, 59, 999);
+          return endDate;
+        })(),
+      }),
     };
 
     // Construir filtro de método de pago
@@ -118,8 +125,18 @@ export async function GET(request: NextRequest) {
             ...(paymentMethodFilter && { paymentMethod: paymentMethodFilter }),
             ...(filters.search && {
               OR: [
-                { description: { contains: filters.search, mode: "insensitive" } },
-                { beneficiary: { contains: filters.search, mode: "insensitive" } },
+                {
+                  description: {
+                    contains: filters.search,
+                    mode: "insensitive",
+                  },
+                },
+                {
+                  beneficiary: {
+                    contains: filters.search,
+                    mode: "insensitive",
+                  },
+                },
               ],
             }),
           },
@@ -152,9 +169,10 @@ export async function GET(request: NextRequest) {
     payments.forEach((payment) => {
       // Mostrar el monto pagado (advanceAmount) si hay diferencia con el total
       // Si no hay diferencia, mostrar el total
-      const displayAmount = payment.advanceAmount < payment.totalAmount
-        ? payment.advanceAmount
-        : payment.totalAmount;
+      const displayAmount =
+        payment.advanceAmount < payment.totalAmount
+          ? payment.advanceAmount
+          : payment.totalAmount;
 
       transactions.push({
         id: payment.id,
@@ -210,11 +228,11 @@ export async function GET(request: NextRequest) {
     let periodMetrics = undefined;
     if (filters.startDate || filters.endDate) {
       const income = transactions
-        .filter(t => t.type === "INGRESO")
+        .filter((t) => t.type === "INGRESO")
         .reduce((sum, t) => sum + t.amount, 0);
 
       const expenses = transactions
-        .filter(t => t.type === "EGRESO")
+        .filter((t) => t.type === "EGRESO")
         .reduce((sum, t) => sum + t.amount, 0);
 
       periodMetrics = {
@@ -249,13 +267,13 @@ export async function GET(request: NextRequest) {
     if (error instanceof Error && error.message.includes("validation")) {
       return NextResponse.json(
         { error: "Parámetros inválidos", details: error.message },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     return NextResponse.json(
       { error: "Error interno del servidor" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
