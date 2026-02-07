@@ -36,16 +36,11 @@ export async function GET(request: NextRequest) {
       sortOrder: searchParams.get("sortOrder") || "desc",
     });
 
-    // Construir filtros de fecha
+    // Construir filtros de fecha (sin sufijo Z para interpretar en hora local)
     const dateFilter = {
-      ...(filters.startDate && { gte: new Date(filters.startDate) }),
+      ...(filters.startDate && { gte: new Date(filters.startDate + "T00:00:00") }),
       ...(filters.endDate && {
-        lte: (() => {
-          // Ajustar la fecha de fin para incluir todo el día (hasta las 23:59:59)
-          const endDate = new Date(filters.endDate);
-          endDate.setHours(23, 59, 59, 999);
-          return endDate;
-        })(),
+        lte: new Date(filters.endDate + "T23:59:59.999"),
       }),
     };
 

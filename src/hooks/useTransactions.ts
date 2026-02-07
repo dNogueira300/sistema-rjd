@@ -17,9 +17,9 @@ export function useTransactions(filters: TransactionFilters) {
 
   if (filters.type !== "ALL") queryParams.set("type", filters.type);
   if (filters.startDate)
-    queryParams.set("startDate", filters.startDate.toISOString());
+    queryParams.set("startDate", filters.startDate.toISOString().split("T")[0]);
   if (filters.endDate)
-    queryParams.set("endDate", filters.endDate.toISOString());
+    queryParams.set("endDate", filters.endDate.toISOString().split("T")[0]);
   if (filters.search) queryParams.set("search", filters.search);
   if (filters.paymentMethod !== "ALL")
     queryParams.set("paymentMethod", filters.paymentMethod);
@@ -106,6 +106,31 @@ export function useUpdatePayment() {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["finance-metrics"] });
       queryClient.invalidateQueries({ queryKey: ["equipments"] });
+    },
+  });
+}
+
+// Hook para actualizar un egreso
+export function useUpdateExpense() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<CreateExpenseData> }) => {
+      const response = await apiFetch(`/api/expenses/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Error al actualizar egreso");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["finance-metrics"] });
     },
   });
 }

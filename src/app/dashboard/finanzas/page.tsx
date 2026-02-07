@@ -16,9 +16,11 @@ import {
 } from "lucide-react";
 import TransactionTable from "@/components/finance/TransactionTable";
 import TransactionForm from "@/components/finance/TransactionForm";
-import { useTransactions, useFinanceMetrics } from "@/hooks/useTransactions";
+import TransactionDetailModal from "@/components/finance/TransactionDetailModal";
+import { useTransactions, useFinanceMetrics, useUpdatePayment, useUpdateExpense } from "@/hooks/useTransactions";
 import { useTechnicians } from "@/hooks/useTechnicians";
-import type { TransactionFilters, TransactionType } from "@/types/finance";
+import { toast } from "sonner";
+import type { TransactionFilters, TransactionType, ConsolidatedTransaction } from "@/types/finance";
 import type { PaymentMethod } from "@/types/equipment";
 import { PAYMENT_METHOD_LABELS } from "@/types/equipment";
 
@@ -32,11 +34,16 @@ export default function FinanzasPage() {
     sortOrder: "desc",
   });
 
+  const [selectedTransaction, setSelectedTransaction] = useState<ConsolidatedTransaction | null>(null);
+  const [modalMode, setModalMode] = useState<"view" | "edit">("view");
+
   const { data, isLoading, refetch } = useTransactions(filters);
   const { data: metrics } = useFinanceMetrics();
   const { technicians } = useTechnicians({
     initialFilters: { status: "ACTIVE" },
   });
+  const updatePayment = useUpdatePayment();
+  const updateExpense = useUpdateExpense();
 
   const handleFilterChange = (
     key: keyof TransactionFilters,
@@ -53,6 +60,39 @@ export default function FinanzasPage() {
       sortBy: "date",
       sortOrder: "desc",
     });
+  };
+
+  const handleViewTransaction = (transaction: ConsolidatedTransaction) => {
+    setSelectedTransaction(transaction);
+    setModalMode("view");
+  };
+
+  const handleEditTransaction = (transaction: ConsolidatedTransaction) => {
+    setSelectedTransaction(transaction);
+    setModalMode("edit");
+  };
+
+  const handleSaveTransaction = async (data: Record<string, unknown>) => {
+    if (!selectedTransaction) return;
+
+    try {
+      if (selectedTransaction.type === "INGRESO") {
+        await updatePayment.mutateAsync({
+          id: selectedTransaction.id,
+          data: data as { totalAmount?: number; advanceAmount?: number; paymentMethod?: "CASH" | "YAPE" | "PLIN" | "TRANSFER" },
+        });
+      } else {
+        await updateExpense.mutateAsync({
+          id: selectedTransaction.id,
+          data: data as { description?: string; amount?: number; beneficiary?: string; paymentMethod?: "CASH" | "YAPE" | "PLIN" | "TRANSFER" },
+        });
+      }
+      toast.success("Transacción actualizada correctamente");
+      setSelectedTransaction(null);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error al actualizar");
+      throw error;
+    }
   };
 
   // Determinar si hay filtros de fecha personalizados
@@ -411,6 +451,8 @@ export default function FinanzasPage() {
       <TransactionTable
         transactions={data?.transactions || []}
         isLoading={isLoading}
+        onView={handleViewTransaction}
+        onEdit={handleEditTransaction}
       />
 
       {/* Modal de formulario */}
@@ -421,6 +463,17 @@ export default function FinanzasPage() {
             refetch();
             setShowForm(false);
           }}
+        />
+      )}
+
+      {/* Modal de detalle/edición */}
+      {selectedTransaction && (
+        <TransactionDetailModal
+          transaction={selectedTransaction}
+          mode={modalMode}
+          onClose={() => setSelectedTransaction(null)}
+          onSave={handleSaveTransaction}
+          isSaving={updatePayment.isPending || updateExpense.isPending}
         />
       )}
     </div>
