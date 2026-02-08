@@ -1,7 +1,7 @@
 // src/components/finance/TransactionDetailModal.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   X,
   Eye,
@@ -16,6 +16,7 @@ import {
   FileText,
   User,
 } from "lucide-react";
+import ConfirmModal from "@/components/clients/ConfirmModal";
 import type { ConsolidatedTransaction } from "@/types/finance";
 import type { PaymentMethod } from "@/types/equipment";
 import {
@@ -42,6 +43,7 @@ export default function TransactionDetailModal({
   isSaving = false,
 }: TransactionDetailModalProps) {
   const [mode, setMode] = useState<ModalMode>(initialMode);
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
 
   // Estado de edición para INGRESO
   const [incomeData, setIncomeData] = useState({
@@ -58,9 +60,68 @@ export default function TransactionDetailModal({
     paymentMethod: transaction.paymentMethod as PaymentMethod,
   });
 
+  // Detectar cambios sin guardar
+  const isDirty = useMemo(() => {
+    if (mode !== "edit") return false;
+    if (transaction.type === "INGRESO") {
+      return (
+        incomeData.totalAmount !== transaction.amount ||
+        incomeData.advanceAmount !== transaction.amount ||
+        incomeData.paymentMethod !== transaction.paymentMethod
+      );
+    } else {
+      return (
+        expenseData.description !== transaction.description ||
+        expenseData.amount !== transaction.amount ||
+        expenseData.beneficiary !== (transaction.beneficiary || "") ||
+        expenseData.paymentMethod !== transaction.paymentMethod
+      );
+    }
+  }, [mode, transaction, incomeData, expenseData]);
+
+  // Verificar si la transacción es del día actual (America/Lima)
+  const isToday = useMemo(() => {
+    const now = new Date();
+    const limaFormatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Lima",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const todayLima = limaFormatter.format(now);
+    const transactionDate = new Date(transaction.date);
+    const transactionDateLima = limaFormatter.format(transactionDate);
+    return todayLima === transactionDateLima;
+  }, [transaction.date]);
+
+  const handleCloseAttempt = useCallback(() => {
+    if (isDirty) {
+      setShowConfirmClose(true);
+    } else {
+      onClose();
+    }
+  }, [isDirty, onClose]);
+
   useEffect(() => {
     setMode(initialMode);
   }, [initialMode]);
+
+  // Cerrar con tecla ESC
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isSaving && !showConfirmClose) {
+        handleCloseAttempt();
+      }
+    },
+    [handleCloseAttempt, isSaving, showConfirmClose]
+  );
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]);
 
   const handleSave = async () => {
     try {
@@ -78,7 +139,12 @@ export default function TransactionDetailModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0"
+        onClick={isSaving ? undefined : handleCloseAttempt}
+      />
+      <div className="relative bg-slate-900 border border-slate-700 rounded-xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between p-4 md:p-6 border-b border-slate-700 shrink-0">
           <div className="flex items-center gap-3">
@@ -120,7 +186,7 @@ export default function TransactionDetailModal({
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleCloseAttempt}
             className="p-2 rounded-lg hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5 text-slate-400" />
@@ -394,13 +460,19 @@ export default function TransactionDetailModal({
               >
                 Cerrar
               </button>
-              <button
-                onClick={() => setMode("edit")}
-                className="btn-primary-dark flex items-center gap-2 px-4 py-2 text-sm"
-              >
-                <Pencil className="w-4 h-4" />
-                Editar
-              </button>
+              {isToday ? (
+                <button
+                  onClick={() => setMode("edit")}
+                  className="btn-primary-dark flex items-center gap-2 px-4 py-2 text-sm"
+                >
+                  <Pencil className="w-4 h-4" />
+                  Editar
+                </button>
+              ) : (
+                <span className="text-xs text-slate-500 italic">
+                  Solo se pueden editar registros del día actual
+                </span>
+              )}
             </>
           ) : (
             <>
@@ -427,6 +499,18 @@ export default function TransactionDetailModal({
           )}
         </div>
       </div>
+
+      {/* Modal de confirmación para cerrar sin guardar */}
+      <ConfirmModal
+        isOpen={showConfirmClose}
+        title="Cambios sin guardar"
+        message="Tienes cambios sin guardar. ¿Deseas salir sin guardar?"
+        confirmLabel="Salir sin guardar"
+        cancelLabel="Seguir editando"
+        confirmButtonColor="red"
+        onConfirm={onClose}
+        onCancel={() => setShowConfirmClose(false)}
+      />
     </div>
   );
 }

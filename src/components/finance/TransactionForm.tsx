@@ -1,8 +1,9 @@
 // src/components/finance/TransactionForm.tsx
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { X, Loader2, DollarSign, FileText } from "lucide-react";
+import ConfirmModal from "@/components/clients/ConfirmModal";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -54,6 +55,7 @@ export default function TransactionForm({
   // Estados comunes
   const [observations, setObservations] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
 
   // Estado para técnicos (beneficiarios de egresos)
   const [technicians, setTechnicians] = useState<
@@ -168,11 +170,28 @@ export default function TransactionForm({
     }
   }, [expenseType, transactionType, beneficiary]);
 
+  // Detectar si hay campos llenados (formulario de creación)
+  const isDirty = useMemo(() => {
+    if (transactionType === "INGRESO") {
+      return !!(equipmentId || totalAmount || paidAmount || observations);
+    } else {
+      return !!(description || amount || (beneficiary && beneficiary !== "RJD") || observations);
+    }
+  }, [transactionType, equipmentId, totalAmount, paidAmount, description, amount, beneficiary, observations]);
+
+  const handleCloseAttempt = useCallback(() => {
+    if (isDirty) {
+      setShowConfirmClose(true);
+    } else {
+      onClose();
+    }
+  }, [isDirty, onClose]);
+
   // Efecto para cerrar modal con tecla ESC
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !isLoading) {
-        onClose();
+      if (event.key === "Escape" && !isLoading && !showConfirmClose) {
+        handleCloseAttempt();
       }
     };
 
@@ -180,7 +199,7 @@ export default function TransactionForm({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isLoading, onClose]);
+  }, [isLoading, handleCloseAttempt, showConfirmClose]);
 
   // Calcular descripción efectiva (usar "Adelanto" solo si el usuario no ha escrito nada)
   const effectiveDescription =
@@ -356,7 +375,12 @@ export default function TransactionForm({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0"
+        onClick={isLoading ? undefined : handleCloseAttempt}
+      />
+      <div className="relative bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="p-4 md:p-6 border-b border-slate-700">
           <div className="flex items-center justify-between">
@@ -374,7 +398,7 @@ export default function TransactionForm({
               </div>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleCloseAttempt}
               className="p-2 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors"
               disabled={isLoading}
             >
@@ -769,7 +793,7 @@ export default function TransactionForm({
         <div className="p-4 md:p-6 border-t border-slate-700 flex gap-3">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleCloseAttempt}
             className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-100 py-3 px-4 rounded-xl transition-colors disabled:opacity-50"
             disabled={isLoading}
           >
@@ -792,6 +816,18 @@ export default function TransactionForm({
           </button>
         </div>
       </div>
+
+      {/* Modal de confirmación para cerrar sin guardar */}
+      <ConfirmModal
+        isOpen={showConfirmClose}
+        title="Cambios sin guardar"
+        message="Tienes datos ingresados que se perderán. ¿Deseas salir sin guardar?"
+        confirmLabel="Salir sin guardar"
+        cancelLabel="Seguir editando"
+        confirmButtonColor="red"
+        onConfirm={onClose}
+        onCancel={() => setShowConfirmClose(false)}
+      />
     </div>
   );
 }

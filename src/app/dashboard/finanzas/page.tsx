@@ -62,14 +62,9 @@ export default function FinanzasPage() {
     });
   };
 
-  const handleViewTransaction = (transaction: ConsolidatedTransaction) => {
+  const handleManageTransaction = (transaction: ConsolidatedTransaction) => {
     setSelectedTransaction(transaction);
     setModalMode("view");
-  };
-
-  const handleEditTransaction = (transaction: ConsolidatedTransaction) => {
-    setSelectedTransaction(transaction);
-    setModalMode("edit");
   };
 
   const handleSaveTransaction = async (data: Record<string, unknown>) => {
@@ -451,8 +446,7 @@ export default function FinanzasPage() {
       <TransactionTable
         transactions={data?.transactions || []}
         isLoading={isLoading}
-        onView={handleViewTransaction}
-        onEdit={handleEditTransaction}
+        onManage={handleManageTransaction}
       />
 
       {/* Modal de formulario */}

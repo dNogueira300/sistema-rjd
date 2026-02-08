@@ -1,7 +1,7 @@
 // src/components/finance/TransactionTable.tsx
 "use client";
 
-import { TrendingUp, TrendingDown, Calendar, DollarSign, Eye, Pencil } from "lucide-react";
+import { TrendingUp, TrendingDown, Calendar, DollarSign, Settings } from "lucide-react";
 import type { ConsolidatedTransaction } from "@/types/finance";
 import {
   TRANSACTION_TYPE_COLORS,
@@ -15,15 +15,13 @@ import {
 interface TransactionTableProps {
   transactions: ConsolidatedTransaction[];
   isLoading?: boolean;
-  onView?: (transaction: ConsolidatedTransaction) => void;
-  onEdit?: (transaction: ConsolidatedTransaction) => void;
+  onManage?: (transaction: ConsolidatedTransaction) => void;
 }
 
 export default function TransactionTable({
   transactions,
   isLoading = false,
-  onView,
-  onEdit,
+  onManage,
 }: TransactionTableProps) {
   if (isLoading) {
     return (
@@ -125,26 +123,15 @@ export default function TransactionTable({
             )}
 
             {/* Acciones mobile */}
-            {(onView || onEdit) && (
+            {onManage && (
               <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-700">
-                {onView && (
-                  <button
-                    onClick={() => onView(transaction)}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-blue-400 bg-blue-600/10 border border-blue-600/30 rounded-lg hover:bg-blue-600/20 transition-colors"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    Ver
-                  </button>
-                )}
-                {onEdit && (
-                  <button
-                    onClick={() => onEdit(transaction)}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-amber-400 bg-amber-600/10 border border-amber-600/30 rounded-lg hover:bg-amber-600/20 transition-colors"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                    Editar
-                  </button>
-                )}
+                <button
+                  onClick={() => onManage(transaction)}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-blue-400 bg-blue-600/10 border border-blue-600/30 rounded-lg hover:bg-blue-600/20 transition-colors"
+                >
+                  <Settings className="w-3.5 h-3.5" />
+                  Gestionar
+                </button>
               </div>
             )}
           </div>
@@ -180,7 +167,7 @@ export default function TransactionTable({
                     Estado/Categoría
                   </div>
                 </th>
-                {(onView || onEdit) && (
+                {onManage && (
                   <th className="px-4 lg:px-6 py-4 text-center">
                     <div className="font-semibold text-slate-200">Acciones</div>
                   </th>
@@ -246,27 +233,16 @@ export default function TransactionTable({
                         : "-"}
                     </span>
                   </td>
-                  {(onView || onEdit) && (
+                  {onManage && (
                     <td className="px-4 lg:px-6 py-4">
-                      <div className="flex items-center justify-center gap-1">
-                        {onView && (
-                          <button
-                            onClick={() => onView(transaction)}
-                            className="p-2 rounded-lg text-blue-400 hover:bg-blue-600/20 transition-colors"
-                            title="Ver detalle"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                        )}
-                        {onEdit && (
-                          <button
-                            onClick={() => onEdit(transaction)}
-                            className="p-2 rounded-lg text-amber-400 hover:bg-amber-600/20 transition-colors"
-                            title="Editar"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                        )}
+                      <div className="flex items-center justify-center">
+                        <button
+                          onClick={() => onManage(transaction)}
+                          className="p-2 rounded-lg text-blue-400 hover:bg-blue-600/20 transition-colors"
+                          title="Gestionar"
+                        >
+                          <Settings className="w-4 h-4" />
+                        </button>
                       </div>
                     </td>
                   )}

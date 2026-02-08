@@ -867,6 +867,163 @@ export const generateFinancialReportPDF = (
   return doc.output("arraybuffer");
 };
 
+// ====== GENERADOR DE REPORTE POR TÉCNICO ======
+export const generateTechnicianReportPDF = (
+  technicianName: string,
+  technicianPayments: TechnicianPaymentDetail[],
+  dateRange?: { startDate?: string; endDate?: string }
+): ArrayBuffer => {
+  const doc = new jsPDF();
+
+  const primaryBlue: [number, number, number] = [37, 99, 235];
+  const primaryGreen: [number, number, number] = [5, 150, 105];
+  const darkGray: [number, number, number] = [51, 65, 85];
+  const mediumGray: [number, number, number] = [100, 116, 139];
+  const black: [number, number, number] = [0, 0, 0];
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 15;
+
+  // ====== ENCABEZADO ======
+  addHeader(
+    doc,
+    "REPORTE DE TÉCNICO",
+    margin,
+    primaryBlue,
+    mediumGray,
+    primaryGreen,
+    pageWidth
+  );
+
+  let currentY = 60;
+
+  // ====== NOMBRE DEL TÉCNICO ======
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...darkGray);
+  doc.text(`Técnico: ${technicianName}`, pageWidth / 2, currentY, { align: "center" });
+  currentY += 8;
+
+  // ====== PERÍODO ======
+  if (dateRange && (dateRange.startDate || dateRange.endDate)) {
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...mediumGray);
+
+    if (dateRange.startDate && dateRange.endDate) {
+      const startFormatted = new Date(dateRange.startDate + "T12:00:00").toLocaleDateString("es-PE", {
+        year: "numeric", month: "long", day: "numeric",
+      });
+      const endFormatted = new Date(dateRange.endDate + "T12:00:00").toLocaleDateString("es-PE", {
+        year: "numeric", month: "long", day: "numeric",
+      });
+      doc.text(`Período: ${startFormatted} - ${endFormatted}`, pageWidth / 2, currentY, { align: "center" });
+    } else if (dateRange.startDate) {
+      const startFormatted = new Date(dateRange.startDate + "T12:00:00").toLocaleDateString("es-PE", {
+        year: "numeric", month: "long", day: "numeric",
+      });
+      doc.text(`Desde: ${startFormatted}`, pageWidth / 2, currentY, { align: "center" });
+    } else if (dateRange.endDate) {
+      const endFormatted = new Date(dateRange.endDate + "T12:00:00").toLocaleDateString("es-PE", {
+        year: "numeric", month: "long", day: "numeric",
+      });
+      doc.text(`Hasta: ${endFormatted}`, pageWidth / 2, currentY, { align: "center" });
+    }
+    currentY += 8;
+  }
+
+  currentY += 5;
+
+  // ====== TABLA DE REGISTROS ======
+  if (technicianPayments.length === 0) {
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...mediumGray);
+    doc.text("No se encontraron registros para este técnico en el período seleccionado.", margin, currentY);
+  } else {
+    // Headers de tabla
+    doc.setFillColor(168, 85, 247); // Morado
+    doc.rect(margin, currentY, pageWidth - 2 * margin, 8, "F");
+
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(255, 255, 255);
+    doc.text("Fecha", margin + 2, currentY + 5);
+    doc.text("Tipo", margin + 35, currentY + 5);
+    doc.text("Descripción", margin + 65, currentY + 5);
+    doc.text("Método de Pago", margin + 115, currentY + 5);
+    doc.text("Monto", pageWidth - margin - 2, currentY + 5, { align: "right" });
+
+    currentY += 8;
+
+    // Rows
+    doc.setFont("helvetica", "normal");
+    let totalAmount = 0;
+
+    technicianPayments.forEach((payment: TechnicianPaymentDetail, index: number) => {
+      if (currentY > pageHeight - 25) {
+        doc.addPage();
+        currentY = 20;
+      }
+
+      const rowColor = index % 2 === 0 ? [248, 250, 252] : [255, 255, 255];
+      doc.setFillColor(...(rowColor as [number, number, number]));
+      doc.rect(margin, currentY, pageWidth - 2 * margin, 7, "F");
+
+      doc.setFontSize(7);
+      doc.setTextColor(...black);
+
+      const dateFormatted = new Date(payment.date).toLocaleDateString("es-PE", {
+        day: "2-digit", month: "2-digit", year: "2-digit",
+      });
+      doc.text(dateFormatted, margin + 2, currentY + 5);
+
+      const typeLabel = payment.type === "ADVANCE" ? "Adelanto" : "Salario";
+      doc.text(typeLabel, margin + 35, currentY + 5);
+
+      const desc = payment.description.length > 25
+        ? payment.description.substring(0, 25) + "..."
+        : payment.description;
+      doc.text(desc, margin + 65, currentY + 5);
+
+      const methodLabel = payment.paymentMethod === "CASH" ? "Efectivo"
+        : payment.paymentMethod === "YAPE" ? "Yape"
+        : payment.paymentMethod === "PLIN" ? "Plin"
+        : "Transferencia";
+      doc.text(methodLabel, margin + 115, currentY + 5);
+
+      doc.setFont("helvetica", "bold");
+      const amountColor = payment.type === "ADVANCE"
+        ? ([249, 115, 22] as [number, number, number])
+        : ([59, 130, 246] as [number, number, number]);
+      doc.setTextColor(...amountColor);
+      doc.text(formatCurrency(payment.amount), pageWidth - margin - 2, currentY + 5, { align: "right" });
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(...black);
+
+      totalAmount += payment.amount;
+      currentY += 7;
+    });
+
+    // Fila de total
+    doc.setFillColor(220, 220, 220);
+    doc.rect(margin, currentY, pageWidth - 2 * margin, 8, "F");
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...black);
+    doc.text("TOTAL", margin + 2, currentY + 5.5);
+    doc.setTextColor(168, 85, 247);
+    doc.text(formatCurrency(totalAmount), pageWidth - margin - 2, currentY + 5.5, { align: "right" });
+  }
+
+  // ====== FOOTER ======
+  addFooter(doc, pageHeight, margin, mediumGray);
+
+  return doc.output("arraybuffer");
+};
+
 // ====== FUNCIONES AUXILIARES ======
 function addHeader(
   doc: jsPDF,

@@ -49,6 +49,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // Validar que el egreso sea del día actual (America/Lima)
+    const nowLima = new Date().toLocaleDateString("en-CA", { timeZone: "America/Lima" });
+    const expenseDateLima = existingExpense.expenseDate.toLocaleDateString("en-CA", { timeZone: "America/Lima" });
+    if (nowLima !== expenseDateLima) {
+      return NextResponse.json(
+        { error: "Solo se pueden editar registros del día actual" },
+        { status: 403 }
+      );
+    }
+
     // Actualizar egreso
     const expense = await prisma.expense.update({
       where: { id },

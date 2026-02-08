@@ -23,7 +23,7 @@ import {
   Calculator,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/reports";
-import { generateFinancialReportPDF } from "@/lib/report-pdf-generator";
+import { generateFinancialReportPDF, generateTechnicianReportPDF } from "@/lib/report-pdf-generator";
 import { toast } from "sonner";
 
 type PeriodType = "today" | "week" | "month" | "custom";
@@ -229,28 +229,46 @@ export default function ReportesPage() {
 
   const handleExportPDF = () => {
     try {
-      const pdfBuffer = generateFinancialReportPDF(
-        data,
-        {
-          income: labels.income,
-          expenses: labels.expenses,
-          difference: labels.difference,
-        },
-        dateRange
-          ? {
-              startDate: dateRange.startDate,
-              endDate: dateRange.endDate,
-            }
-          : undefined,
-        paymentsData?.payments || []
-      );
+      let pdfBuffer: ArrayBuffer;
+      let fileName: string;
+
+      if (appliedTechnicianId && paymentsData?.payments) {
+        // Generar PDF filtrado por técnico
+        const selectedTech = technicians?.find((t) => t.id === appliedTechnicianId);
+        const techName = selectedTech?.name || "Técnico";
+        pdfBuffer = generateTechnicianReportPDF(
+          techName,
+          paymentsData.payments,
+          dateRange
+            ? { startDate: dateRange.startDate, endDate: dateRange.endDate }
+            : undefined
+        );
+        fileName = `reporte-tecnico-${techName.toLowerCase().replace(/\s+/g, "-")}-${new Date().toISOString().split("T")[0]}.pdf`;
+      } else {
+        // Generar PDF financiero completo
+        pdfBuffer = generateFinancialReportPDF(
+          data,
+          {
+            income: labels.income,
+            expenses: labels.expenses,
+            difference: labels.difference,
+          },
+          dateRange
+            ? {
+                startDate: dateRange.startDate,
+                endDate: dateRange.endDate,
+              }
+            : undefined,
+          paymentsData?.payments || []
+        );
+        fileName = `reporte-financiero-${new Date().toISOString().split("T")[0]}.pdf`;
+      }
+
       const blob = new Blob([pdfBuffer], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `reporte-financiero-${
-        new Date().toISOString().split("T")[0]
-      }.pdf`;
+      link.download = fileName;
       link.click();
       URL.revokeObjectURL(url);
       toast.success("Reporte PDF generado exitosamente");

@@ -50,6 +50,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // Validar que el pago sea del día actual (America/Lima)
+    const nowLima = new Date().toLocaleDateString("en-CA", { timeZone: "America/Lima" });
+    const paymentDateLima = existingPayment.paymentDate.toLocaleDateString("en-CA", { timeZone: "America/Lima" });
+    if (nowLima !== paymentDateLima) {
+      return NextResponse.json(
+        { error: "Solo se pueden editar registros del día actual" },
+        { status: 403 }
+      );
+    }
+
     // Calcular nuevos valores
     const totalAmount = validatedData.totalAmount ?? existingPayment.totalAmount;
     const advanceAmount = validatedData.advanceAmount ?? existingPayment.advanceAmount;
