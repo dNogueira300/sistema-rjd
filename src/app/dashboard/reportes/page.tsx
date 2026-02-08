@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useFinancialReport, useTechnicianPayments } from "@/hooks/useReports";
 import { useTechnicians } from "@/hooks/useTechnicians";
 import MetricCard from "@/components/reports/MetricCard";
@@ -43,6 +44,7 @@ export default function ReportesPage() {
   // Estado para el modal de cálculo de pago
   const [showPaymentCalculator, setShowPaymentCalculator] = useState(false);
 
+  const queryClient = useQueryClient();
   const { technicians } = useTechnicians();
 
   // Calcular fechas según el período APLICADO o fechas personalizadas APLICADAS
@@ -616,9 +618,14 @@ export default function ReportesPage() {
       {showPaymentCalculator && (
         <PaymentCalculatorModal
           onClose={() => setShowPaymentCalculator(false)}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["financial-report"] });
+            queryClient.invalidateQueries({ queryKey: ["technician-payments"] });
+          }}
           totalIncome={kpis.monthIncome}
           totalExpenses={kpis.monthExpenses}
           periodLabel={labels.income}
+          technicianPayments={paymentsData?.payments || []}
         />
       )}
     </div>

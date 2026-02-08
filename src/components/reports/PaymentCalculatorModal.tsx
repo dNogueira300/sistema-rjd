@@ -1,27 +1,54 @@
 // src/components/reports/PaymentCalculatorModal.tsx
 "use client";
 
-import { useEffect, useState } from "react";
-import { X, DollarSign, Users, Calculator, AlertCircle } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import {
+  X,
+  DollarSign,
+  Users,
+  Calculator,
+  AlertCircle,
+  Loader2,
+  Check,
+  Banknote,
+} from "lucide-react";
 import { formatCurrency } from "@/lib/reports";
+import { toast } from "sonner";
+import ConfirmModal from "@/components/clients/ConfirmModal";
+import type { TechnicianPaymentDetail } from "@/types/reports";
 
 interface PaymentCalculatorModalProps {
   onClose: () => void;
+  onSuccess?: () => void;
   totalIncome: number;
   totalExpenses: number;
   periodLabel: string;
+  technicianPayments?: TechnicianPaymentDetail[];
+}
+
+interface TechnicianPaymentCalc {
+  id: string;
+  name: string;
+  basePayment: number;
+  existingPayments: number;
+  finalPayment: number;
 }
 
 export default function PaymentCalculatorModal({
   onClose,
+  onSuccess,
   totalIncome,
   totalExpenses,
   periodLabel,
+  technicianPayments = [],
 }: PaymentCalculatorModalProps) {
   const [technicians, setTechnicians] = useState<
     Array<{ id: string; name: string }>
   >([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [showConfirmRegister, setShowConfirmRegister] = useState(false);
+  const [registeredSuccess, setRegisteredSuccess] = useState(false);
 
   // Cargar técnicos activos
   useEffect(() => {
@@ -46,7 +73,7 @@ export default function PaymentCalculatorModal({
   // Efecto para cerrar modal con tecla ESC
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && !isRegistering && !showConfirmRegister) {
         onClose();
       }
     };
@@ -55,7 +82,7 @@ export default function PaymentCalculatorModal({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onClose]);
+  }, [onClose, isRegistering, showConfirmRegister]);
 
   const numTechnicians = technicians.length;
 
@@ -71,15 +98,90 @@ export default function PaymentCalculatorModal({
   };
 
   const paymentPerTechnician = calculatePaymentPerTechnician();
-  const totalDistributed = paymentPerTechnician * numTechnicians;
-  const remainder = difference - totalDistributed;
+
+  // Calcular pagos existentes por técnico en el período y el pago final
+  const technicianCalcs: TechnicianPaymentCalc[] = useMemo(() => {
+    return technicians.map((tech) => {
+      // Sumar todos los pagos existentes de este técnico en el período
+      const existingPayments = technicianPayments
+        .filter((p) => p.technicianName === tech.name)
+        .reduce((sum, p) => sum + p.amount, 0);
+
+      const finalPayment = Math.max(0, paymentPerTechnician - existingPayments);
+
+      return {
+        id: tech.id,
+        name: tech.name,
+        basePayment: paymentPerTechnician,
+        existingPayments,
+        finalPayment,
+      };
+    });
+  }, [technicians, technicianPayments, paymentPerTechnician]);
+
+  const totalDistributed = technicianCalcs.reduce(
+    (sum, t) => sum + t.finalPayment,
+    0
+  );
+  const totalBaseDistributed = paymentPerTechnician * numTechnicians;
+  const remainder = difference - totalBaseDistributed;
+
+  // Registrar pagos como egresos
+  const handleRegisterPayments = async () => {
+    setShowConfirmRegister(false);
+    setIsRegistering(true);
+
+    try {
+      const techsToRegister = technicianCalcs.filter((t) => t.finalPayment > 0);
+
+      if (techsToRegister.length === 0) {
+        toast.error("No hay pagos pendientes para registrar");
+        setIsRegistering(false);
+        return;
+      }
+
+      const results = await Promise.allSettled(
+        techsToRegister.map((tech) =>
+          fetch("/api/expenses", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              expenseType: "SALARY",
+              description: "PAGO SEMANA",
+              amount: tech.finalPayment,
+              beneficiary: tech.name,
+              paymentMethod: "YAPE",
+            }),
+          })
+        )
+      );
+
+      const successes = results.filter((r) => r.status === "fulfilled" && (r as PromiseFulfilledResult<Response>).value.ok).length;
+      const failures = results.length - successes;
+
+      if (failures > 0) {
+        toast.error(`${failures} pago(s) no se pudieron registrar`);
+      }
+
+      if (successes > 0) {
+        toast.success(`${successes} pago(s) registrado(s) correctamente`);
+        setRegisteredSuccess(true);
+        onSuccess?.();
+      }
+    } catch (error) {
+      console.error("Error registrando pagos:", error);
+      toast.error("Error al registrar los pagos");
+    } finally {
+      setIsRegistering(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0"
-        onClick={onClose}
+        onClick={isRegistering ? undefined : onClose}
       />
       <div className="relative bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
@@ -102,6 +204,7 @@ export default function PaymentCalculatorModal({
             <button
               onClick={onClose}
               className="p-2 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors"
+              disabled={isRegistering}
             >
               <X className="w-5 h-5" />
             </button>
@@ -164,34 +267,6 @@ export default function PaymentCalculatorModal({
                 </div>
               </div>
 
-              {/* Información de Trabajadores */}
-              <div className="glass-dark p-4 rounded-lg border border-purple-600/30 bg-purple-600/10">
-                <div className="flex items-center gap-2 mb-2">
-                  <Users className="w-5 h-5 text-purple-400" />
-                  <h3 className="text-sm font-medium text-slate-200">
-                    Trabajadores Activos
-                  </h3>
-                </div>
-                <p className="text-2xl font-bold text-purple-400">
-                  {numTechnicians}
-                </p>
-                {numTechnicians > 0 && (
-                  <div className="mt-3 space-y-1">
-                    {technicians.map((tech, index) => (
-                      <div
-                        key={tech.id}
-                        className="text-sm text-slate-300 flex items-center gap-2"
-                      >
-                        <span className="w-6 h-6 rounded-full bg-purple-600/20 text-purple-400 flex items-center justify-center text-xs font-medium">
-                          {index + 1}
-                        </span>
-                        {tech.name}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
               {/* Cálculo del Pago */}
               {numTechnicians > 0 ? (
                 <>
@@ -242,6 +317,75 @@ export default function PaymentCalculatorModal({
                     </div>
                   </div>
 
+                  {/* Detalle por Trabajador */}
+                  <div className="glass-dark p-4 rounded-lg border border-purple-600/30 bg-purple-600/10">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Users className="w-5 h-5 text-purple-400" />
+                      <h3 className="text-sm font-medium text-slate-200">
+                        Detalle por Trabajador
+                      </h3>
+                    </div>
+
+                    <div className="space-y-3">
+                      {technicianCalcs.map((tech, index) => (
+                        <div
+                          key={tech.id}
+                          className={`rounded-lg p-3 border ${
+                            tech.finalPayment === 0
+                              ? "bg-slate-700/30 border-slate-600/50"
+                              : "bg-slate-700/50 border-slate-600"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-full bg-purple-600/20 text-purple-400 flex items-center justify-center text-xs font-medium">
+                                {index + 1}
+                              </span>
+                              <span className="text-sm font-medium text-slate-200">
+                                {tech.name}
+                              </span>
+                            </div>
+                            <span
+                              className={`text-lg font-bold ${
+                                tech.finalPayment === 0
+                                  ? "text-slate-500"
+                                  : "text-amber-400"
+                              }`}
+                            >
+                              {formatCurrency(tech.finalPayment)}
+                            </span>
+                          </div>
+
+                          {tech.existingPayments > 0 && (
+                            <div className="mt-2 ml-8 space-y-1">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-slate-400">
+                                  Pago base:
+                                </span>
+                                <span className="text-slate-300">
+                                  {formatCurrency(tech.basePayment)}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-orange-400">
+                                  Registros existentes en el período:
+                                </span>
+                                <span className="text-orange-400 font-medium">
+                                  - {formatCurrency(tech.existingPayments)}
+                                </span>
+                              </div>
+                              {tech.finalPayment === 0 && (
+                                <p className="text-xs text-slate-500 italic mt-1">
+                                  Ya cubierto con registros previos
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Resumen de Distribución */}
                   <div className="glass-dark p-4 rounded-lg border border-slate-600 bg-slate-700/30">
                     <h3 className="text-sm font-medium text-slate-200 mb-3">
@@ -250,7 +394,7 @@ export default function PaymentCalculatorModal({
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-slate-400">
-                          Total Distribuido:
+                          Total a Registrar:
                         </span>
                         <span className="font-medium text-green-400">
                           {formatCurrency(totalDistributed)}
@@ -273,6 +417,16 @@ export default function PaymentCalculatorModal({
                       </div>
                     )}
                   </div>
+
+                  {/* Mensaje de éxito */}
+                  {registeredSuccess && (
+                    <div className="flex items-center gap-2 p-4 rounded-lg bg-green-600/20 border border-green-600/30">
+                      <Check className="w-5 h-5 text-green-400" />
+                      <p className="text-sm text-green-400 font-medium">
+                        Pagos registrados exitosamente como egresos
+                      </p>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="glass-dark p-6 rounded-lg border border-amber-600/30 bg-amber-600/10 text-center">
@@ -291,15 +445,52 @@ export default function PaymentCalculatorModal({
         </div>
 
         {/* Footer */}
-        <div className="p-4 md:p-6 border-t border-slate-700">
+        <div className="p-4 md:p-6 border-t border-slate-700 flex gap-3">
           <button
             onClick={onClose}
-            className="btn-primary-dark w-full py-3 px-4 rounded-xl"
+            className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-100 py-3 px-4 rounded-xl transition-colors disabled:opacity-50"
+            disabled={isRegistering}
           >
             Cerrar
           </button>
+          {numTechnicians > 0 &&
+            paymentPerTechnician > 0 &&
+            !registeredSuccess && (
+              <button
+                onClick={() => setShowConfirmRegister(true)}
+                disabled={
+                  isRegistering ||
+                  technicianCalcs.every((t) => t.finalPayment === 0)
+                }
+                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-slate-600 disabled:to-slate-600 disabled:cursor-not-allowed text-white py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 font-medium"
+              >
+                {isRegistering ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Registrando...
+                  </>
+                ) : (
+                  <>
+                    <Banknote className="w-4 h-4" />
+                    Registrar Pagos
+                  </>
+                )}
+              </button>
+            )}
         </div>
       </div>
+
+      {/* Modal de confirmación */}
+      <ConfirmModal
+        isOpen={showConfirmRegister}
+        title="Registrar Pagos"
+        message={`Se registrarán ${technicianCalcs.filter((t) => t.finalPayment > 0).length} egreso(s) de tipo Salario por un total de ${formatCurrency(totalDistributed)}. ¿Desea continuar?`}
+        confirmLabel="Registrar"
+        cancelLabel="Cancelar"
+        confirmButtonColor="green"
+        onConfirm={handleRegisterPayments}
+        onCancel={() => setShowConfirmRegister(false)}
+      />
     </div>
   );
 }
