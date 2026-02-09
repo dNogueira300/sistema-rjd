@@ -26,12 +26,17 @@ interface PaymentCalculatorModalProps {
   technicianPayments?: TechnicianPaymentDetail[];
 }
 
+// Tope máximo de pago por trabajador (política del negocio)
+const MAX_SALARY_PER_WORKER = 250;
+
 interface TechnicianPaymentCalc {
   id: string;
   name: string;
   basePayment: number;
+  cappedPayment: number;
   existingPayments: number;
   finalPayment: number;
+  wasCapped: boolean;
 }
 
 export default function PaymentCalculatorModal({
@@ -97,7 +102,11 @@ export default function PaymentCalculatorModal({
     return Math.floor(rawPayment / 10) * 10;
   };
 
-  const paymentPerTechnician = calculatePaymentPerTechnician();
+  const rawPaymentPerTechnician = calculatePaymentPerTechnician();
+
+  // Aplicar tope máximo por política del negocio
+  const isCapped = rawPaymentPerTechnician > MAX_SALARY_PER_WORKER;
+  const paymentPerTechnician = isCapped ? MAX_SALARY_PER_WORKER : rawPaymentPerTechnician;
 
   // Calcular pagos existentes por técnico en el período y el pago final
   const technicianCalcs: TechnicianPaymentCalc[] = useMemo(() => {
@@ -112,12 +121,14 @@ export default function PaymentCalculatorModal({
       return {
         id: tech.id,
         name: tech.name,
-        basePayment: paymentPerTechnician,
+        basePayment: rawPaymentPerTechnician,
+        cappedPayment: paymentPerTechnician,
         existingPayments,
         finalPayment,
+        wasCapped: isCapped,
       };
     });
-  }, [technicians, technicianPayments, paymentPerTechnician]);
+  }, [technicians, technicianPayments, paymentPerTechnician, rawPaymentPerTechnician, isCapped]);
 
   const totalDistributed = technicianCalcs.reduce(
     (sum, t) => sum + t.finalPayment,
@@ -125,6 +136,8 @@ export default function PaymentCalculatorModal({
   );
   const totalBaseDistributed = paymentPerTechnician * numTechnicians;
   const remainder = difference - totalBaseDistributed;
+  const excessPerWorker = isCapped ? rawPaymentPerTechnician - MAX_SALARY_PER_WORKER : 0;
+  const totalExcessByCap = excessPerWorker * numTechnicians;
 
   // Registrar pagos como egresos
   const handleRegisterPayments = async () => {
@@ -311,10 +324,36 @@ export default function PaymentCalculatorModal({
                       <p className="text-xs text-slate-400 mb-1">
                         Pago por Trabajador (múltiplo de 10):
                       </p>
-                      <p className="text-3xl font-bold text-amber-400">
-                        {formatCurrency(paymentPerTechnician)}
-                      </p>
+                      {isCapped ? (
+                        <>
+                          <p className="text-lg font-bold text-slate-500 line-through">
+                            {formatCurrency(rawPaymentPerTechnician)}
+                          </p>
+                          <p className="text-3xl font-bold text-amber-400">
+                            {formatCurrency(paymentPerTechnician)}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-3xl font-bold text-amber-400">
+                          {formatCurrency(paymentPerTechnician)}
+                        </p>
+                      )}
                     </div>
+
+                    {/* Aviso de tope máximo */}
+                    {isCapped && (
+                      <div className="flex items-start gap-2 text-xs bg-red-600/10 border border-red-600/30 rounded-lg p-3 mt-3">
+                        <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-red-400 font-medium">
+                            Tope máximo aplicado: {formatCurrency(MAX_SALARY_PER_WORKER)}
+                          </p>
+                          <p className="text-slate-400 mt-1">
+                            El pago calculado ({formatCurrency(rawPaymentPerTechnician)}) supera el tope máximo permitido por política del negocio. Se registrará {formatCurrency(MAX_SALARY_PER_WORKER)} por trabajador.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Detalle por Trabajador */}
@@ -356,24 +395,36 @@ export default function PaymentCalculatorModal({
                             </span>
                           </div>
 
-                          {tech.existingPayments > 0 && (
+                          {(tech.existingPayments > 0 || tech.wasCapped) && (
                             <div className="mt-2 ml-8 space-y-1">
                               <div className="flex items-center justify-between text-xs">
                                 <span className="text-slate-400">
-                                  Pago base:
+                                  Pago calculado:
                                 </span>
-                                <span className="text-slate-300">
+                                <span className={`text-slate-300 ${tech.wasCapped ? "line-through" : ""}`}>
                                   {formatCurrency(tech.basePayment)}
                                 </span>
                               </div>
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-orange-400">
-                                  Registros existentes en el período:
-                                </span>
-                                <span className="text-orange-400 font-medium">
-                                  - {formatCurrency(tech.existingPayments)}
-                                </span>
-                              </div>
+                              {tech.wasCapped && (
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-red-400">
+                                    Tope máximo aplicado:
+                                  </span>
+                                  <span className="text-red-400 font-medium">
+                                    {formatCurrency(tech.cappedPayment)}
+                                  </span>
+                                </div>
+                              )}
+                              {tech.existingPayments > 0 && (
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-orange-400">
+                                    Registros existentes en el período:
+                                  </span>
+                                  <span className="text-orange-400 font-medium">
+                                    - {formatCurrency(tech.existingPayments)}
+                                  </span>
+                                </div>
+                              )}
                               {tech.finalPayment === 0 && (
                                 <p className="text-xs text-slate-500 italic mt-1">
                                   Ya cubierto con registros previos
@@ -406,13 +457,24 @@ export default function PaymentCalculatorModal({
                           {formatCurrency(remainder)}
                         </span>
                       </div>
+                      {isCapped && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-slate-400">Excedente por tope máximo:</span>
+                          <span className="font-medium text-red-400">
+                            {formatCurrency(totalExcessByCap)}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    {remainder > 0 && (
+                    {(remainder > 0 || isCapped) && (
                       <div className="mt-3 flex items-start gap-2 text-xs text-slate-400 bg-amber-600/10 border border-amber-600/30 rounded p-2">
                         <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                         <span>
-                          El remanente se genera por el redondeo al múltiplo de
-                          10 más cercano hacia abajo
+                          {isCapped && remainder > 0
+                            ? `El remanente incluye ${formatCurrency(totalExcessByCap)} por tope máximo de ${formatCurrency(MAX_SALARY_PER_WORKER)} por trabajador y ${formatCurrency(remainder - totalExcessByCap)} por redondeo`
+                            : isCapped
+                            ? `El remanente se genera por el tope máximo de ${formatCurrency(MAX_SALARY_PER_WORKER)} por trabajador (política del negocio)`
+                            : "El remanente se genera por el redondeo al múltiplo de 10 más cercano hacia abajo"}
                         </span>
                       </div>
                     )}
