@@ -1,9 +1,8 @@
 // src/components/equipment/EquipmentManageModal.tsx
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { X, User, Banknote, Save, Loader2 } from "lucide-react";
-import ConfirmModal from "@/components/clients/ConfirmModal";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
 import type { Equipment, PaymentMethod } from "@/types/equipment";
@@ -42,42 +41,20 @@ export default function EquipmentManageModal({
       "CASH") as PaymentMethod,
   });
   const existingPayment = equipment.payments?.[0];
-  const [showConfirmClose, setShowConfirmClose] = useState(false);
-
-  // Detectar cambios sin guardar
-  const isDirty = useMemo(() => {
-    const techChanged = selectedTechnicianId !== (equipment.assignedTechnicianId || "");
-    const paymentChanged =
-      paymentData.totalAmount !== (equipment.payments?.[0]?.totalAmount || 0) ||
-      paymentData.advanceAmount !== (equipment.payments?.[0]?.advanceAmount || 0) ||
-      paymentData.paymentMethod !== ((equipment.payments?.[0]?.paymentMethod || "CASH") as PaymentMethod);
-    return techChanged || paymentChanged;
-  }, [selectedTechnicianId, paymentData, equipment]);
-
-  const handleCloseAttempt = useCallback(() => {
-    if (isDirty) {
-      setShowConfirmClose(true);
-    } else {
-      onClose();
-    }
-  }, [isDirty, onClose]);
 
   // Cerrar con tecla ESC
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !showConfirmClose) {
-        handleCloseAttempt();
-      }
-    },
-    [handleCloseAttempt, showConfirmClose]
-  );
-
   useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [handleKeyDown]);
+  }, [onClose]);
 
   // Cargar técnicos
   useEffect(() => {
@@ -172,7 +149,7 @@ export default function EquipmentManageModal({
       {/* Backdrop */}
       <div
         className="absolute inset-0"
-        onClick={handleCloseAttempt}
+        onClick={onClose}
       />
       <div className="relative bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
@@ -187,7 +164,7 @@ export default function EquipmentManageModal({
               </p>
             </div>
             <button
-              onClick={handleCloseAttempt}
+              onClick={onClose}
               className="p-2 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors"
             >
               <X className="w-5 h-5" />
@@ -346,7 +323,7 @@ export default function EquipmentManageModal({
         {/* Footer */}
         <div className="p-4 md:p-6 border-t border-slate-700">
           <button
-            onClick={handleCloseAttempt}
+            onClick={onClose}
             className="w-full bg-slate-700 hover:bg-slate-600 text-slate-100 py-3 px-4 rounded-xl transition-colors"
           >
             Cerrar
@@ -354,17 +331,6 @@ export default function EquipmentManageModal({
         </div>
       </div>
 
-      {/* Modal de confirmación para cerrar sin guardar */}
-      <ConfirmModal
-        isOpen={showConfirmClose}
-        title="Cambios sin guardar"
-        message="Tienes cambios sin guardar. ¿Deseas salir sin guardar?"
-        confirmLabel="Salir sin guardar"
-        cancelLabel="Seguir editando"
-        confirmButtonColor="red"
-        onConfirm={onClose}
-        onCancel={() => setShowConfirmClose(false)}
-      />
     </div>
   );
 }
