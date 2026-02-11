@@ -312,7 +312,8 @@ export default function EquiposPage() {
       {/* Create Modal */}
       {modalType === "create" && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="absolute inset-0" onClick={handleCloseModal} />
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <EquipmentForm
               onSubmit={handleCreateSubmit}
               onCancel={handleCloseModal}
@@ -326,7 +327,8 @@ export default function EquiposPage() {
       {/* Edit Modal */}
       {modalType === "edit" && selectedEquipment && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="absolute inset-0" onClick={handleCloseModal} />
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <EquipmentForm
               equipment={selectedEquipment}
               onSubmit={handleEditSubmit}

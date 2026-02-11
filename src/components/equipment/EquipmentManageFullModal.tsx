@@ -1,7 +1,7 @@
 // src/components/equipment/EquipmentManageFullModal.tsx
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   X,
   User,
@@ -21,7 +21,6 @@ import {
   ChevronRight,
   Wrench,
 } from "lucide-react";
-import ConfirmModal from "@/components/clients/ConfirmModal";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
 import { formatPhone } from "@/lib/validations/client";
@@ -123,32 +122,11 @@ export default function EquipmentManageFullModal({
   const [isSavingPayment, setIsSavingPayment] = useState(false);
   const existingPayment = equipment.payments?.[0];
 
-  const [showConfirmClose, setShowConfirmClose] = useState(false);
-
   const availableStatuses = getAllStatuses(equipment.status, userRole);
   const canChangeStatus =
     availableStatuses.length > 0 && equipment.status !== "DELIVERED";
   const isCancelled = equipment.status === "CANCELLED";
   const isDelivered = equipment.status === "DELIVERED";
-
-  // Detectar cambios sin guardar
-  const isDirty = useMemo(() => {
-    const techChanged = selectedTechnicianId !== (equipment.assignedTechnicianId || "");
-    const statusChanged = selectedStatus !== "";
-    const paymentChanged =
-      paymentData.totalAmount !== (equipment.payments?.[0]?.totalAmount || 0) ||
-      paymentData.advanceAmount !== (equipment.payments?.[0]?.advanceAmount || 0) ||
-      paymentData.paymentMethod !== ((equipment.payments?.[0]?.paymentMethod || "CASH") as PaymentMethod);
-    return techChanged || statusChanged || paymentChanged;
-  }, [selectedTechnicianId, selectedStatus, paymentData, equipment]);
-
-  const handleCloseAttempt = useCallback(() => {
-    if (isDirty) {
-      setShowConfirmClose(true);
-    } else {
-      onClose();
-    }
-  }, [isDirty, onClose]);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -176,14 +154,14 @@ export default function EquipmentManageFullModal({
   // Cerrar modal con tecla ESC
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !showConfirmClose) {
-        handleCloseAttempt();
+      if (e.key === "Escape") {
+        onClose();
       }
     };
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [handleCloseAttempt, showConfirmClose]);
+  }, [onClose]);
 
   // Mostrar sección de pago cuando se selecciona DELIVERED
   useEffect(() => {
@@ -335,7 +313,7 @@ export default function EquipmentManageFullModal({
       {/* Backdrop */}
       <div
         className="absolute inset-0"
-        onClick={handleCloseAttempt}
+        onClick={onClose}
       />
       <div className="relative bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
@@ -355,7 +333,7 @@ export default function EquipmentManageFullModal({
               </div>
             </div>
             <button
-              onClick={handleCloseAttempt}
+              onClick={onClose}
               className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all border border-red-500/30 hover:border-red-500/50"
               title="Cerrar (ESC)"
             >
@@ -808,7 +786,7 @@ export default function EquipmentManageFullModal({
         {/* Footer */}
         <div className="p-4 md:p-6 border-t border-slate-700">
           <button
-            onClick={handleCloseAttempt}
+            onClick={onClose}
             className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-500 py-3 px-4 rounded-xl transition-all border border-red-500/30 hover:border-red-500/50"
           >
             Cerrar
@@ -816,17 +794,6 @@ export default function EquipmentManageFullModal({
         </div>
       </div>
 
-      {/* Modal de confirmación para cerrar sin guardar */}
-      <ConfirmModal
-        isOpen={showConfirmClose}
-        title="Cambios sin guardar"
-        message="Tienes cambios sin guardar. ¿Deseas salir sin guardar?"
-        confirmLabel="Salir sin guardar"
-        cancelLabel="Seguir editando"
-        confirmButtonColor="red"
-        onConfirm={onClose}
-        onCancel={() => setShowConfirmClose(false)}
-      />
     </div>
   );
 }
