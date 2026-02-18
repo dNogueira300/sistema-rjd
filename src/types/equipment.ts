@@ -185,12 +185,12 @@ export const EQUIPMENT_STATUS_LABELS: Record<EquipmentStatus, string> = {
   CANCELLED: "Cancelado",
 };
 
-// Colores para estados
+// Colores para estados (purple=recibido, yellow=reparación, blue=reparado, green=entregado, red=cancelado)
 export const EQUIPMENT_STATUS_COLORS: Record<EquipmentStatus, string> = {
-  RECEIVED: "bg-blue-600/20 text-blue-400 border-blue-600/30",
+  RECEIVED: "bg-purple-600/20 text-purple-400 border-purple-600/30",
   REPAIR: "bg-yellow-600/20 text-yellow-400 border-yellow-600/30",
-  REPAIRED: "bg-green-600/20 text-green-400 border-green-600/30",
-  DELIVERED: "bg-purple-600/20 text-purple-400 border-purple-600/30",
+  REPAIRED: "bg-blue-600/20 text-blue-400 border-blue-600/30",
+  DELIVERED: "bg-green-600/20 text-green-400 border-green-600/30",
   CANCELLED: "bg-red-600/20 text-red-400 border-red-600/30",
 };
 

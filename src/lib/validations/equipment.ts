@@ -139,20 +139,12 @@ export const isValidStatusTransition = (
   newStatus: string,
   userRole: "ADMINISTRADOR" | "TECNICO"
 ): { valid: boolean; message?: string } => {
-  const validTransitions: Record<string, string[]> = {
-    RECEIVED: ["REPAIR", "CANCELLED"],
-    REPAIR: ["REPAIRED", "CANCELLED"],
-    REPAIRED: ["DELIVERED", "REPAIR", "CANCELLED"],
-    DELIVERED: [], // Estado final
-    CANCELLED: ["RECEIVED"], // Puede revertir a recibido
-  };
-
-  // Administrador puede hacer todas las transiciones válidas
+  // Administrador puede cambiar a cualquier estado diferente al actual
   if (userRole === "ADMINISTRADOR") {
-    if (!validTransitions[currentStatus]?.includes(newStatus)) {
+    if (currentStatus === newStatus) {
       return {
         valid: false,
-        message: `No se puede cambiar de ${currentStatus} a ${newStatus}`,
+        message: `El equipo ya se encuentra en estado ${currentStatus}`,
       };
     }
     return { valid: true };

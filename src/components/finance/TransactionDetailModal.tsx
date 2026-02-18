@@ -79,21 +79,6 @@ export default function TransactionDetailModal({
     }
   }, [mode, transaction, incomeData, expenseData]);
 
-  // Verificar si la transacción es del día actual (America/Lima)
-  const isToday = useMemo(() => {
-    const now = new Date();
-    const limaFormatter = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "America/Lima",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-    const todayLima = limaFormatter.format(now);
-    const transactionDate = new Date(transaction.date);
-    const transactionDateLima = limaFormatter.format(transactionDate);
-    return todayLima === transactionDateLima;
-  }, [transaction.date]);
-
   const handleCloseAttempt = useCallback(() => {
     if (isDirty) {
       setShowConfirmClose(true);
@@ -402,7 +387,11 @@ export default function TransactionDetailModal({
             </label>
             <p className="text-sm text-slate-200">
               {transaction.type === "INGRESO" && transaction.paymentStatus
-                ? PAYMENT_STATUS_LABELS[transaction.paymentStatus]
+                ? (transaction.observations === "Pago restante"
+                  ? "Pago restante"
+                  : transaction.paymentStatus === "PARTIAL"
+                  ? "Adelanto"
+                  : PAYMENT_STATUS_LABELS[transaction.paymentStatus])
                 : transaction.expenseType
                   ? EXPENSE_TYPE_LABELS[transaction.expenseType]
                   : "-"}
@@ -460,19 +449,13 @@ export default function TransactionDetailModal({
               >
                 Cerrar
               </button>
-              {isToday ? (
-                <button
-                  onClick={() => setMode("edit")}
-                  className="btn-primary-dark flex items-center gap-2 px-4 py-2 text-sm"
-                >
-                  <Pencil className="w-4 h-4" />
-                  Editar
-                </button>
-              ) : (
-                <span className="text-xs text-slate-500 italic">
-                  Solo se pueden editar registros del día actual
-                </span>
-              )}
+              <button
+                onClick={() => setMode("edit")}
+                className="btn-primary-dark flex items-center gap-2 px-4 py-2 text-sm"
+              >
+                <Pencil className="w-4 h-4" />
+                Editar
+              </button>
             </>
           ) : (
             <>

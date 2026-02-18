@@ -9,8 +9,29 @@ import {
 } from "@/types/finance";
 import {
   PAYMENT_METHOD_LABELS,
-  PAYMENT_STATUS_LABELS,
 } from "@/types/equipment";
+
+// Labels descriptivos para el estado de pago en finanzas
+const getPaymentStatusDisplay = (transaction: ConsolidatedTransaction) => {
+  if (!transaction.paymentStatus) return { label: "-", color: "text-slate-300" };
+
+  const isRemainingPayment = transaction.observations === "Pago restante";
+
+  if (isRemainingPayment) {
+    return { label: "Pago restante", color: "text-emerald-400" };
+  }
+
+  switch (transaction.paymentStatus) {
+    case "PARTIAL":
+      return { label: "Adelanto", color: "text-yellow-400" };
+    case "COMPLETED":
+      return { label: "Pagado", color: "text-emerald-400" };
+    case "PENDING":
+      return { label: "Pendiente", color: "text-red-400" };
+    default:
+      return { label: transaction.paymentStatus, color: "text-slate-300" };
+  }
+};
 
 interface TransactionTableProps {
   transactions: ConsolidatedTransaction[];
@@ -106,13 +127,17 @@ export default function TransactionTable({
                 <span className="text-slate-400">
                   {transaction.type === "INGRESO" ? "Estado:" : "Categoría:"}
                 </span>
-                <p className="text-slate-200">
-                  {transaction.type === "INGRESO" && transaction.paymentStatus
-                    ? PAYMENT_STATUS_LABELS[transaction.paymentStatus]
-                    : transaction.expenseType
-                    ? EXPENSE_TYPE_LABELS[transaction.expenseType]
-                    : "-"}
-                </p>
+                {transaction.type === "INGRESO" ? (
+                  <p className={`font-medium ${getPaymentStatusDisplay(transaction).color}`}>
+                    {getPaymentStatusDisplay(transaction).label}
+                  </p>
+                ) : (
+                  <p className="text-slate-200">
+                    {transaction.expenseType
+                      ? EXPENSE_TYPE_LABELS[transaction.expenseType]
+                      : "-"}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -225,13 +250,17 @@ export default function TransactionTable({
                     </span>
                   </td>
                   <td className="px-4 lg:px-6 py-4">
-                    <span className="text-sm text-slate-300">
-                      {transaction.type === "INGRESO" && transaction.paymentStatus
-                        ? PAYMENT_STATUS_LABELS[transaction.paymentStatus]
-                        : transaction.expenseType
-                        ? EXPENSE_TYPE_LABELS[transaction.expenseType]
-                        : "-"}
-                    </span>
+                    {transaction.type === "INGRESO" ? (
+                      <span className={`text-sm font-medium ${getPaymentStatusDisplay(transaction).color}`}>
+                        {getPaymentStatusDisplay(transaction).label}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-slate-300">
+                        {transaction.expenseType
+                          ? EXPENSE_TYPE_LABELS[transaction.expenseType]
+                          : "-"}
+                      </span>
+                    )}
                   </td>
                   {onManage && (
                     <td className="px-4 lg:px-6 py-4">

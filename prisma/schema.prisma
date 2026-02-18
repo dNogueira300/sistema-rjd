@@ -202,7 +202,9 @@ enum ExpenseType {
   SALARY       // Pago de salario
   SUPPLIES     // Materiales/insumos
   RENT         // Alquiler
-  SERVICES     // Servicios (luz, agua, internet)
+  SERVICES     // Pago servicios (luz, agua, internet)
+  FOOD         // Pago comida
+  FUEL         // Pago combustible
   MAINTENANCE  // Mantenimiento
   OTHER        // Otros gastos
 }

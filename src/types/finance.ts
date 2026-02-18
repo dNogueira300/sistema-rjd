@@ -8,7 +8,9 @@ export type ExpenseType =
   | "SALARY"         // Pago de salario
   | "SUPPLIES"       // Materiales/insumos
   | "RENT"           // Alquiler
-  | "SERVICES"       // Servicios (luz, agua, internet)
+  | "SERVICES"       // Pago servicios (luz, agua, internet)
+  | "FOOD"           // Pago comida
+  | "FUEL"           // Pago combustible
   | "MAINTENANCE"    // Mantenimiento
   | "OTHER";         // Otros gastos
 
@@ -148,7 +150,9 @@ export const EXPENSE_TYPE_LABELS: Record<ExpenseType, string> = {
   SALARY: "Salario",
   SUPPLIES: "Materiales/Insumos",
   RENT: "Alquiler",
-  SERVICES: "Servicios",
+  SERVICES: "Pago Servicios",
+  FOOD: "Pago Comida",
+  FUEL: "Pago Combustible",
   MAINTENANCE: "Mantenimiento",
   OTHER: "Otros",
 };

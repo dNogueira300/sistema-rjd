@@ -347,6 +347,10 @@ export default function EquiposPage() {
           userRole={userRole}
           onClose={handleCloseModal}
           onSuccess={handleManageSuccess}
+          onEdit={(eq) => {
+            setSelectedEquipment(eq);
+            setModalType("edit");
+          }}
         />
       )}
 

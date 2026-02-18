@@ -20,6 +20,7 @@ import {
   Undo2,
   ChevronRight,
   Wrench,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
@@ -49,6 +50,7 @@ interface EquipmentManageFullModalProps {
   userRole: "ADMINISTRADOR" | "TECNICO";
   onClose: () => void;
   onSuccess: () => void;
+  onEdit?: (equipment: Equipment) => void;
 }
 
 const getTypeIcon = (type: EquipmentType) => {
@@ -94,6 +96,7 @@ export default function EquipmentManageFullModal({
   userRole,
   onClose,
   onSuccess,
+  onEdit,
 }: EquipmentManageFullModalProps) {
   // Estados
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -113,18 +116,25 @@ export default function EquipmentManageFullModal({
 
   // Pago (solo visible cuando se selecciona DELIVERED)
   const [showPaymentSection, setShowPaymentSection] = useState(false);
+  const existingPayment = equipment.payments?.[0];
+  const existingIsPartial = existingPayment?.paymentStatus === "PARTIAL";
+  const existingRemainingAmount = existingPayment
+    ? existingPayment.totalAmount - existingPayment.advanceAmount
+    : 0;
   const [paymentData, setPaymentData] = useState({
-    totalAmount: equipment.payments?.[0]?.totalAmount || 0,
-    advanceAmount: equipment.payments?.[0]?.advanceAmount || 0,
+    totalAmount: existingIsPartial
+      ? existingRemainingAmount
+      : equipment.payments?.[0]?.totalAmount || 0,
+    advanceAmount: existingIsPartial
+      ? existingRemainingAmount
+      : equipment.payments?.[0]?.advanceAmount || 0,
     paymentMethod: (equipment.payments?.[0]?.paymentMethod ||
       "CASH") as PaymentMethod,
   });
   const [isSavingPayment, setIsSavingPayment] = useState(false);
-  const existingPayment = equipment.payments?.[0];
 
   const availableStatuses = getAllStatuses(equipment.status, userRole);
-  const canChangeStatus =
-    availableStatuses.length > 0 && equipment.status !== "DELIVERED";
+  const canChangeStatus = availableStatuses.length > 0;
   const isCancelled = equipment.status === "CANCELLED";
   const isDelivered = equipment.status === "DELIVERED";
 
@@ -242,10 +252,13 @@ export default function EquipmentManageFullModal({
 
     setIsSavingPayment(true);
     try {
-      const url = existingPayment
-        ? `/api/payments/${existingPayment.id}`
-        : "/api/payments";
-      const method = existingPayment ? "PUT" : "POST";
+      // Si hay pago parcial existente, siempre crear NUEVO registro para el monto adicional
+      // Esto permite que el ingreso se registre con la fecha de hoy
+      const shouldCreateNew = !existingPayment || existingIsPartial;
+      const url = shouldCreateNew
+        ? "/api/payments"
+        : `/api/payments/${existingPayment.id}`;
+      const method = shouldCreateNew ? "POST" : "PUT";
 
       const response = await apiFetch(url, {
         method,
@@ -256,6 +269,7 @@ export default function EquipmentManageFullModal({
           advanceAmount: paymentData.advanceAmount,
           paymentMethod: paymentData.paymentMethod,
           voucherType: "RECEIPT",
+          observations: existingIsPartial ? "Pago restante" : undefined,
         }),
       });
 
@@ -264,7 +278,9 @@ export default function EquipmentManageFullModal({
         throw new Error(error.error || "Error al guardar pago");
       }
 
-      toast.success(existingPayment ? "Pago actualizado" : "Pago registrado");
+      toast.success(
+        existingIsPartial ? "Pago restante registrado" : existingPayment ? "Pago actualizado" : "Pago registrado"
+      );
       onSuccess();
     } catch (error) {
       toast.error(
@@ -360,13 +376,24 @@ export default function EquipmentManageFullModal({
                   <h3 className="text-sm font-medium text-slate-200">
                     Información del Equipo
                   </h3>
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                      EQUIPMENT_STATUS_COLORS[equipment.status]
-                    }`}
-                  >
-                    {EQUIPMENT_STATUS_LABELS[equipment.status]}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {onEdit && userRole === "ADMINISTRADOR" && (
+                      <button
+                        onClick={() => onEdit(equipment)}
+                        className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border bg-blue-600/20 text-blue-400 border-blue-600/30 hover:bg-blue-600/30 transition-colors"
+                      >
+                        <Pencil className="w-3 h-3" />
+                        Editar datos
+                      </button>
+                    )}
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                        EQUIPMENT_STATUS_COLORS[equipment.status]
+                      }`}
+                    >
+                      {EQUIPMENT_STATUS_LABELS[equipment.status]}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -564,15 +591,30 @@ export default function EquipmentManageFullModal({
                       <Banknote className="w-4 h-4" />
                       {isDelivered
                         ? "Información de Pago"
+                        : existingIsPartial
+                        ? "Registrar Pago Restante"
                         : existingPayment
                         ? "Actualizar Pago"
                         : "Registrar Pago"}
                     </h3>
 
+                    {existingIsPartial && !isDelivered && (
+                      <div className="bg-yellow-600/10 border border-yellow-600/30 rounded-lg p-3 mb-3 text-sm">
+                        <p className="text-yellow-400 font-medium mb-1">Pago parcial registrado</p>
+                        <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
+                          <span>Total del servicio: <span className="text-slate-200">S/ {existingPayment?.totalAmount.toFixed(2)}</span></span>
+                          <span>Adelanto pagado: <span className="text-emerald-400">S/ {existingPayment?.advanceAmount.toFixed(2)}</span></span>
+                        </div>
+                        <p className="text-yellow-300 text-xs mt-1">
+                          Pendiente: S/ {existingRemainingAmount.toFixed(2)} — Este monto se registrará con la fecha de hoy
+                        </p>
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-3 mb-3">
                       <div>
                         <label className="block text-xs text-slate-400 mb-1">
-                          Monto Total (S/)
+                          {existingIsPartial ? "Monto a Pagar (S/)" : "Monto Total (S/)"}
                         </label>
                         <input
                           type="number"
@@ -592,7 +634,7 @@ export default function EquipmentManageFullModal({
                       </div>
                       <div>
                         <label className="block text-xs text-slate-400 mb-1">
-                          Monto Pagado (S/)
+                          {existingIsPartial ? "Monto que Paga (S/)" : "Monto Pagado (S/)"}
                         </label>
                         <input
                           type="number"
@@ -686,7 +728,9 @@ export default function EquipmentManageFullModal({
                         ) : (
                           <>
                             <Save className="w-4 h-4" />
-                            {existingPayment
+                            {existingIsPartial
+                              ? "Registrar Pago Restante"
+                              : existingPayment
                               ? "Actualizar Pago"
                               : "Registrar Pago"}
                           </>

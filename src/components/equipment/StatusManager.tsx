@@ -45,7 +45,7 @@ const STATUS_CONFIG: Record<
   RECEIVED: {
     label: "Recibido",
     icon: <Clock className="w-5 h-5" />,
-    color: "bg-blue-600/20 text-blue-400 border-blue-600/30",
+    color: "bg-purple-600/20 text-purple-400 border-purple-600/30",
   },
   REPAIR: {
     label: "En Reparación",
@@ -55,12 +55,12 @@ const STATUS_CONFIG: Record<
   REPAIRED: {
     label: "Reparado",
     icon: <CheckCircle className="w-5 h-5" />,
-    color: "bg-green-600/20 text-green-400 border-green-600/30",
+    color: "bg-blue-600/20 text-blue-400 border-blue-600/30",
   },
   DELIVERED: {
     label: "Entregado",
     icon: <Truck className="w-5 h-5" />,
-    color: "bg-purple-600/20 text-purple-400 border-purple-600/30",
+    color: "bg-green-600/20 text-green-400 border-green-600/30",
   },
   CANCELLED: {
     label: "Cancelado",
@@ -69,14 +69,8 @@ const STATUS_CONFIG: Record<
   },
 };
 
-// Transiciones válidas por estado actual
-const VALID_TRANSITIONS: Record<EquipmentStatus, EquipmentStatus[]> = {
-  RECEIVED: ["REPAIR", "CANCELLED"],
-  REPAIR: ["REPAIRED", "CANCELLED"],
-  REPAIRED: ["DELIVERED", "REPAIR"],
-  DELIVERED: [],
-  CANCELLED: [],
-};
+// Todos los estados posibles
+const ALL_STATUSES: EquipmentStatus[] = ["RECEIVED", "REPAIR", "REPAIRED", "DELIVERED", "CANCELLED"];
 
 export default function StatusManager({
   equipment,
@@ -144,10 +138,9 @@ export default function StatusManager({
 
   // Obtener estados disponibles según rol y estado actual
   const availableTransitions = useCallback((): EquipmentStatus[] => {
-    const validStates = VALID_TRANSITIONS[equipment.status] || [];
-
     if (userRole === "ADMINISTRADOR") {
-      return validStates;
+      // Admin puede cambiar a cualquier estado excepto el actual
+      return ALL_STATUSES.filter((s) => s !== equipment.status);
     }
 
     // Técnico solo puede cambiar a REPAIRED

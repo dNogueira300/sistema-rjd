@@ -83,6 +83,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     // Los administradores pueden cambiar a cualquier estado libremente (con las validaciones anteriores)
 
+    // Si se cancela, eliminar todos los pagos asociados al equipo
+    if (validatedData.newStatus === "CANCELLED") {
+      await prisma.payment.deleteMany({
+        where: { equipmentId: id },
+      });
+    }
+
     // Actualizar estado del equipo
     const updatedEquipment = await prisma.equipment.update({
       where: { id },

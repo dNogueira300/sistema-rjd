@@ -17,6 +17,8 @@ const expenseTypeSchema = z.enum([
   "SUPPLIES",
   "RENT",
   "SERVICES",
+  "FOOD",
+  "FUEL",
   "MAINTENANCE",
   "OTHER",
 ]);

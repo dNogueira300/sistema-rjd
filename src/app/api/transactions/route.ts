@@ -169,11 +169,24 @@ export async function GET(request: NextRequest) {
           ? payment.advanceAmount
           : payment.totalAmount;
 
+      // Determinar tipo de pago para la descripción
+      const isRemainingPayment = payment.observations === "Pago restante";
+      let paymentLabel: string;
+      if (isRemainingPayment) {
+        paymentLabel = "Pago restante";
+      } else if (payment.paymentStatus === "PARTIAL") {
+        paymentLabel = "Adelanto";
+      } else if (payment.paymentStatus === "COMPLETED") {
+        paymentLabel = "Pago completo";
+      } else {
+        paymentLabel = "Pago";
+      }
+
       transactions.push({
         id: payment.id,
         date: payment.paymentDate,
         type: "INGRESO",
-        description: `Pago equipo ${payment.equipment.code} - ${payment.equipment.customer.name}`,
+        description: `${paymentLabel} equipo ${payment.equipment.code} - ${payment.equipment.customer.name}`,
         amount: displayAmount,
         paymentMethod: payment.paymentMethod,
         category: payment.paymentStatus,
