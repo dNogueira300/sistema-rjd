@@ -632,16 +632,19 @@ export default function EquipmentManageFullModal({
                     )}
 
                     <div className="grid grid-cols-2 gap-3 mb-3">
+                      {/* Columna 1: Monto a Pagar */}
                       <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <label className="text-xs text-slate-400">
+                        <div className="flex items-center justify-between mb-2 h-7">
+                          {" "}
+                          {/* Añadida altura fija h-7 */}
+                          <label className="text-xs font-medium text-slate-400">
                             Monto a Pagar (S/)
                           </label>
                           <button
                             onClick={() =>
                               setIsTotalAmountLocked(!isTotalAmountLocked)
                             }
-                            className="text-slate-500 hover:text-slate-300 transition-colors p-1 rounded hover:bg-slate-600/50 cursor-pointer"
+                            className="p-1.5 hover:bg-slate-700 rounded transition-colors"
                             title={
                               isTotalAmountLocked
                                 ? "Desbloquear edición"
@@ -650,9 +653,9 @@ export default function EquipmentManageFullModal({
                             type="button"
                           >
                             {isTotalAmountLocked ? (
-                              <Lock className="w-4 h-4" />
+                              <Lock className="w-4 h-4 text-amber-500" />
                             ) : (
-                              <Unlock className="w-4 h-4" />
+                              <Unlock className="w-4 h-4 text-amber-500" />
                             )}
                           </button>
                         </div>
@@ -672,10 +675,16 @@ export default function EquipmentManageFullModal({
                           placeholder="0.00"
                         />
                       </div>
+
+                      {/* Columna 2: Monto que Paga */}
                       <div>
-                        <label className="block text-xs text-slate-400 mb-1">
-                          Monto que Paga (S/)
-                        </label>
+                        <div className="flex items-center mb-2 h-7">
+                          {" "}
+                          {/* Añadida misma altura fija h-7 y flex */}
+                          <label className="text-xs font-medium text-slate-400">
+                            Monto que Paga (S/)
+                          </label>
+                        </div>
                         <input
                           type="number"
                           min="0"

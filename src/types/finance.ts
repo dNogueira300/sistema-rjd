@@ -75,6 +75,10 @@ export interface ConsolidatedTransaction {
   voucherType?: VoucherType;
   paymentStatus?: PaymentStatus;
   expenseType?: ExpenseType;
+  // Campos para INGRESO (pago)
+  equipmentId?: string;
+  totalAmount?: number;
+  previousAdvances?: number;
 }
 
 // Datos para crear un ingreso (Payment)

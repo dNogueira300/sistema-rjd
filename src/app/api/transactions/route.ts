@@ -85,6 +85,7 @@ export async function GET(request: NextRequest) {
           },
           select: {
             id: true,
+            equipmentId: true,
             paymentDate: true,
             totalAmount: true,
             advanceAmount: true,
@@ -97,6 +98,12 @@ export async function GET(request: NextRequest) {
               select: {
                 code: true,
                 serviceType: true,
+                payments: {
+                  select: {
+                    advanceAmount: true,
+                    paymentDate: true,
+                  },
+                },
                 customer: {
                   select: {
                     id: true,
@@ -173,6 +180,15 @@ export async function GET(request: NextRequest) {
           ? payment.advanceAmount
           : payment.totalAmount;
 
+      // Calcular adelantos previos (suma de todos los adelantos ANTES de éste por fecha)
+      const previousAdvances = payment.equipment.payments
+        .filter(
+          (p) =>
+            p.advanceAmount > 0 &&
+            new Date(p.paymentDate) < new Date(payment.paymentDate),
+        )
+        .reduce((sum, p) => sum + p.advanceAmount, 0);
+
       // Determinar tipo de pago para la descripción
       const isRemainingPayment = payment.observations === "Pago restante";
       let paymentLabel: string;
@@ -200,6 +216,10 @@ export async function GET(request: NextRequest) {
         voucherType: payment.voucherType,
         paymentStatus: payment.paymentStatus,
         beneficiary: payment.beneficiary || "RJD",
+        // Campos para INGRESO
+        equipmentId: payment.equipmentId,
+        totalAmount: payment.totalAmount,
+        previousAdvances: previousAdvances,
       });
     });
 

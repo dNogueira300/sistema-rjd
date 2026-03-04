@@ -15,6 +15,9 @@ import {
   CreditCard,
   FileText,
   User,
+  AlertCircle,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import ConfirmModal from "@/components/clients/ConfirmModal";
 import type { ConsolidatedTransaction } from "@/types/finance";
@@ -44,10 +47,11 @@ export default function TransactionDetailModal({
 }: TransactionDetailModalProps) {
   const [mode, setMode] = useState<ModalMode>(initialMode);
   const [showConfirmClose, setShowConfirmClose] = useState(false);
+  const [isTotalAmountLocked, setIsTotalAmountLocked] = useState(true);
 
   // Estado de edición para INGRESO
   const [incomeData, setIncomeData] = useState({
-    totalAmount: transaction.amount,
+    totalAmount: transaction.totalAmount || transaction.amount,
     advanceAmount: transaction.amount,
     paymentMethod: transaction.paymentMethod as PaymentMethod,
   });
@@ -65,7 +69,6 @@ export default function TransactionDetailModal({
     if (mode !== "edit") return false;
     if (transaction.type === "INGRESO") {
       return (
-        incomeData.totalAmount !== transaction.amount ||
         incomeData.advanceAmount !== transaction.amount ||
         incomeData.paymentMethod !== transaction.paymentMethod
       );
@@ -98,7 +101,7 @@ export default function TransactionDetailModal({
         handleCloseAttempt();
       }
     },
-    [handleCloseAttempt, isSaving, showConfirmClose]
+    [handleCloseAttempt, isSaving, showConfirmClose],
   );
 
   useEffect(() => {
@@ -216,80 +219,68 @@ export default function TransactionDetailModal({
             </div>
           </div>
 
-          {/* Descripción */}
-          <div>
-            <label className="text-xs font-medium text-slate-400 mb-1 flex items-center gap-1.5">
-              <FileText className="w-3.5 h-3.5" />
-              Descripción
-            </label>
-            {isEditing && transaction.type === "EGRESO" ? (
-              <input
-                type="text"
-                value={expenseData.description}
-                onChange={(e) =>
-                  setExpenseData((prev) => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
-                }
-                className="input-dark w-full text-sm"
-              />
-            ) : (
-              <p className="text-sm text-slate-200">
-                {transaction.description}
-              </p>
-            )}
-          </div>
-
-          {/* Monto */}
-          <div>
-            <label className="text-xs font-medium text-slate-400 mb-1 flex items-center gap-1.5">
-              <DollarSign className="w-3.5 h-3.5" />
-              {transaction.type === "INGRESO" ? "Monto Total" : "Monto"}
-            </label>
-            {isEditing ? (
-              transaction.type === "INGRESO" ? (
+          {/* Monto Total (solo INGRESO) - bloqueado por defecto */}
+          {transaction.type === "INGRESO" && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-medium text-slate-400 flex items-center gap-1.5">
+                  <DollarSign className="w-3.5 h-3.5" />
+                  Monto a Pagar
+                </label>
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={() => setIsTotalAmountLocked(!isTotalAmountLocked)}
+                    className="p-1.5 hover:bg-slate-700 rounded transition-colors"
+                    title={
+                      isTotalAmountLocked
+                        ? "Desbloquear para editar"
+                        : "Bloquear"
+                    }
+                  >
+                    {isTotalAmountLocked ? (
+                      <Lock className="w-4 h-4 text-amber-500" />
+                    ) : (
+                      <Unlock className="w-4 h-4 text-amber-500" />
+                    )}
+                  </button>
+                )}
+              </div>
+              {isEditing ? (
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={incomeData.totalAmount}
-                  onChange={(e) =>
-                    setIncomeData((prev) => ({
-                      ...prev,
-                      totalAmount: parseFloat(e.target.value) || 0,
-                    }))
-                  }
-                  className="input-dark w-full text-sm"
+                  onChange={(e) => {
+                    if (!isTotalAmountLocked) {
+                      setIncomeData((prev) => ({
+                        ...prev,
+                        totalAmount: parseFloat(e.target.value) || 0,
+                      }));
+                    }
+                  }}
+                  disabled={isTotalAmountLocked}
+                  className={`input-dark w-full text-sm ${
+                    isTotalAmountLocked
+                      ? "opacity-60 cursor-not-allowed bg-slate-800"
+                      : ""
+                  }`}
                 />
               ) : (
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={expenseData.amount}
-                  onChange={(e) =>
-                    setExpenseData((prev) => ({
-                      ...prev,
-                      amount: parseFloat(e.target.value) || 0,
-                    }))
-                  }
-                  className="input-dark w-full text-sm"
-                />
-              )
-            ) : (
-              <p className="text-sm font-semibold text-slate-200">
-                S/ {transaction.amount.toFixed(2)}
-              </p>
-            )}
-          </div>
+                <p className="text-sm font-semibold text-slate-200">
+                  S/{" "}
+                  {(transaction.totalAmount || transaction.amount).toFixed(2)}
+                </p>
+              )}
+            </div>
+          )}
 
-          {/* Adelanto (solo INGRESO) */}
+          {/* Monto que Paga (solo INGRESO en edición) */}
           {transaction.type === "INGRESO" && (
             <div>
-              <label className="text-xs font-medium text-slate-400 mb-1 flex items-center gap-1.5">
-                <DollarSign className="w-3.5 h-3.5" />
-                Monto Adelanto
+              <label className="text-xs font-medium text-slate-400 mb-2 block">
+                Monto que Paga
               </label>
               {isEditing ? (
                 <input
@@ -308,6 +299,85 @@ export default function TransactionDetailModal({
               ) : (
                 <p className="text-sm text-slate-200">
                   S/ {transaction.amount.toFixed(2)}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Pendiente (solo INGRESO) */}
+          {transaction.type === "INGRESO" && (
+            <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-3">
+              <label className="text-xs font-medium text-slate-400 mb-1 flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5" />
+                Pendiente
+              </label>
+              <p className="text-sm font-semibold text-amber-400">
+                S/{" "}
+                {Math.max(
+                  0,
+                  incomeData.totalAmount -
+                    (transaction.previousAdvances || 0) -
+                    incomeData.advanceAmount,
+                ).toFixed(2)}
+              </p>
+              <p className="text-xs text-slate-400 mt-1">
+                ({incomeData.totalAmount.toFixed(2)} - adelantos anteriores -
+                pago actual)
+              </p>
+            </div>
+          )}
+
+          {/* Monto (solo EGRESO) */}
+          {transaction.type === "EGRESO" && (
+            <div>
+              <label className="text-xs font-medium text-slate-400 mb-1 flex items-center gap-1.5">
+                <DollarSign className="w-3.5 h-3.5" />
+                Monto
+              </label>
+              {isEditing ? (
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={expenseData.amount}
+                  onChange={(e) =>
+                    setExpenseData((prev) => ({
+                      ...prev,
+                      amount: parseFloat(e.target.value) || 0,
+                    }))
+                  }
+                  className="input-dark w-full text-sm"
+                />
+              ) : (
+                <p className="text-sm font-semibold text-slate-200">
+                  S/ {transaction.amount.toFixed(2)}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Descripción (solo EGRESO) */}
+          {transaction.type === "EGRESO" && (
+            <div>
+              <label className="text-xs font-medium text-slate-400 mb-1 flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5" />
+                Descripción
+              </label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={expenseData.description}
+                  onChange={(e) =>
+                    setExpenseData((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                  className="input-dark w-full text-sm"
+                />
+              ) : (
+                <p className="text-sm text-slate-200">
+                  {transaction.description}
                 </p>
               )}
             </div>
@@ -387,11 +457,11 @@ export default function TransactionDetailModal({
             </label>
             <p className="text-sm text-slate-200">
               {transaction.type === "INGRESO" && transaction.paymentStatus
-                ? (transaction.observations === "Pago restante"
+                ? transaction.observations === "Pago restante"
                   ? "Pago restante"
                   : transaction.paymentStatus === "PARTIAL"
-                  ? "Adelanto"
-                  : PAYMENT_STATUS_LABELS[transaction.paymentStatus])
+                    ? "Adelanto"
+                    : PAYMENT_STATUS_LABELS[transaction.paymentStatus]
                 : transaction.expenseType
                   ? EXPENSE_TYPE_LABELS[transaction.expenseType]
                   : "-"}
