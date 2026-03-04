@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getTodayInLimaTimezone } from "@/lib/utils";
 import { z } from "zod";
 
 // Schema de validación para crear/actualizar pago
@@ -11,7 +12,9 @@ const paymentSchema = z.object({
   totalAmount: z.number().min(0, "El monto total debe ser mayor o igual a 0"),
   advanceAmount: z.number().min(0, "El adelanto debe ser mayor o igual a 0"),
   paymentMethod: z.enum(["CASH", "YAPE", "PLIN", "TRANSFER"]),
-  voucherType: z.enum(["RECEIPT", "INVOICE", "DELIVERY_NOTE"]).default("RECEIPT"),
+  voucherType: z
+    .enum(["RECEIPT", "INVOICE", "DELIVERY_NOTE"])
+    .default("RECEIPT"),
   observations: z.string().max(500).optional(),
 });
 
@@ -28,7 +31,7 @@ export async function POST(request: NextRequest) {
     if (session.user.role !== "ADMINISTRADOR") {
       return NextResponse.json(
         { error: "Permisos insuficientes" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -43,12 +46,13 @@ export async function POST(request: NextRequest) {
     if (!equipment) {
       return NextResponse.json(
         { error: "Equipo no encontrado" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Calcular monto restante
-    const remainingAmount = validatedData.totalAmount - validatedData.advanceAmount;
+    const remainingAmount =
+      validatedData.totalAmount - validatedData.advanceAmount;
 
     // Determinar estado del pago
     let paymentStatus: "PENDING" | "PARTIAL" | "COMPLETED";
@@ -61,6 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Crear pago (beneficiario es RJD - el negocio)
+    // Usar la fecha actual en zona horaria de Lima
     const payment = await prisma.payment.create({
       data: {
         equipmentId: validatedData.equipmentId,
@@ -70,6 +75,7 @@ export async function POST(request: NextRequest) {
         paymentMethod: validatedData.paymentMethod,
         voucherType: validatedData.voucherType,
         paymentStatus,
+        paymentDate: getTodayInLimaTimezone(),
         beneficiary: "RJD",
         observations: validatedData.observations || null,
       },
@@ -82,13 +88,13 @@ export async function POST(request: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Datos inválidos", details: error.issues },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     return NextResponse.json(
       { error: "Error interno del servidor" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

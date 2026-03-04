@@ -23,7 +23,10 @@ export function useTransactions(filters: TransactionFilters) {
   if (filters.search) queryParams.set("search", filters.search);
   if (filters.paymentMethod !== "ALL")
     queryParams.set("paymentMethod", filters.paymentMethod);
-  if (filters.technicianId) queryParams.set("technicianId", filters.technicianId);
+  if (filters.technicianId)
+    queryParams.set("technicianId", filters.technicianId);
+  queryParams.set("page", filters.page?.toString() || "1");
+  queryParams.set("limit", filters.limit?.toString() || "20");
   queryParams.set("sortBy", filters.sortBy);
   queryParams.set("sortOrder", filters.sortOrder);
 
@@ -88,7 +91,13 @@ export function useUpdatePayment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<CreatePaymentData> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<CreatePaymentData>;
+    }) => {
       const response = await apiFetch(`/api/payments/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),
@@ -115,7 +124,13 @@ export function useUpdateExpense() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<CreateExpenseData> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<CreateExpenseData>;
+    }) => {
       const response = await apiFetch(`/api/expenses/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),

@@ -24,21 +24,20 @@ const expenseTypeSchema = z.enum([
 ]);
 
 // Schema para crear un pago (Ingreso)
-export const createPaymentSchema = z.object({
-  equipmentId: z.string().min(1, "Debe seleccionar un equipo"),
-  totalAmount: z.number().min(0, "El monto total debe ser mayor o igual a 0"),
-  advanceAmount: z.number().min(0, "El adelanto debe ser mayor o igual a 0"),
-  paymentMethod: paymentMethodSchema,
-  voucherType: voucherTypeSchema,
-  paymentStatus: paymentStatusSchema,
-  observations: z.string().optional(),
-}).refine(
-  (data) => data.advanceAmount <= data.totalAmount,
-  {
+export const createPaymentSchema = z
+  .object({
+    equipmentId: z.string().min(1, "Debe seleccionar un equipo"),
+    totalAmount: z.number().min(0, "El monto total debe ser mayor o igual a 0"),
+    advanceAmount: z.number().min(0, "El adelanto debe ser mayor o igual a 0"),
+    paymentMethod: paymentMethodSchema,
+    voucherType: voucherTypeSchema,
+    paymentStatus: paymentStatusSchema,
+    observations: z.string().optional(),
+  })
+  .refine((data) => data.advanceAmount <= data.totalAmount, {
     message: "El adelanto no puede ser mayor al monto total",
     path: ["advanceAmount"],
-  }
-);
+  });
 
 // Schema para crear un egreso (Expense)
 export const createExpenseSchema = z.object({

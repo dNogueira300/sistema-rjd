@@ -39,6 +39,22 @@ export const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
+// Obtener la fecha actual en zona horaria de Lima (sin hora)
+export const getTodayInLimaTimezone = (): Date => {
+  // Obtener la fecha actual en formato YYYY-MM-DD en zona horaria de Lima
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "America/Lima",
+  });
+  const [year, month, day] = formatter
+    .formatToParts(new Date())
+    .map((part) => part.value);
+  // Retornar la fecha al inicio del día (00:00:00)
+  return new Date(`${year}-${month}-${day}T00:00:00Z`);
+};
+
 // Formatear fecha para zona horaria de Perú
 export const formatDate = (date: Date | string): string => {
   const dateObj = typeof date === "string" ? new Date(date) : date;
@@ -124,7 +140,7 @@ export const calculateDaysSince = (date: Date | string): number => {
 // Obtener badge de alerta según días en reparación
 export const getRepairTimeBadge = (
   status: string,
-  entryDate: Date | string
+  entryDate: Date | string,
 ): { text: string; color: string; icon: string } | null => {
   if (status !== "REPAIR") return null;
 

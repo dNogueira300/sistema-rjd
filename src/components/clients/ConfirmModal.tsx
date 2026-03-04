@@ -34,7 +34,7 @@ export default function ConfirmModal({
         onCancel();
       }
     },
-    [onCancel, isLoading]
+    [onCancel, isLoading],
   );
 
   useEffect(() => {
@@ -73,10 +73,12 @@ export default function ConfirmModal({
         {/* Header */}
         <div className="flex items-center justify-between mb-3 md:mb-4">
           <div className="flex items-center gap-2 md:gap-3">
-            <div className="p-1.5 md:p-2 rounded-lg bg-orange-600/20 border border-orange-600/30 flex-shrink-0">
+            <div className="p-1.5 md:p-2 rounded-lg bg-orange-600/20 border border-orange-600/30 shrink-0">
               <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 text-orange-400" />
             </div>
-            <h3 className="text-base md:text-lg font-semibold text-slate-100">{title}</h3>
+            <h3 className="text-base md:text-lg font-semibold text-slate-100">
+              {title}
+            </h3>
           </div>
           {!isLoading && (
             <button
@@ -90,7 +92,9 @@ export default function ConfirmModal({
 
         {/* Content */}
         <div className="mb-4 md:mb-6">
-          <p className="text-sm md:text-base text-slate-300 leading-relaxed">{message}</p>
+          <p className="text-sm md:text-base text-slate-300 leading-relaxed">
+            {message}
+          </p>
         </div>
 
         {/* Actions */}

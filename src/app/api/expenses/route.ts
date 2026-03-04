@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getTodayInLimaTimezone } from "@/lib/utils";
 import { createExpenseSchema } from "@/lib/validations/finance";
 
 // POST /api/expenses - Crear nuevo egreso
@@ -26,7 +27,10 @@ export async function POST(request: NextRequest) {
 
     // Determinar beneficiario según tipo de egreso
     let beneficiary: string;
-    if (validatedData.expenseType === "ADVANCE" || validatedData.expenseType === "SALARY") {
+    if (
+      validatedData.expenseType === "ADVANCE" ||
+      validatedData.expenseType === "SALARY"
+    ) {
       // Para adelantos y salarios, el beneficiario es el trabajador
       beneficiary = validatedData.beneficiary || "Trabajador";
     } else {
@@ -35,6 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Crear el egreso
+    // Usar la fecha actual en zona horaria de Lima (sin hora) si no se especifica
     const expense = await prisma.expense.create({
       data: {
         type: validatedData.expenseType,
@@ -44,7 +49,7 @@ export async function POST(request: NextRequest) {
         paymentMethod: validatedData.paymentMethod,
         expenseDate: validatedData.expenseDate
           ? new Date(validatedData.expenseDate)
-          : new Date(),
+          : getTodayInLimaTimezone(),
         observations: validatedData.observations || null,
         createdBy: session.user.id,
       },
@@ -60,13 +65,13 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error && error.message.includes("validation")) {
       return NextResponse.json(
         { error: "Datos inválidos", details: error.message },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     return NextResponse.json(
       { error: "Error interno del servidor" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

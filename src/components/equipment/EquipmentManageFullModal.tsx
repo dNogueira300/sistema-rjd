@@ -21,6 +21,8 @@ import {
   ChevronRight,
   Wrench,
   Pencil,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
@@ -70,7 +72,7 @@ const getTypeIcon = (type: EquipmentType) => {
 // Mostrar todos los estados disponibles (excepto el actual)
 const getAllStatuses = (
   currentStatus: EquipmentStatus,
-  userRole: "ADMINISTRADOR" | "TECNICO"
+  userRole: "ADMINISTRADOR" | "TECNICO",
 ): EquipmentStatus[] => {
   // Todos los estados posibles
   const allStatuses: EquipmentStatus[] = [
@@ -103,32 +105,34 @@ export default function EquipmentManageFullModal({
   const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [isLoadingTechnicians, setIsLoadingTechnicians] = useState(true);
   const [selectedTechnicianId, setSelectedTechnicianId] = useState<string>(
-    equipment.assignedTechnicianId || ""
+    equipment.assignedTechnicianId || "",
   );
   const [isSavingTechnician, setIsSavingTechnician] = useState(false);
 
   // Estado
   const [selectedStatus, setSelectedStatus] = useState<EquipmentStatus | "">(
-    ""
+    "",
   );
   const [statusObservations, setStatusObservations] = useState("");
   const [isSavingStatus, setIsSavingStatus] = useState(false);
 
-  // Pago (solo visible cuando se selecciona DELIVERED)
-  const [showPaymentSection, setShowPaymentSection] = useState(false);
-  const existingPayment = equipment.payments?.[0];
-  const existingIsPartial = existingPayment?.paymentStatus === "PARTIAL";
-  const existingRemainingAmount = existingPayment
-    ? existingPayment.totalAmount - existingPayment.advanceAmount
-    : 0;
+  // Pago (siempre visible excepto cuando cancelado)
+  const existingPayments = equipment.payments || [];
+  const existingPayment = existingPayments[0];
+  const existingIsPartial = existingPayments.some(
+    (p) => p.paymentStatus === "PARTIAL",
+  );
+  const totalOriginal = existingPayment?.totalAmount || 0;
+  const sumaAdvanceAmount = existingPayments.reduce(
+    (sum, p) => sum + p.advanceAmount,
+    0,
+  );
+  const remainingAmount = Math.max(0, totalOriginal - sumaAdvanceAmount);
+  const [isTotalAmountLocked, setIsTotalAmountLocked] = useState(true);
   const [paymentData, setPaymentData] = useState({
-    totalAmount: existingIsPartial
-      ? existingRemainingAmount
-      : equipment.payments?.[0]?.totalAmount || 0,
-    advanceAmount: existingIsPartial
-      ? existingRemainingAmount
-      : equipment.payments?.[0]?.advanceAmount || 0,
-    paymentMethod: (equipment.payments?.[0]?.paymentMethod ||
+    totalAmount: totalOriginal || 0,
+    advanceAmount: existingIsPartial ? remainingAmount : 0,
+    paymentMethod: (existingPayments[0]?.paymentMethod ||
       "CASH") as PaymentMethod,
   });
   const [isSavingPayment, setIsSavingPayment] = useState(false);
@@ -136,7 +140,6 @@ export default function EquipmentManageFullModal({
   const availableStatuses = getAllStatuses(equipment.status, userRole);
   const canChangeStatus = availableStatuses.length > 0;
   const isCancelled = equipment.status === "CANCELLED";
-  const isDelivered = equipment.status === "DELIVERED";
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -144,7 +147,7 @@ export default function EquipmentManageFullModal({
       try {
         // Cargar técnicos
         const response = await apiFetch(
-          "/api/tecnicos?status=ACTIVE&limit=100"
+          "/api/tecnicos?status=ACTIVE&limit=100",
         );
         if (response.ok) {
           const data = await response.json();
@@ -173,11 +176,6 @@ export default function EquipmentManageFullModal({
     return () => document.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
-  // Mostrar sección de pago cuando se selecciona DELIVERED
-  useEffect(() => {
-    setShowPaymentSection(selectedStatus === "DELIVERED");
-  }, [selectedStatus]);
-
   // Guardar técnico asignado
   const handleSaveTechnician = async () => {
     setIsSavingTechnician(true);
@@ -199,7 +197,7 @@ export default function EquipmentManageFullModal({
       onSuccess();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Error al asignar técnico"
+        error instanceof Error ? error.message : "Error al asignar técnico",
       );
     } finally {
       setIsSavingTechnician(false);
@@ -222,7 +220,7 @@ export default function EquipmentManageFullModal({
             newStatus: selectedStatus,
             observations: statusObservations || undefined,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -231,12 +229,12 @@ export default function EquipmentManageFullModal({
       }
 
       toast.success(
-        `Estado actualizado a ${EQUIPMENT_STATUS_LABELS[selectedStatus]}`
+        `Estado actualizado a ${EQUIPMENT_STATUS_LABELS[selectedStatus]}`,
       );
       onSuccess();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Error al cambiar estado"
+        error instanceof Error ? error.message : "Error al cambiar estado",
       );
     } finally {
       setIsSavingStatus(false);
@@ -250,26 +248,40 @@ export default function EquipmentManageFullModal({
       return;
     }
 
+    if (paymentData.advanceAmount <= 0) {
+      toast.error("El monto que paga debe ser mayor a 0");
+      return;
+    }
+
     setIsSavingPayment(true);
     try {
-      // Si hay pago parcial existente, siempre crear NUEVO registro para el monto adicional
-      // Esto permite que el ingreso se registre con la fecha de hoy
-      const shouldCreateNew = !existingPayment || existingIsPartial;
-      const url = shouldCreateNew
-        ? "/api/payments"
-        : `/api/payments/${existingPayment.id}`;
-      const method = shouldCreateNew ? "POST" : "PUT";
+      // Determinar si es el primer pago o un pago adicional
+      const isFirstPayment = existingPayments.length === 0;
+      const isAdditionalPayment = existingPayments.length > 0;
 
-      const response = await apiFetch(url, {
-        method,
+      // Para pagos adicionales, usar el total original y crear nuevo registro
+      const finalTotalAmount = isFirstPayment
+        ? paymentData.totalAmount
+        : totalOriginal;
+      const finalAdvanceAmount = paymentData.advanceAmount;
+
+      // Determinar el status del pago
+      const newTotalAdvance = sumaAdvanceAmount + finalAdvanceAmount;
+      if (newTotalAdvance >= finalTotalAmount) {
+      } else if (newTotalAdvance > 0) {
+      } else {
+      }
+
+      const response = await apiFetch("/api/payments", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           equipmentId: equipment.id,
-          totalAmount: paymentData.totalAmount,
-          advanceAmount: paymentData.advanceAmount,
+          totalAmount: finalTotalAmount,
+          advanceAmount: finalAdvanceAmount,
           paymentMethod: paymentData.paymentMethod,
           voucherType: "RECEIPT",
-          observations: existingIsPartial ? "Pago restante" : undefined,
+          observations: isAdditionalPayment ? "Pago adicional" : undefined,
         }),
       });
 
@@ -279,12 +291,12 @@ export default function EquipmentManageFullModal({
       }
 
       toast.success(
-        existingIsPartial ? "Pago restante registrado" : existingPayment ? "Pago actualizado" : "Pago registrado"
+        isFirstPayment ? "Pago registrado" : "Pago adicional registrado",
       );
       onSuccess();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Error al guardar pago"
+        error instanceof Error ? error.message : "Error al guardar pago",
       );
     } finally {
       setIsSavingPayment(false);
@@ -305,7 +317,7 @@ export default function EquipmentManageFullModal({
             newStatus: "RECEIVED",
             observations: "Servicio reactivado desde estado cancelado",
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -317,7 +329,7 @@ export default function EquipmentManageFullModal({
       onSuccess();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Error al revertir estado"
+        error instanceof Error ? error.message : "Error al revertir estado",
       );
     } finally {
       setIsSavingStatus(false);
@@ -327,10 +339,7 @@ export default function EquipmentManageFullModal({
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0" onClick={onClose} />
       <div className="relative bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="p-4 md:p-6 border-b border-slate-700">
@@ -524,7 +533,7 @@ export default function EquipmentManageFullModal({
                     </div>
 
                     {selectedStatus && (
-                      <>
+                      <div className="space-y-3">
                         <textarea
                           value={statusObservations}
                           onChange={(e) =>
@@ -549,7 +558,7 @@ export default function EquipmentManageFullModal({
                             </>
                           )}
                         </button>
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -583,39 +592,70 @@ export default function EquipmentManageFullModal({
                 </div>
               )}
 
-              {/* Sección: Pago (visible al seleccionar DELIVERED o si ya es DELIVERED) */}
-              {(showPaymentSection || equipment.status === "DELIVERED") &&
+              {/* Sección: Pago (siempre visible excepto cuando cancelado) */}
+              {equipment.status !== "CANCELLED" &&
                 userRole === "ADMINISTRADOR" && (
                   <div className="glass-dark p-4 rounded-xl border border-emerald-600/30 bg-emerald-900/10">
                     <h3 className="text-sm font-medium text-emerald-300 mb-3 flex items-center gap-2">
                       <Banknote className="w-4 h-4" />
-                      {isDelivered
-                        ? "Información de Pago"
-                        : existingIsPartial
+                      {existingIsPartial
                         ? "Registrar Pago Restante"
-                        : existingPayment
-                        ? "Actualizar Pago"
-                        : "Registrar Pago"}
+                        : existingPayments.length > 0
+                          ? "Actualizar Pago"
+                          : "Registrar Pago"}
                     </h3>
 
-                    {existingIsPartial && !isDelivered && (
+                    {existingIsPartial && (
                       <div className="bg-yellow-600/10 border border-yellow-600/30 rounded-lg p-3 mb-3 text-sm">
-                        <p className="text-yellow-400 font-medium mb-1">Pago parcial registrado</p>
+                        <p className="text-yellow-400 font-medium mb-1">
+                          Pago parcial registrado
+                        </p>
                         <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
-                          <span>Total del servicio: <span className="text-slate-200">S/ {existingPayment?.totalAmount.toFixed(2)}</span></span>
-                          <span>Adelanto pagado: <span className="text-emerald-400">S/ {existingPayment?.advanceAmount.toFixed(2)}</span></span>
+                          <span>
+                            Total del servicio:{" "}
+                            <span className="text-slate-200">
+                              S/ {totalOriginal.toFixed(2)}
+                            </span>
+                          </span>
+                          <span>
+                            Adelanto pagado:{" "}
+                            <span className="text-emerald-400">
+                              S/ {sumaAdvanceAmount.toFixed(2)}
+                            </span>
+                          </span>
                         </div>
                         <p className="text-yellow-300 text-xs mt-1">
-                          Pendiente: S/ {existingRemainingAmount.toFixed(2)} — Este monto se registrará con la fecha de hoy
+                          Pendiente: S/ {remainingAmount.toFixed(2)} — Este
+                          monto se registrará con la fecha de hoy
                         </p>
                       </div>
                     )}
 
                     <div className="grid grid-cols-2 gap-3 mb-3">
                       <div>
-                        <label className="block text-xs text-slate-400 mb-1">
-                          {existingIsPartial ? "Monto a Pagar (S/)" : "Monto Total (S/)"}
-                        </label>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-xs text-slate-400">
+                            Monto a Pagar (S/)
+                          </label>
+                          <button
+                            onClick={() =>
+                              setIsTotalAmountLocked(!isTotalAmountLocked)
+                            }
+                            className="text-slate-500 hover:text-slate-300 transition-colors p-1 rounded hover:bg-slate-600/50 cursor-pointer"
+                            title={
+                              isTotalAmountLocked
+                                ? "Desbloquear edición"
+                                : "Bloquear edición"
+                            }
+                            type="button"
+                          >
+                            {isTotalAmountLocked ? (
+                              <Lock className="w-4 h-4" />
+                            ) : (
+                              <Unlock className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
                         <input
                           type="number"
                           min="0"
@@ -627,20 +667,20 @@ export default function EquipmentManageFullModal({
                               totalAmount: parseFloat(e.target.value) || 0,
                             }))
                           }
-                          disabled={isDelivered}
+                          disabled={isTotalAmountLocked}
                           className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
                           placeholder="0.00"
                         />
                       </div>
                       <div>
                         <label className="block text-xs text-slate-400 mb-1">
-                          {existingIsPartial ? "Monto que Paga (S/)" : "Monto Pagado (S/)"}
+                          Monto que Paga (S/)
                         </label>
                         <input
                           type="number"
                           min="0"
                           step="0.01"
-                          max={paymentData.totalAmount}
+                          max={remainingAmount}
                           value={paymentData.advanceAmount || ""}
                           onChange={(e) =>
                             setPaymentData((prev) => ({
@@ -648,14 +688,13 @@ export default function EquipmentManageFullModal({
                               advanceAmount: parseFloat(e.target.value) || 0,
                             }))
                           }
-                          disabled={isDelivered}
-                          className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
+                          className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                           placeholder="0.00"
                         />
                       </div>
                     </div>
 
-                    <div className="mb-3">
+                    <div>
                       <label className="block text-xs text-slate-400 mb-1">
                         Método de Pago
                       </label>
@@ -667,8 +706,7 @@ export default function EquipmentManageFullModal({
                             paymentMethod: e.target.value as PaymentMethod,
                           }))
                         }
-                        disabled={isDelivered}
-                        className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       >
                         {(
                           Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[]
@@ -681,62 +719,38 @@ export default function EquipmentManageFullModal({
                     </div>
 
                     {paymentData.totalAmount > 0 && (
-                      <div className="bg-slate-700/50 rounded-lg p-3 mb-3 text-sm">
+                      <div className="bg-slate-700/50 rounded-lg p-3 text-sm mt-3">
                         <div className="flex justify-between text-slate-400">
                           <span>Pendiente:</span>
-                          <span
-                            className={`font-medium ${
-                              paymentData.advanceAmount >=
-                              paymentData.totalAmount
-                                ? "text-emerald-400"
-                                : "text-yellow-400"
-                            }`}
-                          >
+                          <span className="text-slate-200 font-medium">
                             S/{" "}
-                            {paymentData.totalAmount -
-                              paymentData.advanceAmount <=
-                            0
-                              ? "0.00"
-                              : (
-                                  paymentData.totalAmount -
-                                  paymentData.advanceAmount
-                                ).toFixed(2)}
+                            {Math.max(
+                              0,
+                              paymentData.totalAmount -
+                                sumaAdvanceAmount -
+                                paymentData.advanceAmount,
+                            ).toFixed(2)}
                           </span>
                         </div>
                       </div>
                     )}
 
-                    {existingPayment && (
-                      <div className="text-xs text-slate-400 mb-3">
-                        Estado actual:{" "}
-                        <span className="text-slate-300">
-                          {PAYMENT_STATUS_LABELS[existingPayment.paymentStatus]}
-                        </span>
-                      </div>
-                    )}
-
-                    {!isDelivered && (
-                      <button
-                        onClick={handleSavePayment}
-                        disabled={
-                          isSavingPayment || paymentData.totalAmount <= 0
-                        }
-                        className="w-full px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center gap-2"
-                      >
-                        {isSavingPayment ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            <Save className="w-4 h-4" />
-                            {existingIsPartial
-                              ? "Registrar Pago Restante"
-                              : existingPayment
-                              ? "Actualizar Pago"
-                              : "Registrar Pago"}
-                          </>
-                        )}
-                      </button>
-                    )}
+                    <button
+                      onClick={handleSavePayment}
+                      disabled={isSavingPayment || paymentData.totalAmount <= 0}
+                      className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center gap-2 mt-3"
+                    >
+                      {isSavingPayment ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Save className="w-4 h-4" />
+                      )}
+                      {existingIsPartial
+                        ? "Registrar Pago Restante"
+                        : existingPayments.length > 0
+                          ? "Actualizar Pago"
+                          : "Registrar Pago"}
+                    </button>
                   </div>
                 )}
 
@@ -763,8 +777,8 @@ export default function EquipmentManageFullModal({
                               payment.paymentStatus === "COMPLETED"
                                 ? "bg-green-600/20 text-green-400 border border-green-600/30"
                                 : payment.paymentStatus === "PARTIAL"
-                                ? "bg-yellow-600/20 text-yellow-400 border border-yellow-600/30"
-                                : "bg-red-600/20 text-red-400 border border-red-600/30"
+                                  ? "bg-yellow-600/20 text-yellow-400 border border-yellow-600/30"
+                                  : "bg-red-600/20 text-red-400 border border-red-600/30"
                             }`}
                           >
                             {PAYMENT_STATUS_LABELS[payment.paymentStatus]}
@@ -814,7 +828,7 @@ export default function EquipmentManageFullModal({
                                 day: "2-digit",
                                 month: "short",
                                 year: "numeric",
-                              }
+                              },
                             )}
                           </span>
                         </div>
@@ -837,7 +851,6 @@ export default function EquipmentManageFullModal({
           </button>
         </div>
       </div>
-
     </div>
   );
 }

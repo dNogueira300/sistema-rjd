@@ -8,17 +8,26 @@ import {
   equipmentFiltersSchema,
   generateEquipmentCode,
 } from "@/lib/validations/equipment";
-import type { Equipment, EquipmentType, EquipmentStatus, PaymentMethod } from "@/types/equipment";
+import type {
+  Equipment,
+  EquipmentType,
+  EquipmentStatus,
+  PaymentMethod,
+  PaymentStatus,
+  VoucherType,
+} from "@/types/equipment";
 import { z } from "zod";
 
 // Schema extendido para incluir técnico y pago
 const createEquipmentWithExtrasSchema = createEquipmentSchema.extend({
   assignedTechnicianId: z.string().cuid().optional().nullable(),
-  payment: z.object({
-    type: z.enum(["none", "advance", "full"]),
-    amount: z.number().min(0),
-    method: z.enum(["CASH", "YAPE", "PLIN", "TRANSFER"]),
-  }).optional(),
+  payment: z
+    .object({
+      type: z.enum(["none", "advance", "full"]),
+      amount: z.number().min(0),
+      method: z.enum(["CASH", "YAPE", "PLIN", "TRANSFER"]),
+    })
+    .optional(),
 });
 
 // Tipo para el resultado de Prisma
@@ -50,6 +59,18 @@ interface PrismaEquipmentResult {
     name: string;
     email: string;
   } | null;
+  payments: {
+    id: string;
+    equipmentId: string;
+    totalAmount: number;
+    advanceAmount: number;
+    remainingAmount: number;
+    paymentDate: Date;
+    paymentMethod: string;
+    voucherType: string;
+    paymentStatus: string;
+    observations: string | null;
+  }[];
 }
 
 // GET /api/equipments - Obtener lista de equipos con filtros
@@ -186,13 +207,30 @@ export async function GET(request: NextRequest) {
               email: true,
             },
           },
+          payments: {
+            select: {
+              id: true,
+              equipmentId: true,
+              totalAmount: true,
+              advanceAmount: true,
+              remainingAmount: true,
+              paymentDate: true,
+              paymentMethod: true,
+              voucherType: true,
+              paymentStatus: true,
+              observations: true,
+            },
+            orderBy: { paymentDate: "asc" },
+          },
         },
       }),
       prisma.equipment.count({ where }),
     ]);
 
     // Formatear respuesta
-    const formattedEquipments: Equipment[] = (equipments as PrismaEquipmentResult[]).map((eq) => ({
+    const formattedEquipments: Equipment[] = (
+      equipments as PrismaEquipmentResult[]
+    ).map((eq) => ({
       id: eq.id,
       code: eq.code,
       type: eq.type,
@@ -212,6 +250,12 @@ export async function GET(request: NextRequest) {
       assignedTechnicianId: eq.assignedTechnicianId,
       customer: eq.customer,
       assignedTechnician: eq.assignedTechnician,
+      payments: eq.payments.map((p) => ({
+        ...p,
+        paymentMethod: p.paymentMethod as PaymentMethod,
+        paymentStatus: p.paymentStatus as PaymentStatus,
+        voucherType: p.voucherType as VoucherType,
+      })),
     }));
 
     const totalPages = Math.ceil(total / limit);
@@ -230,13 +274,13 @@ export async function GET(request: NextRequest) {
     if (error instanceof Error && error.message.includes("validation")) {
       return NextResponse.json(
         { error: "Parámetros inválidos" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     return NextResponse.json(
       { error: "Error interno del servidor" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -254,7 +298,7 @@ export async function POST(request: NextRequest) {
     if (session.user.role !== "ADMINISTRADOR") {
       return NextResponse.json(
         { error: "Permisos insuficientes" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -271,7 +315,7 @@ export async function POST(request: NextRequest) {
     if (!customer) {
       return NextResponse.json(
         { error: "Cliente no encontrado" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -341,7 +385,11 @@ export async function POST(request: NextRequest) {
     });
 
     // Crear pago si se proporcionó
-    if (validatedData.payment && validatedData.payment.type !== "none" && validatedData.payment.amount > 0) {
+    if (
+      validatedData.payment &&
+      validatedData.payment.type !== "none" &&
+      validatedData.payment.amount > 0
+    ) {
       const paymentAmount = validatedData.payment.amount;
       const isFullPayment = validatedData.payment.type === "full";
 
@@ -381,20 +429,23 @@ export async function POST(request: NextRequest) {
       assignedTechnician: equipment.assignedTechnician,
     };
 
-    return NextResponse.json({ equipment: formattedEquipment }, { status: 201 });
+    return NextResponse.json(
+      { equipment: formattedEquipment },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("Error creando equipo:", error);
 
     if (error instanceof Error && error.message.includes("validation")) {
       return NextResponse.json(
         { error: "Datos inválidos", details: error.message },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     return NextResponse.json(
       { error: "Error interno del servidor" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

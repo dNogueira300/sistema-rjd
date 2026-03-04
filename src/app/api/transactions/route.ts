@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
       endDate: searchParams.get("endDate") || undefined,
       search: searchParams.get("search") || "",
       paymentMethod: searchParams.get("paymentMethod") || "ALL",
+      // paymentStatus removed from API filters
       technicianId: searchParams.get("technicianId") || undefined,
       page: parseInt(searchParams.get("page") || "1"),
       limit: parseInt(searchParams.get("limit") || "20"),
@@ -38,7 +39,9 @@ export async function GET(request: NextRequest) {
 
     // Construir filtros de fecha (sin sufijo Z para interpretar en hora local)
     const dateFilter = {
-      ...(filters.startDate && { gte: new Date(filters.startDate + "T00:00:00") }),
+      ...(filters.startDate && {
+        gte: new Date(filters.startDate + "T00:00:00"),
+      }),
       ...(filters.endDate && {
         lte: new Date(filters.endDate + "T23:59:59.999"),
       }),
@@ -59,6 +62,7 @@ export async function GET(request: NextRequest) {
               paymentDate: dateFilter,
             }),
             ...(paymentMethodFilter && { paymentMethod: paymentMethodFilter }),
+            // paymentStatus filter removed
             // Excluir pagos de equipos cancelados
             equipment: {
               status: {

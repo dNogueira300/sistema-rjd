@@ -17,10 +17,20 @@ import {
 import TransactionTable from "@/components/finance/TransactionTable";
 import TransactionForm from "@/components/finance/TransactionForm";
 import TransactionDetailModal from "@/components/finance/TransactionDetailModal";
-import { useTransactions, useFinanceMetrics, useUpdatePayment, useUpdateExpense } from "@/hooks/useTransactions";
+import PendingPaymentsModal from "@/components/finance/PendingPaymentsModal";
+import {
+  useTransactions,
+  useFinanceMetrics,
+  useUpdatePayment,
+  useUpdateExpense,
+} from "@/hooks/useTransactions";
 import { useTechnicians } from "@/hooks/useTechnicians";
 import { toast } from "sonner";
-import type { TransactionFilters, TransactionType, ConsolidatedTransaction } from "@/types/finance";
+import type {
+  TransactionFilters,
+  TransactionType,
+  ConsolidatedTransaction,
+} from "@/types/finance";
 import type { PaymentMethod } from "@/types/equipment";
 import { PAYMENT_METHOD_LABELS } from "@/types/equipment";
 
@@ -30,33 +40,45 @@ export default function FinanzasPage() {
     type: "ALL",
     search: "",
     paymentMethod: "ALL",
+    page: 1,
+    limit: 20,
     sortBy: "date",
     sortOrder: "desc",
   });
 
-  const [selectedTransaction, setSelectedTransaction] = useState<ConsolidatedTransaction | null>(null);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<ConsolidatedTransaction | null>(null);
   const [modalMode, setModalMode] = useState<"view" | "edit">("view");
 
   const { data, isLoading, refetch } = useTransactions(filters);
   const { data: metrics } = useFinanceMetrics();
+  const [showPendingModal, setShowPendingModal] = useState(false);
   const { technicians } = useTechnicians({
     initialFilters: { status: "ACTIVE" },
   });
   const updatePayment = useUpdatePayment();
   const updateExpense = useUpdateExpense();
 
-  const handleFilterChange = (
-    key: keyof TransactionFilters,
-    value: string | Date | undefined
-  ) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  };
+  function handleFilterChange<K extends keyof TransactionFilters>(
+    key: K,
+    value: TransactionFilters[K],
+  ) {
+    setFilters((prev) => {
+      const next = { ...prev, [key]: value } as unknown as TransactionFilters;
+      if (key !== "page") {
+        next.page = 1;
+      }
+      return next;
+    });
+  }
 
   const handleClearFilters = () => {
     setFilters({
       type: "ALL",
       search: "",
       paymentMethod: "ALL",
+      page: 1,
+      limit: 20,
       sortBy: "date",
       sortOrder: "desc",
     });
@@ -74,18 +96,29 @@ export default function FinanzasPage() {
       if (selectedTransaction.type === "INGRESO") {
         await updatePayment.mutateAsync({
           id: selectedTransaction.id,
-          data: data as { totalAmount?: number; advanceAmount?: number; paymentMethod?: "CASH" | "YAPE" | "PLIN" | "TRANSFER" },
+          data: data as {
+            totalAmount?: number;
+            advanceAmount?: number;
+            paymentMethod?: "CASH" | "YAPE" | "PLIN" | "TRANSFER";
+          },
         });
       } else {
         await updateExpense.mutateAsync({
           id: selectedTransaction.id,
-          data: data as { description?: string; amount?: number; beneficiary?: string; paymentMethod?: "CASH" | "YAPE" | "PLIN" | "TRANSFER" },
+          data: data as {
+            description?: string;
+            amount?: number;
+            beneficiary?: string;
+            paymentMethod?: "CASH" | "YAPE" | "PLIN" | "TRANSFER";
+          },
         });
       }
       toast.success("Transacción actualizada correctamente");
       setSelectedTransaction(null);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error al actualizar");
+      toast.error(
+        error instanceof Error ? error.message : "Error al actualizar",
+      );
       throw error;
     }
   };
@@ -252,28 +285,36 @@ export default function FinanzasPage() {
             : "grid-cols-2 md:grid-cols-5"
         } gap-3 md:gap-4`}
       >
-        {stats.map((stat, index) => (
-          <div
-            key={index}
-            className={`card-dark p-3 md:p-4 hover-lift border-2 ${
-              stat.borderColor
-            } ${stat.bgColor} ${
-              stat.highlight ? "ring-2 ring-amber-500/50 animate-pulse" : ""
-            }`}
-          >
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className={`p-2 md:p-3 rounded-lg ${stat.iconBg} shrink-0`}>
-                <span className={stat.iconColor}>{stat.icon}</span>
-              </div>
-              <div className="min-w-0">
-                <p className="text-lg md:text-2xl font-bold text-slate-100 truncate">
-                  {stat.value}
-                </p>
-                <p className="text-xs text-slate-400 truncate">{stat.label}</p>
+        {stats.map((stat, index) => {
+          const isPendingCard = stat.label === "Pagos Pendientes";
+          return (
+            <div
+              key={index}
+              onClick={
+                isPendingCard ? () => setShowPendingModal(true) : undefined
+              }
+              className={`card-dark p-3 md:p-4 hover-lift border-2 ${stat.borderColor} ${stat.bgColor} ${
+                stat.highlight ? "ring-2 ring-amber-500/50 animate-pulse" : ""
+              } ${isPendingCard ? "cursor-pointer" : ""}`}
+            >
+              <div className="flex items-center gap-2 md:gap-3">
+                <div
+                  className={`p-2 md:p-3 rounded-lg ${stat.iconBg} shrink-0`}
+                >
+                  <span className={stat.iconColor}>{stat.icon}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-lg md:text-2xl font-bold text-slate-100 truncate">
+                    {stat.value}
+                  </p>
+                  <p className="text-xs text-slate-400 truncate">
+                    {stat.label}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Filtros */}
@@ -304,7 +345,7 @@ export default function FinanzasPage() {
               onChange={(e) =>
                 handleFilterChange(
                   "type",
-                  e.target.value as TransactionType | "ALL"
+                  e.target.value as TransactionType | "ALL",
                 )
               }
               className="input-dark w-full"
@@ -325,7 +366,7 @@ export default function FinanzasPage() {
               onChange={(e) =>
                 handleFilterChange(
                   "paymentMethod",
-                  e.target.value as PaymentMethod | "ALL"
+                  e.target.value as PaymentMethod | "ALL",
                 )
               }
               className="input-dark w-full"
@@ -360,30 +401,7 @@ export default function FinanzasPage() {
             </select>
           </div>
 
-          {/* Ordenar */}
-          <div>
-            <label className="text-sm font-medium text-slate-300 mb-2 block">
-              Ordenar por
-            </label>
-            <select
-              value={`${filters.sortBy}-${filters.sortOrder}`}
-              onChange={(e) => {
-                const [sortBy, sortOrder] = e.target.value.split("-") as [
-                  "date" | "amount" | "type",
-                  "asc" | "desc"
-                ];
-                setFilters((prev) => ({ ...prev, sortBy, sortOrder }));
-              }}
-              className="input-dark w-full"
-            >
-              <option value="date-desc">Fecha (Más reciente)</option>
-              <option value="date-asc">Fecha (Más antiguo)</option>
-              <option value="amount-desc">Monto (Mayor a menor)</option>
-              <option value="amount-asc">Monto (Menor a mayor)</option>
-              <option value="type-asc">Tipo (A-Z)</option>
-              <option value="type-desc">Tipo (Z-A)</option>
-            </select>
-          </div>
+          {/* (Estado de Pago eliminado) */}
 
           {/* Búsqueda */}
           <div>
@@ -416,7 +434,7 @@ export default function FinanzasPage() {
               onChange={(e) =>
                 handleFilterChange(
                   "startDate",
-                  e.target.value ? new Date(e.target.value) : undefined
+                  e.target.value ? new Date(e.target.value) : undefined,
                 )
               }
               className="input-dark w-full"
@@ -433,7 +451,7 @@ export default function FinanzasPage() {
               onChange={(e) =>
                 handleFilterChange(
                   "endDate",
-                  e.target.value ? new Date(e.target.value) : undefined
+                  e.target.value ? new Date(e.target.value) : undefined,
                 )
               }
               className="input-dark w-full"
@@ -443,11 +461,119 @@ export default function FinanzasPage() {
       </div>
 
       {/* Tabla de transacciones */}
-      <TransactionTable
-        transactions={data?.transactions || []}
-        isLoading={isLoading}
-        onManage={handleManageTransaction}
-      />
+      <div className="space-y-4">
+        {/* Información de paginación */}
+        <div className="card-dark p-4 flex items-center justify-between">
+          <div className="text-sm text-slate-400">
+            Mostrando{" "}
+            <span className="font-medium text-slate-200">
+              {(filters.page - 1) * filters.limit + 1}-
+              {Math.min(filters.page * filters.limit, data?.total || 0)}
+            </span>{" "}
+            de{" "}
+            <span className="font-medium text-slate-200">
+              {data?.total || 0}
+            </span>{" "}
+            registros
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Selector de registros por página */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-slate-400">Mostrar</label>
+              <select
+                value={filters.limit}
+                onChange={(e) =>
+                  handleFilterChange("limit", Number(e.target.value))
+                }
+                className="input-dark w-20 text-sm"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+            <button
+              onClick={() =>
+                handleFilterChange("page", Math.max(1, filters.page - 1))
+              }
+              disabled={!data?.hasPreviousPage}
+              className="px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:bg-slate-600 transition-colors text-sm font-medium"
+            >
+              Anterior
+            </button>
+            <div className="text-sm text-slate-400">
+              Página{" "}
+              <span className="font-medium text-slate-200">{filters.page}</span>{" "}
+              de{" "}
+              <span className="font-medium text-slate-200">
+                {data?.totalPages || 1}
+              </span>
+            </div>
+            <button
+              onClick={() =>
+                handleFilterChange("page", (filters.page || 1) + 1)
+              }
+              disabled={!data?.hasNextPage}
+              className="px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:bg-slate-600 transition-colors text-sm font-medium"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+
+        {/* Tabla */}
+        <TransactionTable
+          transactions={data?.transactions || []}
+          isLoading={isLoading}
+          onManage={handleManageTransaction}
+        />
+
+        {/* Información de paginación inferior */}
+        {data && data.totalPages > 1 && (
+          <div className="card-dark p-4 flex items-center justify-between">
+            <div className="text-sm text-slate-400">
+              Total:{" "}
+              <span className="font-medium text-slate-200">{data.total}</span>{" "}
+              registros
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Selector de registros por página (inferior) */}
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-slate-400">Mostrar</label>
+                <select
+                  value={filters.limit}
+                  onChange={(e) =>
+                    handleFilterChange("limit", Number(e.target.value))
+                  }
+                  className="input-dark w-20 text-sm"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+              <button
+                onClick={() =>
+                  handleFilterChange("page", Math.max(1, filters.page - 1))
+                }
+                disabled={!data.hasPreviousPage}
+                className="px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:bg-slate-600 transition-colors text-sm font-medium"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() =>
+                  handleFilterChange("page", (filters.page || 1) + 1)
+                }
+                disabled={!data.hasNextPage}
+                className="px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:bg-slate-600 transition-colors text-sm font-medium"
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Modal de formulario */}
       {showForm && (
@@ -468,6 +594,14 @@ export default function FinanzasPage() {
           onClose={() => setSelectedTransaction(null)}
           onSave={handleSaveTransaction}
           isSaving={updatePayment.isPending || updateExpense.isPending}
+        />
+      )}
+
+      {/* Modal de Pagos Pendientes (abrido desde la tarjeta) */}
+      {showPendingModal && (
+        <PendingPaymentsModal
+          isOpen={showPendingModal}
+          onClose={() => setShowPendingModal(false)}
         />
       )}
     </div>

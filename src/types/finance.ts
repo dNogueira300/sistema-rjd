@@ -4,15 +4,15 @@ import type { PaymentMethod, PaymentStatus, VoucherType } from "./equipment";
 
 // Tipos de egreso
 export type ExpenseType =
-  | "ADVANCE"        // Adelanto a trabajador
-  | "SALARY"         // Pago de salario
-  | "SUPPLIES"       // Materiales/insumos
-  | "RENT"           // Alquiler
-  | "SERVICES"       // Pago servicios (luz, agua, internet)
-  | "FOOD"           // Pago comida
-  | "FUEL"           // Pago combustible
-  | "MAINTENANCE"    // Mantenimiento
-  | "OTHER";         // Otros gastos
+  | "ADVANCE" // Adelanto a trabajador
+  | "SALARY" // Pago de salario
+  | "SUPPLIES" // Materiales/insumos
+  | "RENT" // Alquiler
+  | "SERVICES" // Pago servicios (luz, agua, internet)
+  | "FOOD" // Pago comida
+  | "FUEL" // Pago combustible
+  | "MAINTENANCE" // Mantenimiento
+  | "OTHER"; // Otros gastos
 
 // Tipo de transacción
 export type TransactionType = "INGRESO" | "EGRESO";
@@ -112,6 +112,8 @@ export interface TransactionFilters {
   search: string;
   paymentMethod: "ALL" | PaymentMethod;
   technicianId?: string; // Filtro por técnico asignado
+  page: number;
+  limit: number;
   sortBy: "date" | "amount" | "type";
   sortOrder: "asc" | "desc";
 }
@@ -128,9 +130,9 @@ export interface FinanceMetrics {
 
 // Métricas del periodo filtrado
 export interface PeriodMetrics {
-  income: number;      // Total de ingresos del periodo
-  expenses: number;    // Total de egresos del periodo
-  difference: number;  // Diferencia (ingresos - egresos)
+  income: number; // Total de ingresos del periodo
+  expenses: number; // Total de egresos del periodo
+  difference: number; // Diferencia (ingresos - egresos)
 }
 
 // Respuesta de la API
