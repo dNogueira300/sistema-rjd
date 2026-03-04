@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Crear pago (beneficiario es RJD - el negocio)
-    // Usar la fecha actual en zona horaria de Lima
+    // La función retorna la fecha/hora actual (UTC) que se convertirá a Lima al mostrarla
     const payment = await prisma.payment.create({
       data: {
         equipmentId: validatedData.equipmentId,

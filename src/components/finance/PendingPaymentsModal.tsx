@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useCallback, useState } from "react";
-import { X, Clock, Calendar, DollarSign } from "lucide-react";
+import { X, Clock } from "lucide-react";
+import { formatDateTime } from "@/lib/utils";
 import type { ConsolidatedTransaction } from "@/types/finance";
 import { PAYMENT_METHOD_LABELS } from "@/types/equipment";
 
@@ -110,7 +111,7 @@ export default function PendingPaymentsModal({ isOpen, onClose }: Props) {
                         S/ {p.amount.toFixed(2)}
                       </p>
                       <p className="text-xs text-slate-400 mt-1">
-                        {new Date(p.date).toLocaleDateString()}
+                        {formatDateTime(p.date)}
                       </p>
                     </div>
                   </div>

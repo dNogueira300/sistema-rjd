@@ -39,7 +39,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Crear el egreso
-    // Usar la fecha actual en zona horaria de Lima (sin hora) si no se especifica
+    // Usar la fecha/hora actual en zona horaria de Lima si no se especifica
+    // (antes solo guardábamos la fecha a medianoche, lo que generaba un día menos
+    // al mostrarse en la UI).
     const expense = await prisma.expense.create({
       data: {
         type: validatedData.expenseType,

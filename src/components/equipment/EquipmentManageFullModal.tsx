@@ -830,16 +830,6 @@ export default function EquipmentManageFullModal({
                             {PAYMENT_METHOD_LABELS[payment.paymentMethod]}
                           </span>
                           <span>•</span>
-                          <span>
-                            {new Date(payment.paymentDate).toLocaleDateString(
-                              "es-PE",
-                              {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              },
-                            )}
-                          </span>
                         </div>
                       </div>
                     ))}

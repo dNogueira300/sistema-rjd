@@ -39,36 +39,14 @@ export const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
-// Obtener la fecha actual en zona horaria de Lima (sin hora)
+// Obtener la fecha y hora actual en la zona horaria de Lima
+// Nota: la función devuelve un objeto Date con el instante actual (en UTC).
+// Al formatear este valor con la zona "America/Lima" se mostrará la hora local de Lima.
+// También se usa para generar marcas de tiempo en la base de datos; anteriormente
+// retornaba solo la fecha a medianoche, lo cual provocaba desfases de un día
+// al convertir a zona Lima. Ahora incluye la hora para evitar ese comportamiento.
 export const getTodayInLimaTimezone = (): Date => {
-  // Obtener la fecha actual en formato YYYY-MM-DD en zona horaria de Lima
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone: "America/Lima",
-  });
-
-  // formatToParts puede incluir literales (como '-') entre los valores,
-  // así que filtramos por el tipo para obtener únicamente año, mes y día.
-  const parts = formatter.formatToParts(new Date());
-  const year = parts.find((p) => p.type === "year")?.value;
-  const month = parts.find((p) => p.type === "month")?.value;
-  const day = parts.find((p) => p.type === "day")?.value;
-
-  if (!year || !month || !day) {
-    // Fallback: utilizar nueva fecha para evitar "Invalid Date"
-    const now = new Date();
-    return new Date(
-      `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(
-        2,
-        "0",
-      )}-${String(now.getUTCDate()).padStart(2, "0")}T00:00:00Z`,
-    );
-  }
-
-  // Retornar la fecha al inicio del día (00:00:00) en UTC
-  return new Date(`${year}-${month}-${day}T00:00:00Z`);
+  return new Date();
 };
 
 // Formatear fecha para zona horaria de Perú

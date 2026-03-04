@@ -22,6 +22,7 @@ import {
 import ConfirmModal from "@/components/clients/ConfirmModal";
 import type { ConsolidatedTransaction } from "@/types/finance";
 import type { PaymentMethod } from "@/types/equipment";
+import { formatDateTime } from "@/lib/utils";
 import {
   PAYMENT_METHOD_LABELS,
   PAYMENT_STATUS_LABELS,
@@ -210,11 +211,7 @@ export default function TransactionDetailModal({
                 Fecha
               </label>
               <p className="text-sm text-slate-200">
-                {new Date(transaction.date).toLocaleDateString("es-PE", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
+                {formatDateTime(transaction.date)}
               </p>
             </div>
           </div>

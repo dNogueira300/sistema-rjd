@@ -1,19 +1,22 @@
 // src/components/finance/TransactionTable.tsx
 "use client";
 
-import { TrendingUp, TrendingDown, Calendar, DollarSign, Settings } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  Calendar,
+  DollarSign,
+  Settings,
+} from "lucide-react";
 import type { ConsolidatedTransaction } from "@/types/finance";
-import {
-  TRANSACTION_TYPE_COLORS,
-  EXPENSE_TYPE_LABELS,
-} from "@/types/finance";
-import {
-  PAYMENT_METHOD_LABELS,
-} from "@/types/equipment";
+import { TRANSACTION_TYPE_COLORS, EXPENSE_TYPE_LABELS } from "@/types/finance";
+import { PAYMENT_METHOD_LABELS } from "@/types/equipment";
+import { formatDate } from "@/lib/utils";
 
 // Labels descriptivos para el estado de pago en finanzas
 const getPaymentStatusDisplay = (transaction: ConsolidatedTransaction) => {
-  if (!transaction.paymentStatus) return { label: "-", color: "text-slate-300" };
+  if (!transaction.paymentStatus)
+    return { label: "-", color: "text-slate-300" };
 
   const isRemainingPayment = transaction.observations === "Pago restante";
 
@@ -91,7 +94,7 @@ export default function TransactionTable({
               </div>
               <span className="text-sm text-slate-400 flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5" />
-                {new Date(transaction.date).toLocaleDateString()}
+                {formatDate(transaction.date)}
               </span>
             </div>
 
@@ -128,7 +131,9 @@ export default function TransactionTable({
                   {transaction.type === "INGRESO" ? "Estado:" : "Categoría:"}
                 </span>
                 {transaction.type === "INGRESO" ? (
-                  <p className={`font-medium ${getPaymentStatusDisplay(transaction).color}`}>
+                  <p
+                    className={`font-medium ${getPaymentStatusDisplay(transaction).color}`}
+                  >
                     {getPaymentStatusDisplay(transaction).label}
                   </p>
                 ) : (
@@ -176,7 +181,9 @@ export default function TransactionTable({
                   <div className="font-semibold text-slate-200">Tipo</div>
                 </th>
                 <th className="px-4 lg:px-6 py-4 text-left">
-                  <div className="font-semibold text-slate-200">Descripción</div>
+                  <div className="font-semibold text-slate-200">
+                    Descripción
+                  </div>
                 </th>
                 <th className="px-4 lg:px-6 py-4 text-left">
                   <div className="font-semibold text-slate-200">Receptor</div>
@@ -207,7 +214,7 @@ export default function TransactionTable({
                 >
                   <td className="px-4 lg:px-6 py-4">
                     <span className="text-sm text-slate-300">
-                      {new Date(transaction.date).toLocaleDateString()}
+                      {formatDate(transaction.date)}
                     </span>
                   </td>
                   <td className="px-4 lg:px-6 py-4">
@@ -251,7 +258,9 @@ export default function TransactionTable({
                   </td>
                   <td className="px-4 lg:px-6 py-4">
                     {transaction.type === "INGRESO" ? (
-                      <span className={`text-sm font-medium ${getPaymentStatusDisplay(transaction).color}`}>
+                      <span
+                        className={`text-sm font-medium ${getPaymentStatusDisplay(transaction).color}`}
+                      >
                         {getPaymentStatusDisplay(transaction).label}
                       </span>
                     ) : (
