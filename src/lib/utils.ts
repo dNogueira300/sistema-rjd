@@ -48,10 +48,26 @@ export const getTodayInLimaTimezone = (): Date => {
     day: "2-digit",
     timeZone: "America/Lima",
   });
-  const [year, month, day] = formatter
-    .formatToParts(new Date())
-    .map((part) => part.value);
-  // Retornar la fecha al inicio del día (00:00:00)
+
+  // formatToParts puede incluir literales (como '-') entre los valores,
+  // así que filtramos por el tipo para obtener únicamente año, mes y día.
+  const parts = formatter.formatToParts(new Date());
+  const year = parts.find((p) => p.type === "year")?.value;
+  const month = parts.find((p) => p.type === "month")?.value;
+  const day = parts.find((p) => p.type === "day")?.value;
+
+  if (!year || !month || !day) {
+    // Fallback: utilizar nueva fecha para evitar "Invalid Date"
+    const now = new Date();
+    return new Date(
+      `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(
+        2,
+        "0",
+      )}-${String(now.getUTCDate()).padStart(2, "0")}T00:00:00Z`,
+    );
+  }
+
+  // Retornar la fecha al inicio del día (00:00:00) en UTC
   return new Date(`${year}-${month}-${day}T00:00:00Z`);
 };
 
