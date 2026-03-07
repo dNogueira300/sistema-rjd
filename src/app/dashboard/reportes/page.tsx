@@ -351,7 +351,7 @@ export default function ReportesPage() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Filtro de Período */}
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-slate-300 mb-2">

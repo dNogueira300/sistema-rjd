@@ -1,7 +1,7 @@
 // src/app/dashboard/finanzas/page.tsx
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useRef, type ReactNode } from "react";
 import {
   Plus,
   Filter,
@@ -14,6 +14,11 @@ import {
   Clock,
   X,
 } from "lucide-react";
+import { DayPicker, type DateRange } from "react-day-picker";
+import ReactDOM from "react-dom";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import "react-day-picker/dist/style.css";
 import TransactionTable from "@/components/finance/TransactionTable";
 import TransactionForm from "@/components/finance/TransactionForm";
 import TransactionDetailModal from "@/components/finance/TransactionDetailModal";
@@ -49,6 +54,16 @@ export default function FinanzasPage() {
   const [selectedTransaction, setSelectedTransaction] =
     useState<ConsolidatedTransaction | null>(null);
   const [modalMode, setModalMode] = useState<"view" | "edit">("view");
+
+  // Estados para los calendarios
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedRange, setSelectedRange] = useState<DateRange | undefined>();
+  const inputRef = useRef<HTMLDivElement>(null);
+  const [calendarCoords, setCalendarCoords] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
 
   const { data, isLoading, refetch } = useTransactions(filters);
   const { data: metrics } = useFinanceMetrics();
@@ -334,7 +349,7 @@ export default function FinanzasPage() {
         </div>
 
         {/* Primera fila: Filtros principales */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Tipo */}
           <div>
             <label className="text-sm font-medium text-slate-300 mb-2 block">
@@ -348,7 +363,7 @@ export default function FinanzasPage() {
                   e.target.value as TransactionType | "ALL",
                 )
               }
-              className="input-dark w-full"
+              className="input-dark w-full h-12"
             >
               <option value="ALL">Todos</option>
               <option value="INGRESO">Ingresos</option>
@@ -369,7 +384,7 @@ export default function FinanzasPage() {
                   e.target.value as PaymentMethod | "ALL",
                 )
               }
-              className="input-dark w-full"
+              className="input-dark w-full h-12"
             >
               <option value="ALL">Todos</option>
               {Object.entries(PAYMENT_METHOD_LABELS).map(([key, label]) => (
@@ -390,7 +405,7 @@ export default function FinanzasPage() {
               onChange={(e) =>
                 handleFilterChange("technicianId", e.target.value || undefined)
               }
-              className="input-dark w-full"
+              className="input-dark w-full h-12"
             >
               <option value="">Todos los técnicos</option>
               {technicians.map((tech) => (
@@ -401,8 +416,111 @@ export default function FinanzasPage() {
             </select>
           </div>
 
-          {/* (Estado de Pago eliminado) */}
+          {/* Rango de fechas */}
+          <div className="relative overflow-visible">
+            <label className="text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
+              <Calendar
+                className="w-4 h-4 text-blue-400 cursor-pointer"
+                onClick={() => {
+                  if (showCalendar) {
+                    setShowCalendar(false);
+                  } else if (inputRef.current) {
+                    const rect = inputRef.current.getBoundingClientRect();
+                    setCalendarCoords({
+                      top: rect.bottom + window.scrollY,
+                      left: rect.left + window.scrollX,
+                      width: rect.width,
+                    });
+                    setShowCalendar(true);
+                  } else {
+                    setShowCalendar(true);
+                  }
+                }}
+              />
+              Rango de fechas
+            </label>
+            <div
+              ref={inputRef}
+              className="input-dark w-full flex justify-between items-center cursor-pointer h-12"
+              onClick={() => {
+                if (showCalendar) {
+                  setShowCalendar(false);
+                } else if (inputRef.current) {
+                  const rect = inputRef.current.getBoundingClientRect();
+                  setCalendarCoords({
+                    top: rect.bottom + window.scrollY,
+                    left: rect.left + window.scrollX,
+                    width: rect.width,
+                  });
+                  setShowCalendar(true);
+                } else {
+                  setShowCalendar(true);
+                }
+              }}
+            >
+              {selectedRange && selectedRange.from && selectedRange.to ? (
+                <div className="w-full">
+                  <div className="flex justify-between text-xs text-slate-300">
+                    <span>Inicio</span>
+                    <span>Fin</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-slate-100">
+                    <span>{format(selectedRange.from, "dd/MM/yyyy")}</span>
+                    <span>{format(selectedRange.to, "dd/MM/yyyy")}</span>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <span className="truncate text-slate-400">
+                    Seleccionar rango
+                  </span>
+                  <Calendar className="w-4 h-4 text-slate-300" />
+                </>
+              )}
+            </div>
 
+            {showCalendar &&
+              calendarCoords &&
+              ReactDOM.createPortal(
+                <div
+                  style={{
+                    position: "absolute",
+                    top: calendarCoords.top,
+                    left: calendarCoords.left,
+                    zIndex: 10000,
+                  }}
+                >
+                  <DayPicker
+                    mode="range"
+                    selected={selectedRange}
+                    onSelect={(range) => {
+                      setSelectedRange((prev) => {
+                        const r = range as DateRange;
+                        if (r.from && r.to && (prev?.from || prev?.to)) {
+                          handleFilterChange("startDate", r.from);
+                          handleFilterChange("endDate", r.to);
+                          setShowCalendar(false);
+                        }
+                        return r;
+                      });
+                    }}
+                    locale={es}
+                    classNames={{
+                      today: "ring-2 ring-blue-400 rounded-full",
+                      range_start: "!bg-blue-600 !text-white rounded-l-full",
+                      range_end: "!bg-blue-600 !text-white rounded-r-full",
+                      range_middle: "!bg-blue-400/30",
+                    }}
+                    className="bg-slate-800 p-2 rounded-lg"
+                  />
+                </div>,
+                document.body,
+              )}
+          </div>
+        </div>
+
+        {/* Segunda fila: Búsqueda */}
+        <div className="grid grid-cols-1 gap-4 mt-4">
           {/* Búsqueda */}
           <div>
             <label className="text-sm font-medium text-slate-300 mb-2 block">
@@ -415,47 +533,9 @@ export default function FinanzasPage() {
                 value={filters.search}
                 onChange={(e) => handleFilterChange("search", e.target.value)}
                 placeholder="Descripción, equipo, cliente..."
-                className="input-dark-with-icon w-full text-sm md:text-base"
+                className="input-dark-with-icon w-full text-sm md:text-base h-12"
               />
             </div>
-          </div>
-        </div>
-
-        {/* Segunda fila: Rango de fechas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <div>
-            <label className="text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-blue-400" />
-              Fecha inicio
-            </label>
-            <input
-              type="date"
-              value={filters.startDate?.toISOString().split("T")[0] || ""}
-              onChange={(e) =>
-                handleFilterChange(
-                  "startDate",
-                  e.target.value ? new Date(e.target.value) : undefined,
-                )
-              }
-              className="input-dark w-full"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-blue-400" />
-              Fecha fin
-            </label>
-            <input
-              type="date"
-              value={filters.endDate?.toISOString().split("T")[0] || ""}
-              onChange={(e) =>
-                handleFilterChange(
-                  "endDate",
-                  e.target.value ? new Date(e.target.value) : undefined,
-                )
-              }
-              className="input-dark w-full"
-            />
           </div>
         </div>
       </div>
@@ -485,7 +565,7 @@ export default function FinanzasPage() {
                 onChange={(e) =>
                   handleFilterChange("limit", Number(e.target.value))
                 }
-                className="input-dark w-20 text-sm"
+                className="input-dark w-20 text-sm h-12"
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -497,7 +577,7 @@ export default function FinanzasPage() {
                 handleFilterChange("page", Math.max(1, filters.page - 1))
               }
               disabled={!data?.hasPreviousPage}
-              className="px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:bg-slate-600 transition-colors text-sm font-medium"
+              className="px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:bg-slate-600 transition-colors text-sm font-medium h-12"
             >
               Anterior
             </button>
@@ -514,7 +594,7 @@ export default function FinanzasPage() {
                 handleFilterChange("page", (filters.page || 1) + 1)
               }
               disabled={!data?.hasNextPage}
-              className="px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:bg-slate-600 transition-colors text-sm font-medium"
+              className="px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:bg-slate-600 transition-colors text-sm font-medium h-12"
             >
               Siguiente
             </button>
@@ -545,7 +625,7 @@ export default function FinanzasPage() {
                   onChange={(e) =>
                     handleFilterChange("limit", Number(e.target.value))
                   }
-                  className="input-dark w-20 text-sm"
+                  className="input-dark w-20 text-sm h-12"
                 >
                   <option value={10}>10</option>
                   <option value={20}>20</option>
@@ -557,7 +637,7 @@ export default function FinanzasPage() {
                   handleFilterChange("page", Math.max(1, filters.page - 1))
                 }
                 disabled={!data.hasPreviousPage}
-                className="px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:bg-slate-600 transition-colors text-sm font-medium"
+                className="px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:bg-slate-600 transition-colors text-sm font-medium h-12"
               >
                 Anterior
               </button>
@@ -566,7 +646,7 @@ export default function FinanzasPage() {
                   handleFilterChange("page", (filters.page || 1) + 1)
                 }
                 disabled={!data.hasNextPage}
-                className="px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:bg-slate-600 transition-colors text-sm font-medium"
+                className="px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:bg-slate-600 transition-colors text-sm font-medium h-12"
               >
                 Siguiente
               </button>
