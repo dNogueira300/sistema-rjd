@@ -1,7 +1,7 @@
 // src/app/dashboard/reportes/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFinancialReport, useTechnicianPayments } from "@/hooks/useReports";
 import { useTechnicians } from "@/hooks/useTechnicians";
@@ -23,6 +23,13 @@ import {
   X,
   Calculator,
 } from "lucide-react";
+
+import { DateRange, DayPicker } from "react-day-picker";
+import "react-day-picker/dist/style.css";
+import ReactDOM from "react-dom";
+import { format } from "date-fns";
+
+import { es } from "date-fns/locale";
 import { formatCurrency } from "@/lib/reports";
 import {
   generateFinancialReportPDF,
@@ -34,9 +41,15 @@ type PeriodType = "today" | "week" | "month" | "custom";
 
 export default function ReportesPage() {
   const [period, setPeriod] = useState<PeriodType>("custom");
-  const [customStartDate, setCustomStartDate] = useState("");
-  const [customEndDate, setCustomEndDate] = useState("");
+  const [selectedRange, setSelectedRange] = useState<DateRange | undefined>();
   const [selectedTechnicianId, setSelectedTechnicianId] = useState<string>("");
+  const [showCalendar, setShowCalendar] = useState(false);
+  const inputRef = useRef<HTMLDivElement>(null);
+  const [calendarCoords, setCalendarCoords] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
 
   // Estados para filtros aplicados (solo se actualizan al hacer clic en Aplicar)
   const [appliedPeriod, setAppliedPeriod] = useState<PeriodType>("custom");
@@ -114,26 +127,27 @@ export default function ReportesPage() {
   const { data: paymentsData } = useTechnicianPayments(filters);
 
   const handleApplyFilters = () => {
-    if (customStartDate && customEndDate) {
-      if (new Date(customStartDate) > new Date(customEndDate)) {
+    if (selectedRange && selectedRange.from && selectedRange.to) {
+      if (selectedRange.from > selectedRange.to) {
         toast.error("La fecha de inicio debe ser menor o igual a la fecha fin");
         return;
       }
       // Aplicar los filtros personalizados
       setAppliedPeriod("custom");
-      setAppliedStartDate(customStartDate);
-      setAppliedEndDate(customEndDate);
+      setAppliedStartDate(selectedRange.from.toISOString().split("T")[0]);
+      setAppliedEndDate(selectedRange.to.toISOString().split("T")[0]);
       setAppliedTechnicianId(selectedTechnicianId);
       setPeriod("custom"); // Sincronizar el selector
       toast.success("Filtros aplicados");
     } else {
-      toast.error("Debe seleccionar ambas fechas para el filtro personalizado");
+      toast.error(
+        "Debe seleccionar un rango de fechas para el filtro personalizado",
+      );
     }
   };
 
   const handleClearFilters = () => {
-    setCustomStartDate("");
-    setCustomEndDate("");
+    setSelectedRange(undefined);
     setSelectedTechnicianId("");
     setPeriod("custom");
     // Limpiar filtros aplicados
@@ -320,7 +334,9 @@ export default function ReportesPage() {
       </div>
 
       {/* Filtros */}
-      <div className="card-dark p-4 border-2 border-slate-700">
+      <div
+        className={`card-dark p-4 border-2 border-slate-700 ${showCalendar ? "z-9999" : ""}`}
+      >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Filter className="w-5 h-5 text-blue-400" />
@@ -339,7 +355,24 @@ export default function ReportesPage() {
           {/* Filtro de Período */}
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-slate-300 mb-2">
-              <Calendar className="w-4 h-4" />
+              <Calendar
+                className="w-4 h-4 cursor-pointer"
+                onClick={() => {
+                  if (showCalendar) {
+                    setShowCalendar(false);
+                  } else if (inputRef.current) {
+                    const rect = inputRef.current.getBoundingClientRect();
+                    setCalendarCoords({
+                      top: rect.bottom + window.scrollY,
+                      left: rect.left + window.scrollX,
+                      width: rect.width,
+                    });
+                    setShowCalendar(true);
+                  } else {
+                    setShowCalendar(true);
+                  }
+                }}
+              />
               Período
             </label>
             <select
@@ -349,15 +382,22 @@ export default function ReportesPage() {
                 setPeriod(newPeriod);
                 // Si cambia a un período predefinido (no custom), aplicar inmediatamente
                 if (newPeriod !== "custom") {
-                  setCustomStartDate("");
-                  setCustomEndDate("");
+                  setSelectedRange(undefined);
                   setAppliedPeriod(newPeriod);
                   setAppliedStartDate("");
                   setAppliedEndDate("");
                   setAppliedTechnicianId(selectedTechnicianId);
+                } else {
+                  // volvemos al modo custom; si ya hay fechas aplicadas, recupéralas
+                  if (appliedStartDate && appliedEndDate) {
+                    setSelectedRange({
+                      from: new Date(appliedStartDate),
+                      to: new Date(appliedEndDate),
+                    });
+                  }
                 }
               }}
-              className="input-dark w-full"
+              className="input-dark w-full h-12"
             >
               <option value="today">Hoy</option>
               <option value="week">Última Semana</option>
@@ -366,29 +406,87 @@ export default function ReportesPage() {
             </select>
           </div>
 
-          {/* Fechas personalizadas - siempre visibles */}
-          <div>
-            <label className="text-sm font-medium text-slate-300 mb-2 block">
-              Fecha Inicio
-            </label>
-            <input
-              type="date"
-              value={customStartDate}
-              onChange={(e) => setCustomStartDate(e.target.value)}
-              className="input-dark w-full"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-300 mb-2 block">
-              Fecha Fin
-            </label>
-            <input
-              type="date"
-              value={customEndDate}
-              onChange={(e) => setCustomEndDate(e.target.value)}
-              className="input-dark w-full"
-            />
-          </div>
+          {/* Rango de fechas para periodo personalizado */}
+          {period === "custom" && (
+            <div className="relative overflow-visible">
+              <label className="text-sm font-medium text-slate-300 mb-2 block">
+                Rango de fechas
+              </label>
+              <div
+                ref={inputRef}
+                className="input-dark w-full flex justify-between items-center cursor-pointer h-12"
+                onClick={() => {
+                  if (showCalendar) {
+                    setShowCalendar(false);
+                  } else if (inputRef.current) {
+                    const rect = inputRef.current.getBoundingClientRect();
+                    setCalendarCoords({
+                      top: rect.bottom + window.scrollY,
+                      left: rect.left + window.scrollX,
+                      width: rect.width,
+                    });
+                    setShowCalendar(true);
+                  } else {
+                    setShowCalendar(true);
+                  }
+                }}
+              >
+                {selectedRange && selectedRange.from && selectedRange.to ? (
+                  <div className="w-full">
+                    <div className="flex justify-between text-xs text-slate-300">
+                      <span>Inicio</span>
+                      <span>Fin</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-slate-100">
+                      <span>{format(selectedRange.from, "dd/MM/yyyy")}</span>
+                      <span>{format(selectedRange.to, "dd/MM/yyyy")}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <span className="truncate">Seleccionar rango</span>
+                    <Calendar className="w-4 h-4 text-slate-300" />
+                  </>
+                )}
+              </div>
+
+              {showCalendar &&
+                calendarCoords &&
+                ReactDOM.createPortal(
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: calendarCoords.top,
+                      left: calendarCoords.left,
+                      zIndex: 10000,
+                    }}
+                  >
+                    <DayPicker
+                      mode="range"
+                      selected={selectedRange}
+                      onSelect={(range) => {
+                        setSelectedRange((prev) => {
+                          const r = range as DateRange;
+                          if (r.from && r.to && (prev?.from || prev?.to)) {
+                            setShowCalendar(false);
+                          }
+                          return r;
+                        });
+                      }}
+                      locale={es}
+                      classNames={{
+                        today: "ring-2 ring-blue-400 rounded-full",
+                        range_start: "!bg-blue-600 !text-white rounded-l-full",
+                        range_end: "!bg-blue-600 !text-white rounded-r-full",
+                        range_middle: "!bg-blue-400/30",
+                      }}
+                      className="bg-slate-800 p-2 rounded-lg"
+                    />
+                  </div>,
+                  document.body,
+                )}
+            </div>
+          )}
 
           {/* Filtro de Técnico */}
           <div>
@@ -399,7 +497,7 @@ export default function ReportesPage() {
             <select
               value={selectedTechnicianId}
               onChange={(e) => setSelectedTechnicianId(e.target.value)}
-              className="input-dark w-full"
+              className="input-dark w-full h-12"
             >
               <option value="">Todos los técnicos</option>
               {technicians
@@ -413,10 +511,10 @@ export default function ReportesPage() {
           </div>
 
           {/* Botón Aplicar Filtro */}
-          <div className="flex items-end">
+          <div className="flex items-end h-19">
             <button
               onClick={handleApplyFilters}
-              className="btn-primary-dark w-full"
+              className="btn-primary-dark w-full h-12"
             >
               Aplicar Filtro
             </button>
