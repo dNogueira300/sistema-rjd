@@ -57,7 +57,8 @@ export async function GET(request: NextRequest) {
         : monthRange;
 
     // Rango para KPIs del período (dinámico según filtros)
-    const periodRange = filters.startDate && filters.endDate ? analysisRange : monthRange;
+    const periodRange =
+      filters.startDate && filters.endDate ? analysisRange : monthRange;
 
     // ============ OBTENER DATOS EN PARALELO ============
 
@@ -121,6 +122,7 @@ export async function GET(request: NextRequest) {
         },
         select: {
           amount: true,
+          type: true,
         },
       }),
 
@@ -135,6 +137,7 @@ export async function GET(request: NextRequest) {
         select: {
           amount: true,
           expenseDate: true,
+          type: true,
         },
       }),
 
@@ -301,16 +304,12 @@ export async function GET(request: NextRequest) {
     // ============ CALCULAR MÉTRICAS ============
 
     // KPIs
+    // ingresos
     const todayIncome = todayPayments.reduce((sum, p) => {
       const amount =
         p.advanceAmount < p.totalAmount ? p.advanceAmount : p.totalAmount;
       return sum + amount;
     }, 0);
-
-    const todayExpensesTotal = todayExpenses.reduce(
-      (sum, e) => sum + e.amount,
-      0
-    );
 
     const monthIncome = monthPayments.reduce((sum, p) => {
       const amount =
@@ -318,14 +317,54 @@ export async function GET(request: NextRequest) {
       return sum + amount;
     }, 0);
 
-    const monthExpensesTotal = monthExpenses.reduce(
-      (sum, e) => sum + e.amount,
-      0
-    );
+    // tipar claramente los arreglos de gastos
+    const todayExpensesList = todayExpenses as Array<{
+      amount: number;
+      type: string;
+    }>;
+    const monthExpensesList = monthExpenses as Array<{
+      amount: number;
+      expenseDate: Date;
+      type: string;
+    }>;
+    const periodExpensesList = periodExpensesData as Array<{
+      amount: number;
+      expenseDate: Date;
+      type: string;
+    }>;
+
+    // separar gastos de negocio y pagos a trabajadores
+    const categorizeExpenses = (
+      arr: Array<{ amount: number; type: string }>,
+    ) => {
+      return arr.reduce(
+        (acc, e) => {
+          const isWorker = e.type === "ADVANCE" || e.type === "SALARY";
+          if (isWorker) {
+            acc.worker += e.amount;
+          } else {
+            acc.business += e.amount;
+          }
+          acc.total += e.amount;
+          return acc;
+        },
+        { business: 0, worker: 0, total: 0 },
+      );
+    };
+
+    const todayExpTotals = categorizeExpenses(todayExpensesList);
+    const monthExpTotals = categorizeExpenses(monthExpensesList);
+
+    const todayExpensesTotal = todayExpTotals.total;
+    const todayBusinessExpenses = todayExpTotals.business;
+    const todayWorkerExpenses = todayExpTotals.worker;
+
+    const monthExpensesBusiness = monthExpTotals.business;
+    const monthExpensesWorker = monthExpTotals.worker;
 
     const pendingPaymentsTotal = pendingPayments.reduce(
       (sum, p) => sum + p.remainingAmount,
-      0
+      0,
     );
 
     const totalRevenue = monthIncome; // Puede extenderse a todo el tiempo
@@ -333,8 +372,11 @@ export async function GET(request: NextRequest) {
     const kpis = calculateFinancialKPIs({
       todayIncome,
       todayExpenses: todayExpensesTotal,
+      todayBusinessExpenses,
+      todayWorkerExpenses,
       monthIncome,
-      monthExpenses: monthExpensesTotal,
+      monthExpenses: monthExpensesBusiness,
+      monthWorkerExpenses: monthExpensesWorker,
       pendingPayments: pendingPaymentsTotal,
       totalRevenue,
     });
@@ -342,7 +384,7 @@ export async function GET(request: NextRequest) {
     // Gráfico diario (últimos 30 días)
     const dailyRevenue = calculateDailyRevenue(
       last30DaysPayments,
-      last30DaysExpenses
+      last30DaysExpenses,
     );
 
     // Análisis de período
@@ -355,15 +397,15 @@ export async function GET(request: NextRequest) {
       return sum + revenue;
     }, 0);
 
-    const periodExpensesTotal = periodExpensesData.reduce(
-      (sum, e) => sum + e.amount,
-      0
-    );
+    // Para el análisis de período solo consideramos gastos de negocio
+    const periodExpensesBusinessTotal = periodExpensesList
+      .filter((e) => e.type !== "ADVANCE" && e.type !== "SALARY")
+      .reduce((sum, e) => sum + e.amount, 0);
 
     // Revenue por período (agrupado por mes si el rango es >31 días)
     const daysDiff = getDaysBetween(
       analysisRange.startDate,
-      analysisRange.endDate
+      analysisRange.endDate,
     );
     const groupByMonth = daysDiff > 31;
 
@@ -398,17 +440,17 @@ export async function GET(request: NextRequest) {
         data.income += revenue;
       });
 
-      // Agregar gastos por mes
-      periodExpensesData.forEach((expense) => {
-        const expenseDate = new Date(
-          (expense as unknown as { expenseDate: Date }).expenseDate
-        );
-        const monthKey = expenseDate.toISOString().slice(0, 7);
-        const data = monthlyData.get(monthKey);
-        if (data) {
-          data.expenses += expense.amount;
-        }
-      });
+      // Agregar gastos de negocio por mes (excluye pagos a trabajadores)
+      periodExpensesList
+        .filter((e) => e.type !== "ADVANCE" && e.type !== "SALARY")
+        .forEach((expense) => {
+          const expenseDate = new Date(expense.expenseDate);
+          const monthKey = expenseDate.toISOString().slice(0, 7);
+          const data = monthlyData.get(monthKey);
+          if (data) {
+            data.expenses += expense.amount;
+          }
+        });
 
       // Calcular profit y profit margin
       monthlyData.forEach((data) => {
@@ -420,11 +462,11 @@ export async function GET(request: NextRequest) {
       periodRevenue.push(...Array.from(monthlyData.values()));
     } else {
       // Retornar como un solo período
-      const profit = periodIncome - periodExpensesTotal;
+      const profit = periodIncome - periodExpensesBusinessTotal;
       periodRevenue.push({
         period: "Total",
         income: periodIncome,
-        expenses: periodExpensesTotal,
+        expenses: periodExpensesBusinessTotal,
         profit,
         profitMargin: periodIncome > 0 ? (profit / periodIncome) * 100 : 0,
         equipmentCount: periodEquipments.length,
@@ -440,7 +482,7 @@ export async function GET(request: NextRequest) {
       if (eq.assignedTechnicianId) {
         assignedCount.set(
           eq.assignedTechnicianId,
-          (assignedCount.get(eq.assignedTechnicianId) || 0) + 1
+          (assignedCount.get(eq.assignedTechnicianId) || 0) + 1,
         );
       }
     });
@@ -475,13 +517,14 @@ export async function GET(request: NextRequest) {
     const topTechnicians = Array.from(technicianMap.values()).map((tech) => {
       // Calcular días promedio
       const techEquipments = periodEquipments.filter(
-        (eq) => eq.assignedTechnicianId === tech.technicianId && eq.deliveryDate
+        (eq) =>
+          eq.assignedTechnicianId === tech.technicianId && eq.deliveryDate,
       );
 
       if (techEquipments.length > 0) {
         const totalDays = techEquipments.reduce(
           (sum, eq) => sum + getDaysBetween(eq.entryDate, eq.deliveryDate!),
-          0
+          0,
         );
         tech.averageDays =
           Math.round((totalDays / techEquipments.length) * 10) / 10;
@@ -537,7 +580,7 @@ export async function GET(request: NextRequest) {
     });
 
     const technicianExpenses = Array.from(technicianExpensesMap.values()).sort(
-      (a, b) => b.totalExpenses - a.totalExpenses
+      (a, b) => b.totalExpenses - a.totalExpenses,
     );
 
     // Alertas
@@ -551,7 +594,7 @@ export async function GET(request: NextRequest) {
     const alerts = generateAlerts({
       overdueEquipments: overdueData,
       pendingPayments: pendingPaymentsTotal,
-      monthExpenses: monthExpensesTotal,
+      monthExpenses: monthExpensesBusiness, // solo gastos de negocio
       monthIncome,
     });
 
@@ -572,7 +615,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       { error: "Error interno del servidor" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

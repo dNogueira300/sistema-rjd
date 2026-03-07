@@ -12,7 +12,7 @@ import type {
 
 // ====== GENERADOR DE REPORTE OPERATIVO ======
 export const generateOperationalReportPDF = (
-  data: OperationalReportData
+  data: OperationalReportData,
 ): ArrayBuffer => {
   const doc = new jsPDF();
 
@@ -36,7 +36,7 @@ export const generateOperationalReportPDF = (
     primaryBlue,
     mediumGray,
     primaryGreen,
-    pageWidth
+    pageWidth,
   );
 
   let currentY = 60;
@@ -186,7 +186,7 @@ export const generateOperationalReportPDF = (
         formatCurrency(tech.revenue),
         pageWidth - margin - 2,
         currentY + 5,
-        { align: "right" }
+        { align: "right" },
       );
 
       currentY += 7;
@@ -210,7 +210,7 @@ export const generateFinancialReportPDF = (
     startDate?: string;
     endDate?: string;
   },
-  technicianPayments?: TechnicianPaymentDetail[]
+  technicianPayments?: TechnicianPaymentDetail[],
 ): ArrayBuffer => {
   const doc = new jsPDF();
 
@@ -234,7 +234,7 @@ export const generateFinancialReportPDF = (
     primaryBlue,
     mediumGray,
     primaryGreen,
-    pageWidth
+    pageWidth,
   );
 
   let currentY = 60;
@@ -248,14 +248,14 @@ export const generateFinancialReportPDF = (
     if (dateRange.startDate && dateRange.endDate) {
       // Agregar T12:00:00 para evitar problemas de zona horaria
       const startFormatted = new Date(
-        dateRange.startDate + "T12:00:00"
+        dateRange.startDate + "T12:00:00",
       ).toLocaleDateString("es-PE", {
         year: "numeric",
         month: "long",
         day: "numeric",
       });
       const endFormatted = new Date(
-        dateRange.endDate + "T12:00:00"
+        dateRange.endDate + "T12:00:00",
       ).toLocaleDateString("es-PE", {
         year: "numeric",
         month: "long",
@@ -265,11 +265,11 @@ export const generateFinancialReportPDF = (
         `Período: ${startFormatted} - ${endFormatted}`,
         pageWidth / 2,
         currentY,
-        { align: "center" }
+        { align: "center" },
       );
     } else if (dateRange.startDate) {
       const startFormatted = new Date(
-        dateRange.startDate + "T12:00:00"
+        dateRange.startDate + "T12:00:00",
       ).toLocaleDateString("es-PE", {
         year: "numeric",
         month: "long",
@@ -280,7 +280,7 @@ export const generateFinancialReportPDF = (
       });
     } else if (dateRange.endDate) {
       const endFormatted = new Date(
-        dateRange.endDate + "T12:00:00"
+        dateRange.endDate + "T12:00:00",
       ).toLocaleDateString("es-PE", {
         year: "numeric",
         month: "long",
@@ -336,31 +336,24 @@ export const generateFinancialReportPDF = (
       color: [239, 68, 68] as [number, number, number],
     },
     {
+      label: "Pagos a técnicos",
+      value: formatCurrency(data.kpis.monthWorkerExpenses || 0),
+      color: [234, 179, 8] as [number, number, number],
+    },
+    {
       label: labels.difference,
       value: formatCurrency(data.kpis.monthProfit),
-      color: data.kpis.monthProfit >= 0 ? ([168, 85, 247] as [number, number, number]) : ([239, 68, 68] as [number, number, number]),
+      color:
+        data.kpis.monthProfit >= 0
+          ? ([168, 85, 247] as [number, number, number])
+          : ([239, 68, 68] as [number, number, number]),
     },
   ];
 
   kpis.forEach((kpi, index) => {
-    // Primera fila: 3 cards (índices 0, 1, 2)
-    // Segunda fila: 2 cards (índices 3, 4) centrados
-    let col, row, x;
-
-    if (index < 3) {
-      // Primera fila: 3 columnas
-      col = index;
-      row = 0;
-      x = margin + col * (kpiBoxWidth + kpiSpacingX);
-    } else {
-      // Segunda fila: 2 columnas centradas
-      col = index - 3;
-      row = 1;
-      const offset =
-        (pageWidth - 2 * margin - 2 * kpiBoxWidth - kpiSpacingX) / 2;
-      x = margin + offset + col * (kpiBoxWidth + kpiSpacingX);
-    }
-
+    const col = index % 3;
+    const row = Math.floor(index / 3);
+    const x = margin + col * (kpiBoxWidth + kpiSpacingX);
     const y = currentY + row * (kpiBoxHeight + kpiSpacingY);
 
     // Box con borde
@@ -481,7 +474,7 @@ export const generateFinancialReportPDF = (
             day: "2-digit",
             month: "2-digit",
             year: "2-digit",
-          }
+          },
         );
         doc.text(dateFormatted, margin + 2, currentY + 5);
 
@@ -510,14 +503,14 @@ export const generateFinancialReportPDF = (
           formatCurrency(payment.amount),
           pageWidth - margin - 2,
           currentY + 5,
-          { align: "right" }
+          { align: "right" },
         );
         doc.setFont("helvetica", "normal");
         doc.setTextColor(...black);
 
         totalPayments += payment.amount;
         currentY += 7;
-      }
+      },
     );
 
     // Fila de total
@@ -533,7 +526,7 @@ export const generateFinancialReportPDF = (
       formatCurrency(totalPayments),
       pageWidth - margin - 2,
       currentY + 5,
-      { align: "right" }
+      { align: "right" },
     );
 
     currentY += 15;
@@ -586,7 +579,7 @@ export const generateFinancialReportPDF = (
 
     // Ordenar por total descendente
     const sortedTechnicians = Array.from(technicianTotals.entries()).sort(
-      (a, b) => b[1].total - a[1].total
+      (a, b) => b[1].total - a[1].total,
     );
 
     // Headers de tabla
@@ -650,7 +643,7 @@ export const generateFinancialReportPDF = (
         formatCurrency(totals.total),
         pageWidth - margin - 2,
         currentY + 5,
-        { align: "right" }
+        { align: "right" },
       );
       doc.setFont("helvetica", "normal");
 
@@ -734,40 +727,40 @@ export const generateFinancialReportPDF = (
         doc.text(
           formatCurrency(tech.totalSalaries),
           margin + 130,
-          currentY + 5
+          currentY + 5,
         );
         doc.text(tech.salaryCount.toString(), margin + 160, currentY + 5);
         doc.text(
           formatCurrency(tech.totalExpenses),
           pageWidth - margin - 2,
           currentY + 5,
-          { align: "right" }
+          { align: "right" },
         );
 
         currentY += 7;
-      }
+      },
     );
 
     // Fila de totales
     const totalAdvances = data.technicianExpenses.reduce(
       (sum, t) => sum + t.totalAdvances,
-      0
+      0,
     );
     const totalSalaries = data.technicianExpenses.reduce(
       (sum, t) => sum + t.totalSalaries,
-      0
+      0,
     );
     const totalExpenses = data.technicianExpenses.reduce(
       (sum, t) => sum + t.totalExpenses,
-      0
+      0,
     );
     const totalAdvanceCount = data.technicianExpenses.reduce(
       (sum, t) => sum + t.advanceCount,
-      0
+      0,
     );
     const totalSalaryCount = data.technicianExpenses.reduce(
       (sum, t) => sum + t.salaryCount,
-      0
+      0,
     );
 
     doc.setFillColor(220, 220, 220);
@@ -785,7 +778,7 @@ export const generateFinancialReportPDF = (
       formatCurrency(totalExpenses),
       pageWidth - margin - 2,
       currentY + 5,
-      { align: "right" }
+      { align: "right" },
     );
 
     currentY += 15;
@@ -804,7 +797,7 @@ export const generateFinancialReportPDF = (
 
     // Ordenar técnicos por total descendente
     const sortedTechnicians = [...data.technicianExpenses].sort(
-      (a, b) => b.totalExpenses - a.totalExpenses
+      (a, b) => b.totalExpenses - a.totalExpenses,
     );
     const maxExpense =
       sortedTechnicians.length > 0 ? sortedTechnicians[0].totalExpenses : 0;
@@ -843,7 +836,7 @@ export const generateFinancialReportPDF = (
       doc.text(
         formatCurrency(tech.totalExpenses),
         margin + 50 + barWidth + 3,
-        currentY + 6
+        currentY + 6,
       );
 
       // Porcentaje (opcional)
@@ -871,7 +864,7 @@ export const generateFinancialReportPDF = (
 export const generateTechnicianReportPDF = (
   technicianName: string,
   technicianPayments: TechnicianPaymentDetail[],
-  dateRange?: { startDate?: string; endDate?: string }
+  dateRange?: { startDate?: string; endDate?: string },
 ): ArrayBuffer => {
   const doc = new jsPDF();
 
@@ -893,7 +886,7 @@ export const generateTechnicianReportPDF = (
     primaryBlue,
     mediumGray,
     primaryGreen,
-    pageWidth
+    pageWidth,
   );
 
   let currentY = 60;
@@ -902,7 +895,9 @@ export const generateTechnicianReportPDF = (
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...darkGray);
-  doc.text(`Técnico: ${technicianName}`, pageWidth / 2, currentY, { align: "center" });
+  doc.text(`Técnico: ${technicianName}`, pageWidth / 2, currentY, {
+    align: "center",
+  });
   currentY += 8;
 
   // ====== PERÍODO ======
@@ -912,23 +907,48 @@ export const generateTechnicianReportPDF = (
     doc.setTextColor(...mediumGray);
 
     if (dateRange.startDate && dateRange.endDate) {
-      const startFormatted = new Date(dateRange.startDate + "T12:00:00").toLocaleDateString("es-PE", {
-        year: "numeric", month: "long", day: "numeric",
+      const startFormatted = new Date(
+        dateRange.startDate + "T12:00:00",
+      ).toLocaleDateString("es-PE", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       });
-      const endFormatted = new Date(dateRange.endDate + "T12:00:00").toLocaleDateString("es-PE", {
-        year: "numeric", month: "long", day: "numeric",
+      const endFormatted = new Date(
+        dateRange.endDate + "T12:00:00",
+      ).toLocaleDateString("es-PE", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       });
-      doc.text(`Período: ${startFormatted} - ${endFormatted}`, pageWidth / 2, currentY, { align: "center" });
+      doc.text(
+        `Período: ${startFormatted} - ${endFormatted}`,
+        pageWidth / 2,
+        currentY,
+        { align: "center" },
+      );
     } else if (dateRange.startDate) {
-      const startFormatted = new Date(dateRange.startDate + "T12:00:00").toLocaleDateString("es-PE", {
-        year: "numeric", month: "long", day: "numeric",
+      const startFormatted = new Date(
+        dateRange.startDate + "T12:00:00",
+      ).toLocaleDateString("es-PE", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       });
-      doc.text(`Desde: ${startFormatted}`, pageWidth / 2, currentY, { align: "center" });
+      doc.text(`Desde: ${startFormatted}`, pageWidth / 2, currentY, {
+        align: "center",
+      });
     } else if (dateRange.endDate) {
-      const endFormatted = new Date(dateRange.endDate + "T12:00:00").toLocaleDateString("es-PE", {
-        year: "numeric", month: "long", day: "numeric",
+      const endFormatted = new Date(
+        dateRange.endDate + "T12:00:00",
+      ).toLocaleDateString("es-PE", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       });
-      doc.text(`Hasta: ${endFormatted}`, pageWidth / 2, currentY, { align: "center" });
+      doc.text(`Hasta: ${endFormatted}`, pageWidth / 2, currentY, {
+        align: "center",
+      });
     }
     currentY += 8;
   }
@@ -940,7 +960,11 @@ export const generateTechnicianReportPDF = (
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(...mediumGray);
-    doc.text("No se encontraron registros para este técnico en el período seleccionado.", margin, currentY);
+    doc.text(
+      "No se encontraron registros para este técnico en el período seleccionado.",
+      margin,
+      currentY,
+    );
   } else {
     // Headers de tabla
     doc.setFillColor(168, 85, 247); // Morado
@@ -961,50 +985,68 @@ export const generateTechnicianReportPDF = (
     doc.setFont("helvetica", "normal");
     let totalAmount = 0;
 
-    technicianPayments.forEach((payment: TechnicianPaymentDetail, index: number) => {
-      if (currentY > pageHeight - 25) {
-        doc.addPage();
-        currentY = 20;
-      }
+    technicianPayments.forEach(
+      (payment: TechnicianPaymentDetail, index: number) => {
+        if (currentY > pageHeight - 25) {
+          doc.addPage();
+          currentY = 20;
+        }
 
-      const rowColor = index % 2 === 0 ? [248, 250, 252] : [255, 255, 255];
-      doc.setFillColor(...(rowColor as [number, number, number]));
-      doc.rect(margin, currentY, pageWidth - 2 * margin, 7, "F");
+        const rowColor = index % 2 === 0 ? [248, 250, 252] : [255, 255, 255];
+        doc.setFillColor(...(rowColor as [number, number, number]));
+        doc.rect(margin, currentY, pageWidth - 2 * margin, 7, "F");
 
-      doc.setFontSize(7);
-      doc.setTextColor(...black);
+        doc.setFontSize(7);
+        doc.setTextColor(...black);
 
-      const dateFormatted = new Date(payment.date).toLocaleDateString("es-PE", {
-        day: "2-digit", month: "2-digit", year: "2-digit",
-      });
-      doc.text(dateFormatted, margin + 2, currentY + 5);
+        const dateFormatted = new Date(payment.date).toLocaleDateString(
+          "es-PE",
+          {
+            day: "2-digit",
+            month: "2-digit",
+            year: "2-digit",
+          },
+        );
+        doc.text(dateFormatted, margin + 2, currentY + 5);
 
-      const typeLabel = payment.type === "ADVANCE" ? "Adelanto" : "Salario";
-      doc.text(typeLabel, margin + 35, currentY + 5);
+        const typeLabel = payment.type === "ADVANCE" ? "Adelanto" : "Salario";
+        doc.text(typeLabel, margin + 35, currentY + 5);
 
-      const desc = payment.description.length > 25
-        ? payment.description.substring(0, 25) + "..."
-        : payment.description;
-      doc.text(desc, margin + 65, currentY + 5);
+        const desc =
+          payment.description.length > 25
+            ? payment.description.substring(0, 25) + "..."
+            : payment.description;
+        doc.text(desc, margin + 65, currentY + 5);
 
-      const methodLabel = payment.paymentMethod === "CASH" ? "Efectivo"
-        : payment.paymentMethod === "YAPE" ? "Yape"
-        : payment.paymentMethod === "PLIN" ? "Plin"
-        : "Transferencia";
-      doc.text(methodLabel, margin + 115, currentY + 5);
+        const methodLabel =
+          payment.paymentMethod === "CASH"
+            ? "Efectivo"
+            : payment.paymentMethod === "YAPE"
+              ? "Yape"
+              : payment.paymentMethod === "PLIN"
+                ? "Plin"
+                : "Transferencia";
+        doc.text(methodLabel, margin + 115, currentY + 5);
 
-      doc.setFont("helvetica", "bold");
-      const amountColor = payment.type === "ADVANCE"
-        ? ([249, 115, 22] as [number, number, number])
-        : ([59, 130, 246] as [number, number, number]);
-      doc.setTextColor(...amountColor);
-      doc.text(formatCurrency(payment.amount), pageWidth - margin - 2, currentY + 5, { align: "right" });
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(...black);
+        doc.setFont("helvetica", "bold");
+        const amountColor =
+          payment.type === "ADVANCE"
+            ? ([249, 115, 22] as [number, number, number])
+            : ([59, 130, 246] as [number, number, number]);
+        doc.setTextColor(...amountColor);
+        doc.text(
+          formatCurrency(payment.amount),
+          pageWidth - margin - 2,
+          currentY + 5,
+          { align: "right" },
+        );
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(...black);
 
-      totalAmount += payment.amount;
-      currentY += 7;
-    });
+        totalAmount += payment.amount;
+        currentY += 7;
+      },
+    );
 
     // Fila de total
     doc.setFillColor(220, 220, 220);
@@ -1015,7 +1057,12 @@ export const generateTechnicianReportPDF = (
     doc.setTextColor(...black);
     doc.text("TOTAL", margin + 2, currentY + 5.5);
     doc.setTextColor(168, 85, 247);
-    doc.text(formatCurrency(totalAmount), pageWidth - margin - 2, currentY + 5.5, { align: "right" });
+    doc.text(
+      formatCurrency(totalAmount),
+      pageWidth - margin - 2,
+      currentY + 5.5,
+      { align: "right" },
+    );
   }
 
   // ====== FOOTER ======
@@ -1032,7 +1079,7 @@ function addHeader(
   primaryBlue: [number, number, number],
   mediumGray: [number, number, number],
   primaryGreen: [number, number, number],
-  pageWidth: number
+  pageWidth: number,
 ) {
   try {
     const logoHeight = 20;
@@ -1053,7 +1100,7 @@ function addHeader(
     doc.text(
       "Servicio Técnico Especializado",
       logoX + logoWidth + 5,
-      logoY + 14
+      logoY + 14,
     );
   } catch (error) {
     console.error("Error al cargar logo:", error);
@@ -1078,7 +1125,7 @@ function addFooter(
   doc: jsPDF,
   pageHeight: number,
   margin: number,
-  mediumGray: [number, number, number]
+  mediumGray: [number, number, number],
 ) {
   const pageWidth = doc.internal.pageSize.getWidth();
   let footerY = pageHeight - 18;
@@ -1091,7 +1138,7 @@ function addFooter(
     "SUMINISTRO Y SERVICIOS RJD - Servicio Técnico Especializado",
     pageWidth / 2,
     footerY,
-    { align: "center" }
+    { align: "center" },
   );
 
   // Línea inferior - Generado (más pequeña y cursiva)

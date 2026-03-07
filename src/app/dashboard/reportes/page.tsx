@@ -24,7 +24,10 @@ import {
   Calculator,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/reports";
-import { generateFinancialReportPDF, generateTechnicianReportPDF } from "@/lib/report-pdf-generator";
+import {
+  generateFinancialReportPDF,
+  generateTechnicianReportPDF,
+} from "@/lib/report-pdf-generator";
 import { toast } from "sonner";
 
 type PeriodType = "today" | "week" | "month" | "custom";
@@ -236,14 +239,16 @@ export default function ReportesPage() {
 
       if (appliedTechnicianId && paymentsData?.payments) {
         // Generar PDF filtrado por técnico
-        const selectedTech = technicians?.find((t) => t.id === appliedTechnicianId);
+        const selectedTech = technicians?.find(
+          (t) => t.id === appliedTechnicianId,
+        );
         const techName = selectedTech?.name || "Técnico";
         pdfBuffer = generateTechnicianReportPDF(
           techName,
           paymentsData.payments,
           dateRange
             ? { startDate: dateRange.startDate, endDate: dateRange.endDate }
-            : undefined
+            : undefined,
         );
         fileName = `reporte-tecnico-${techName.toLowerCase().replace(/\s+/g, "-")}-${new Date().toISOString().split("T")[0]}.pdf`;
       } else {
@@ -261,7 +266,7 @@ export default function ReportesPage() {
                 endDate: dateRange.endDate,
               }
             : undefined,
-          paymentsData?.payments || []
+          paymentsData?.payments || [],
         );
         fileName = `reporte-financiero-${new Date().toISOString().split("T")[0]}.pdf`;
       }
@@ -296,7 +301,7 @@ export default function ReportesPage() {
           {hasCustomFilterApplied && (
             <button
               onClick={() => setShowPaymentCalculator(true)}
-              className="px-4 py-2 rounded-xl bg-gradient-to-br from-purple-600/20 to-blue-600/20 border-2 border-purple-500 hover:border-purple-400 text-slate-100 font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30 active:scale-95 flex items-center gap-2 group"
+              className="px-4 py-2 rounded-xl bg-linear-to-br from-purple-600/20 to-blue-600/20 border-2 border-purple-500 hover:border-purple-400 text-slate-100 font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30 active:scale-95 flex items-center gap-2 group"
             >
               <Calculator className="w-4 h-4 text-purple-400 group-hover:text-purple-300 transition-colors" />
               <span className="hidden sm:inline">Calcular Pago</span>
@@ -419,8 +424,8 @@ export default function ReportesPage() {
         </div>
       </div>
 
-      {/* KPIs Principales */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+      {/* KPIs Principales (incluye pago a trabajadores) */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
         <MetricCard
           title="Ingresos Hoy"
           value={formatCurrency(kpis.todayIncome)}
@@ -466,6 +471,20 @@ export default function ReportesPage() {
           }
         />
         <MetricCard
+          title="Pagos a técnicos"
+          value={
+            hasAnyFilterApplied ? formatCurrency(kpis.monthWorkerExpenses) : "—"
+          }
+          icon={Users}
+          iconColor="text-yellow-400"
+          borderColor="border-yellow-500"
+          bgColor="bg-yellow-600/10"
+          iconBg="bg-yellow-600/20"
+          subtitle={
+            hasAnyFilterApplied ? "Según filtro" : "Sin filtro aplicado"
+          }
+        />
+        <MetricCard
           title={labels.difference}
           value={hasAnyFilterApplied ? formatCurrency(kpis.monthProfit) : "—"}
           icon={TrendingUpDown}
@@ -477,7 +496,9 @@ export default function ReportesPage() {
           iconBg={kpis.monthProfit >= 0 ? "bg-purple-600/20" : "bg-red-600/20"}
           subtitle={
             hasAnyFilterApplied
-              ? `Hoy: ${formatCurrency(kpis.todayProfit)}`
+              ? `Total: ${formatCurrency(
+                  kpis.monthProfit - kpis.monthWorkerExpenses,
+                )}`
               : "Sin filtro aplicado"
           }
         />
@@ -558,36 +579,36 @@ export default function ReportesPage() {
                     {formatCurrency(
                       technicianExpenses.reduce(
                         (sum, t) => sum + t.totalAdvances,
-                        0
-                      )
+                        0,
+                      ),
                     )}
                   </td>
                   <td className="py-3 px-4 text-center text-sm text-slate-300">
                     {technicianExpenses.reduce(
                       (sum, t) => sum + t.advanceCount,
-                      0
+                      0,
                     )}
                   </td>
                   <td className="py-3 px-4 text-right text-sm text-blue-400">
                     {formatCurrency(
                       technicianExpenses.reduce(
                         (sum, t) => sum + t.totalSalaries,
-                        0
-                      )
+                        0,
+                      ),
                     )}
                   </td>
                   <td className="py-3 px-4 text-center text-sm text-slate-300">
                     {technicianExpenses.reduce(
                       (sum, t) => sum + t.salaryCount,
-                      0
+                      0,
                     )}
                   </td>
                   <td className="py-3 px-4 text-right text-sm text-red-400">
                     {formatCurrency(
                       technicianExpenses.reduce(
                         (sum, t) => sum + t.totalExpenses,
-                        0
-                      )
+                        0,
+                      ),
                     )}
                   </td>
                 </tr>
@@ -620,7 +641,9 @@ export default function ReportesPage() {
           onClose={() => setShowPaymentCalculator(false)}
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ["financial-report"] });
-            queryClient.invalidateQueries({ queryKey: ["technician-payments"] });
+            queryClient.invalidateQueries({
+              queryKey: ["technician-payments"],
+            });
           }}
           totalIncome={kpis.monthIncome}
           totalExpenses={kpis.monthExpenses}

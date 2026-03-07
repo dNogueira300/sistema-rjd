@@ -55,13 +55,16 @@ export interface OverdueEquipment {
 
 export interface FinancialKPIs {
   todayIncome: number;
-  todayExpenses: number;
+  todayExpenses: number; // suma de todos los egresos del día (incluye trabajadores)
+  todayBusinessExpenses: number; // solo gastos de negocio
+  todayWorkerExpenses: number; // pagos a trabajadores (adelantos/salarios)
   todayProfit: number;
   todayProfitMargin: number; // Porcentaje
   monthIncome: number;
-  monthExpenses: number;
-  monthProfit: number;
-  profitMargin: number; // Porcentaje (del mes)
+  monthExpenses: number; // gastos de negocio para el período
+  monthWorkerExpenses: number; // pagos a trabajadores periodo
+  monthProfit: number; // monthIncome - monthExpenses (solo negocio)
+  profitMargin: number; // Porcentaje (del mes sobre negocio)
   pendingPayments: number;
   totalRevenue: number;
 }

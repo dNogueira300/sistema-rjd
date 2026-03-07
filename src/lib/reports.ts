@@ -16,7 +16,7 @@ import type { EquipmentStatus, EquipmentType } from "@/types/equipment";
 export function getDateRange(
   type: "today" | "week" | "month" | "custom",
   customStart?: Date,
-  customEnd?: Date
+  customEnd?: Date,
 ): { startDate: Date; endDate: Date } {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -76,14 +76,14 @@ export function getLast30Days(): Date[] {
 export function calculateOperationalMetrics(
   equipments: Array<{
     status: EquipmentStatus;
-  }>
+  }>,
 ): OperationalMetrics {
   const statusCounts = equipments.reduce(
     (acc, eq) => {
       acc[eq.status] = (acc[eq.status] || 0) + 1;
       return acc;
     },
-    {} as Record<EquipmentStatus, number>
+    {} as Record<EquipmentStatus, number>,
   );
 
   return {
@@ -96,7 +96,7 @@ export function calculateOperationalMetrics(
 }
 
 export function calculateEquipmentsByStatus(
-  equipments: Array<{ status: EquipmentStatus }>
+  equipments: Array<{ status: EquipmentStatus }>,
 ): EquipmentsByStatus[] {
   const total = equipments.length;
   if (total === 0) return [];
@@ -106,7 +106,7 @@ export function calculateEquipmentsByStatus(
       acc[eq.status] = (acc[eq.status] || 0) + 1;
       return acc;
     },
-    {} as Record<EquipmentStatus, number>
+    {} as Record<EquipmentStatus, number>,
   );
 
   return Object.entries(statusCounts).map(([status, count]) => ({
@@ -117,7 +117,7 @@ export function calculateEquipmentsByStatus(
 }
 
 export function calculateEquipmentsByType(
-  equipments: Array<{ type: EquipmentType }>
+  equipments: Array<{ type: EquipmentType }>,
 ): EquipmentsByType[] {
   const total = equipments.length;
   if (total === 0) return [];
@@ -127,7 +127,7 @@ export function calculateEquipmentsByType(
       acc[eq.type] = (acc[eq.type] || 0) + 1;
       return acc;
     },
-    {} as Record<EquipmentType, number>
+    {} as Record<EquipmentType, number>,
   );
 
   return Object.entries(typeCounts).map(([type, count]) => ({
@@ -141,7 +141,7 @@ export function calculateRepairTimes(
   equipments: Array<{
     entryDate: Date;
     deliveryDate: Date | null;
-  }>
+  }>,
 ): RepairTimeMetrics {
   const deliveredEquipments = equipments.filter((eq) => eq.deliveryDate);
 
@@ -156,7 +156,7 @@ export function calculateRepairTimes(
   }
 
   const days = deliveredEquipments.map((eq) =>
-    getDaysBetween(eq.entryDate, eq.deliveryDate!)
+    getDaysBetween(eq.entryDate, eq.deliveryDate!),
   );
 
   days.sort((a, b) => a - b);
@@ -182,11 +182,15 @@ export function calculateRepairTimes(
 export function calculateFinancialKPIs(data: {
   todayIncome: number;
   todayExpenses: number;
+  todayBusinessExpenses: number;
+  todayWorkerExpenses: number;
   monthIncome: number;
   monthExpenses: number;
+  monthWorkerExpenses: number;
   pendingPayments: number;
   totalRevenue: number;
 }): FinancialKPIs {
+  // profit calculations always use la parte de "negocio" (no trabajadores)
   const todayProfit = data.todayIncome - data.todayExpenses;
   const todayProfitMargin =
     data.todayIncome > 0 ? (todayProfit / data.todayIncome) * 100 : 0;
@@ -198,10 +202,13 @@ export function calculateFinancialKPIs(data: {
   return {
     todayIncome: data.todayIncome,
     todayExpenses: data.todayExpenses,
+    todayBusinessExpenses: data.todayBusinessExpenses,
+    todayWorkerExpenses: data.todayWorkerExpenses,
     todayProfit,
     todayProfitMargin: Math.round(todayProfitMargin * 100) / 100,
     monthIncome: data.monthIncome,
     monthExpenses: data.monthExpenses,
+    monthWorkerExpenses: data.monthWorkerExpenses,
     monthProfit,
     profitMargin: Math.round(monthProfitMargin * 100) / 100,
     pendingPayments: data.pendingPayments,
@@ -210,8 +217,12 @@ export function calculateFinancialKPIs(data: {
 }
 
 export function calculateDailyRevenue(
-  payments: Array<{ paymentDate: Date; advanceAmount: number; totalAmount: number }>,
-  expenses: Array<{ expenseDate: Date; amount: number }>
+  payments: Array<{
+    paymentDate: Date;
+    advanceAmount: number;
+    totalAmount: number;
+  }>,
+  expenses: Array<{ expenseDate: Date; amount: number }>,
 ): DailyRevenue[] {
   const last30Days = getLast30Days();
   const dailyData: Map<string, DailyRevenue> = new Map();
@@ -233,9 +244,10 @@ export function calculateDailyRevenue(
     const existing = dailyData.get(dateStr);
     if (existing) {
       // Usar advanceAmount si es menor que totalAmount (pago parcial)
-      const amount = payment.advanceAmount < payment.totalAmount
-        ? payment.advanceAmount
-        : payment.totalAmount;
+      const amount =
+        payment.advanceAmount < payment.totalAmount
+          ? payment.advanceAmount
+          : payment.totalAmount;
       existing.income += amount;
     }
   });
@@ -255,14 +267,14 @@ export function calculateDailyRevenue(
   });
 
   return Array.from(dailyData.values()).sort((a, b) =>
-    a.date.localeCompare(b.date)
+    a.date.localeCompare(b.date),
   );
 }
 
 export function calculateRevenueAnalysis(
   totalIncome: number,
   totalExpenses: number,
-  equipmentCount: number
+  equipmentCount: number,
 ): RevenueAnalysis {
   const netProfit = totalIncome - totalExpenses;
   const profitMargin = totalIncome > 0 ? (netProfit / totalIncome) * 100 : 0;
@@ -324,9 +336,9 @@ export function generateAlerts(data: {
       type: "HIGH_EXPENSES",
       severity: data.monthExpenses > data.monthIncome ? "CRITICAL" : "HIGH",
       message: `Gastos del mes (S/ ${data.monthExpenses.toFixed(
-        2
+        2,
       )}) representan ${((data.monthExpenses / data.monthIncome) * 100).toFixed(
-        1
+        1,
       )}% de ingresos`,
       createdAt: now,
     });
@@ -338,9 +350,10 @@ export function generateAlerts(data: {
     alerts.push({
       id: `low-revenue-${now.getTime()}`,
       type: "LOW_REVENUE",
-      severity: data.monthIncome < expectedMonthIncome * 0.5 ? "HIGH" : "MEDIUM",
+      severity:
+        data.monthIncome < expectedMonthIncome * 0.5 ? "HIGH" : "MEDIUM",
       message: `Ingresos del mes (S/ ${data.monthIncome.toFixed(
-        2
+        2,
       )}) por debajo del objetivo`,
       createdAt: now,
     });
