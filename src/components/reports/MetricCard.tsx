@@ -1,6 +1,7 @@
 // src/components/reports/MetricCard.tsx
 "use client";
 
+import React from "react";
 import { LucideIcon } from "lucide-react";
 
 interface MetricCardProps {
@@ -15,7 +16,8 @@ interface MetricCardProps {
     value: number;
     isPositive: boolean;
   };
-  subtitle?: string;
+  // allow JSX so caller can style parts differently
+  subtitle?: React.ReactNode;
 }
 
 export default function MetricCard({
@@ -30,7 +32,9 @@ export default function MetricCard({
   subtitle,
 }: MetricCardProps) {
   return (
-    <div className={`card-dark p-3 md:p-4 hover-lift border-2 ${borderColor} ${bgColor}`}>
+    <div
+      className={`card-dark p-3 md:p-4 hover-lift border-2 ${borderColor} ${bgColor}`}
+    >
       <div className="flex items-center gap-2 md:gap-3">
         <div className={`p-2 md:p-3 rounded-lg ${iconBg} shrink-0`}>
           <Icon className={`w-5 h-5 md:w-6 md:h-6 ${iconColor}`} />
@@ -39,9 +43,7 @@ export default function MetricCard({
           <h3 className="text-lg md:text-2xl font-bold text-slate-100">
             {value}
           </h3>
-          <p className="text-xs md:text-sm text-slate-400 truncate">
-            {title}
-          </p>
+          <p className="text-xs md:text-sm text-slate-400 truncate">{title}</p>
 
           {subtitle && (
             <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>

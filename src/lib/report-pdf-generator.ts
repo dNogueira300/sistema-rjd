@@ -342,9 +342,9 @@ export const generateFinancialReportPDF = (
     },
     {
       label: labels.difference,
-      value: formatCurrency(data.kpis.monthProfit),
+      value: formatCurrency(data.kpis.monthNetProfit),
       color:
-        data.kpis.monthProfit >= 0
+        data.kpis.monthNetProfit >= 0
           ? ([168, 85, 247] as [number, number, number])
           : ([239, 68, 68] as [number, number, number]),
     },
@@ -389,10 +389,10 @@ export const generateFinancialReportPDF = (
 
   const summaryData = [
     {
-      label: "Ganancia del Mes:",
-      value: formatCurrency(data.kpis.monthProfit),
+      label: "Ganancia Neta del Mes:",
+      value: formatCurrency(data.kpis.monthNetProfit),
       color:
-        data.kpis.monthProfit >= 0
+        data.kpis.monthNetProfit >= 0
           ? primaryGreen
           : ([239, 68, 68] as [number, number, number]),
     },

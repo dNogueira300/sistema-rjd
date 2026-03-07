@@ -58,12 +58,14 @@ export interface FinancialKPIs {
   todayExpenses: number; // suma de todos los egresos del día (incluye trabajadores)
   todayBusinessExpenses: number; // solo gastos de negocio
   todayWorkerExpenses: number; // pagos a trabajadores (adelantos/salarios)
-  todayProfit: number;
+  todayProfit: number; // ingresos - egresos de negocio
   todayProfitMargin: number; // Porcentaje
+  todayNetProfit: number; // resultado después de descontar pagos a técnicos
   monthIncome: number;
   monthExpenses: number; // gastos de negocio para el período
   monthWorkerExpenses: number; // pagos a trabajadores periodo
   monthProfit: number; // monthIncome - monthExpenses (solo negocio)
+  monthNetProfit: number; // monthProfit menos pagos a técnicos
   profitMargin: number; // Porcentaje (del mes sobre negocio)
   pendingPayments: number;
   totalRevenue: number;

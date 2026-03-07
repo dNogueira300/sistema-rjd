@@ -584,20 +584,30 @@ export default function ReportesPage() {
         />
         <MetricCard
           title={labels.difference}
-          value={hasAnyFilterApplied ? formatCurrency(kpis.monthProfit) : "—"}
-          icon={TrendingUpDown}
-          iconColor={kpis.monthProfit >= 0 ? "text-purple-400" : "text-red-400"}
-          borderColor={
-            kpis.monthProfit >= 0 ? "border-purple-500" : "border-red-500"
+          value={
+            hasAnyFilterApplied ? formatCurrency(kpis.monthNetProfit) : "—"
           }
-          bgColor={kpis.monthProfit >= 0 ? "bg-purple-600/10" : "bg-red-600/10"}
-          iconBg={kpis.monthProfit >= 0 ? "bg-purple-600/20" : "bg-red-600/20"}
+          icon={TrendingUpDown}
+          iconColor={
+            kpis.monthNetProfit >= 0 ? "text-purple-400" : "text-red-400"
+          }
+          borderColor={
+            kpis.monthNetProfit >= 0 ? "border-purple-500" : "border-red-500"
+          }
+          bgColor={
+            kpis.monthNetProfit >= 0 ? "bg-purple-600/10" : "bg-red-600/10"
+          }
+          iconBg={
+            kpis.monthNetProfit >= 0 ? "bg-purple-600/20" : "bg-red-600/20"
+          }
           subtitle={
-            hasAnyFilterApplied
-              ? `Total: ${formatCurrency(
-                  kpis.monthProfit - kpis.monthWorkerExpenses,
-                )}`
-              : "Sin filtro aplicado"
+            hasAnyFilterApplied ? (
+              <span className="text-white font-bold">
+                Antes de técnicos: {formatCurrency(kpis.monthProfit)}
+              </span>
+            ) : (
+              "Sin filtro aplicado"
+            )
           }
         />
       </div>

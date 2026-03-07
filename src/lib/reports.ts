@@ -194,10 +194,13 @@ export function calculateFinancialKPIs(data: {
   const todayProfit = data.todayIncome - data.todayExpenses;
   const todayProfitMargin =
     data.todayIncome > 0 ? (todayProfit / data.todayIncome) * 100 : 0;
+  // después de descontar lo pagado a técnicos
+  const todayNetProfit = todayProfit - data.todayWorkerExpenses;
 
   const monthProfit = data.monthIncome - data.monthExpenses;
   const monthProfitMargin =
     data.monthIncome > 0 ? (monthProfit / data.monthIncome) * 100 : 0;
+  const monthNetProfit = monthProfit - data.monthWorkerExpenses;
 
   return {
     todayIncome: data.todayIncome,
@@ -206,10 +209,12 @@ export function calculateFinancialKPIs(data: {
     todayWorkerExpenses: data.todayWorkerExpenses,
     todayProfit,
     todayProfitMargin: Math.round(todayProfitMargin * 100) / 100,
+    todayNetProfit,
     monthIncome: data.monthIncome,
     monthExpenses: data.monthExpenses,
     monthWorkerExpenses: data.monthWorkerExpenses,
     monthProfit,
+    monthNetProfit,
     profitMargin: Math.round(monthProfitMargin * 100) / 100,
     pendingPayments: data.pendingPayments,
     totalRevenue: data.totalRevenue,

@@ -85,7 +85,7 @@
 
 ### ✅ FASE 6: REPORTES Y ANALYTICS (100% Completada)
 
-- [x] **Dashboard ejecutivo** con KPIs avanzados
+- [x] **Dashboard ejecutivo** con KPIs avanzados (diferencia neta ahora resta pagos a técnicos)
 - [x] **Reportes operativos** (equipos por período/técnico/cliente)
 - [x] **Análisis financiero** rentabilidad y tendencias
 - [x] **Exportación** PDF/Excel de reportes
@@ -191,7 +191,7 @@ npm run dev
 
 ### **📊 Analytics Avanzados**
 
-- ✅ **Dashboard ejecutivo** con KPIs tiempo real
+- ✅ **Dashboard ejecutivo** con KPIs tiempo real (incluye ganancia neta tras pagos técnicos)
 - ✅ **Reportes operativos** por técnico/período/cliente
 - ✅ **Análisis rentabilidad** con gráficos interactivos
 - ✅ **Exportación automática** PDF/Excel

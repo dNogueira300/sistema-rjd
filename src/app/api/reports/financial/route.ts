@@ -305,6 +305,10 @@ export async function GET(request: NextRequest) {
 
     // KPIs
     // ingresos
+    // NOTE: calculateFinancialKPIs now returns both `*Profit` values (solo negocio)
+    // and `*NetProfit` which subtracts pagos a técnicos (adelantos/salarios). The
+    // frontend will use `monthNetProfit` for the "diferencia" card so that the
+    // displayed balance reflects lo que queda después de pagar a los trabajadores.
     const todayIncome = todayPayments.reduce((sum, p) => {
       const amount =
         p.advanceAmount < p.totalAmount ? p.advanceAmount : p.totalAmount;
