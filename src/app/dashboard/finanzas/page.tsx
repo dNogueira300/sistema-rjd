@@ -97,6 +97,8 @@ export default function FinanzasPage() {
       sortBy: "date",
       sortOrder: "desc",
     });
+    setSelectedRange(undefined);
+    setShowCalendar(false);
   };
 
   const handleManageTransaction = (transaction: ConsolidatedTransaction) => {
@@ -494,6 +496,7 @@ export default function FinanzasPage() {
                     mode="range"
                     selected={selectedRange}
                     onSelect={(range) => {
+                      if (!range) return; // Validar que range no sea undefined
                       setSelectedRange((prev) => {
                         const r = range as DateRange;
                         if (r.from && r.to && (prev?.from || prev?.to)) {

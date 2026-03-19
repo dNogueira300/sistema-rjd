@@ -149,9 +149,10 @@ export default function ReportesPage() {
   const handleClearFilters = () => {
     setSelectedRange(undefined);
     setSelectedTechnicianId("");
-    setPeriod("custom");
+    setPeriod("month"); // Restaurar a período predefinido
+    setShowCalendar(false); // Cerrar el calendario
     // Limpiar filtros aplicados
-    setAppliedPeriod("custom");
+    setAppliedPeriod("month");
     setAppliedStartDate("");
     setAppliedEndDate("");
     setAppliedTechnicianId("");
@@ -465,6 +466,7 @@ export default function ReportesPage() {
                       mode="range"
                       selected={selectedRange}
                       onSelect={(range) => {
+                        if (!range) return; // Validar que range no sea undefined
                         setSelectedRange((prev) => {
                           const r = range as DateRange;
                           if (r.from && r.to && (prev?.from || prev?.to)) {
