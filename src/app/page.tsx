@@ -106,7 +106,7 @@ export default function SplashPage() {
 
           {/* Información adicional */}
           <div className="pt-8">
-            <p className="text-xs text-slate-500">© 2025 RJD - Versión 1.0</p>
+            <p className="text-xs text-slate-500">© {new Date().getFullYear()} RJD - Versión 1.0</p>
           </div>
         </div>
       </div>

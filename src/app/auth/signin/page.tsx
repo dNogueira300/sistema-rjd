@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, AlertCircle, ArrowRight } from "lucide-react";
 import Image from "next/image";
 
 export default function SignIn() {
@@ -46,66 +46,133 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-pattern relative overflow-hidden">
-      {/* Elementos decorativos de fondo para tema oscuro */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-4 -left-4 w-72 h-72 bg-blue-500/10 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
-        <div className="absolute -bottom-8 -right-4 w-72 h-72 bg-green-500/10 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-blue-400/10 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
-      </div>
+    <div className="font-body min-h-screen w-full flex bg-slate-950 text-slate-100">
+      {/* ===== Panel izquierdo: marca ===== */}
+      <aside className="relative hidden lg:flex lg:w-[55%] flex-col justify-between p-12 xl:p-16 overflow-hidden">
+        {/* Fondo atmosférico */}
+        <div className="absolute inset-0 bg-linear-to-br from-slate-950 via-slate-900 to-slate-950" />
+        <div className="absolute inset-0 login-grid" />
+        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-blue-500/10 blur-3xl animate-blob" />
+        <div className="absolute -bottom-10 -right-10 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl animate-blob animation-delay-2000" />
 
-      {/* Contenido principal */}
-      <div className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          {/* Header del login */}
-          <div className="text-center space-y-6">
-            {/* Logo en círculo */}
-            <div className="flex justify-center">
-              <div className="logo-circle-glow w-32 h-32 flex items-center justify-center">
-                <Image
-                  src="/logo.png"
-                  alt="Suministro y Servicios RJD"
-                  width={124}
-                  height={124}
-                  className="drop-shadow-xl object-contain w-full h-full"
-                  priority
-                />
-              </div>
+        {/* Marca */}
+        <div
+          className="relative z-10 login-reveal"
+          style={{ animationDelay: "60ms" }}
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-white p-2.5 flex items-center justify-center shadow-xl shadow-black/40 shrink-0">
+              <Image
+                src="/logo.png"
+                alt="Suministro y Servicios RJD"
+                width={56}
+                height={56}
+                className="object-contain w-full h-full"
+                priority
+              />
             </div>
-
-            <div className="space-y-3">
-              <h2 className="text-3xl font-bold text-slate-100">
-                Iniciar Sesión
-              </h2>
-              <p className="text-slate-300">
-                Accede al Sistema de Control Interno
+            <div className="leading-tight">
+              <p className="font-display text-base font-semibold text-slate-200">
+                Suministro y Servicios
               </p>
-              <p className="text-sm text-slate-400">
-                Suministro y Servicios RJD
+              <p className="font-display text-2xl font-bold text-gradient-blue-green -mt-0.5">
+                RJD
               </p>
             </div>
           </div>
+        </div>
 
-          {/* Formulario de login con glassmorphism */}
-          <div className="glass-dark-strong rounded-3xl p-8 shadow-2xl border border-slate-600/30">
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              {/* Campo Email */}
-              <div className="space-y-2">
+        {/* Mensaje */}
+        <div
+          className="relative z-10 max-w-md login-reveal"
+          style={{ animationDelay: "160ms" }}
+        >
+          <div className="h-px w-16 bg-linear-to-r from-blue-500 to-emerald-500 mb-8" />
+          <h1 className="font-display text-4xl xl:text-5xl font-bold leading-[1.1] text-slate-100">
+            Control interno,
+            <br />
+            <span className="text-gradient-blue-green">simple y claro.</span>
+          </h1>
+          <p className="mt-6 text-slate-400 text-base leading-relaxed">
+            Gestiona equipos, clientes y finanzas de tu servicio técnico desde un
+            solo lugar.
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div
+          className="relative z-10 login-reveal"
+          style={{ animationDelay: "260ms" }}
+        >
+          <p className="text-xs text-slate-500">
+            © {new Date().getFullYear()} Suministro y Servicios RJD · Todos los
+            derechos reservados
+          </p>
+        </div>
+      </aside>
+
+      {/* Divisor sutil */}
+      <div className="hidden lg:block w-px bg-linear-to-b from-transparent via-slate-700/60 to-transparent" />
+
+      {/* ===== Panel derecho: formulario ===== */}
+      <main className="relative flex-1 flex flex-col bg-slate-900">
+        {/* Atmósfera solo en móvil (sin tarjeta central) */}
+        <div className="absolute inset-0 lg:hidden bg-dark-pattern" />
+
+        <div className="relative z-10 flex-1 flex flex-col justify-center px-6 sm:px-10 md:px-16 py-12">
+          <div className="w-full max-w-sm mx-auto lg:mx-0">
+            {/* Marca compacta (móvil) */}
+            <div className="lg:hidden flex items-center gap-3 mb-10 login-reveal">
+              <div className="w-12 h-12 rounded-xl bg-white p-2 flex items-center justify-center shadow-lg shadow-black/30 shrink-0">
+                <Image
+                  src="/logo.png"
+                  alt="Suministro y Servicios RJD"
+                  width={40}
+                  height={40}
+                  className="object-contain w-full h-full"
+                  priority
+                />
+              </div>
+              <p className="font-display font-bold text-lg">
+                <span className="text-slate-100">Servicios </span>
+                <span className="text-gradient-blue-green">RJD</span>
+              </p>
+            </div>
+
+            {/* Encabezado */}
+            <div className="login-reveal" style={{ animationDelay: "80ms" }}>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gradient-blue-green mb-3">
+                Sistema de control interno
+              </p>
+              <h2 className="font-display text-3xl sm:text-4xl font-bold text-slate-100">
+                Iniciar sesión
+              </h2>
+              <p className="mt-3 text-slate-400">
+                Ingresa tus credenciales para acceder a tu cuenta.
+              </p>
+            </div>
+
+            <form className="mt-10 space-y-5" onSubmit={handleSubmit}>
+              {/* Email */}
+              <div
+                className="space-y-2 login-reveal"
+                style={{ animationDelay: "140ms" }}
+              >
                 <label
                   htmlFor="email"
-                  className="text-sm font-medium text-slate-200 flex items-center space-x-2"
+                  className="block text-sm font-medium text-slate-300"
                 >
-                  <Mail className="w-4 h-4 text-blue-400" />
-                  <span>Correo electrónico</span>
+                  Correo electrónico
                 </label>
                 <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-blue-400" />
                   <input
                     id="email"
                     name="email"
                     type="email"
                     autoComplete="email"
                     required
-                    className="input-dark block w-full px-4 py-3 rounded-xl transition-all duration-200"
+                    className="w-full rounded-xl bg-slate-800/60 border border-slate-700 text-slate-100 placeholder:text-slate-500 pl-11 pr-4 py-3 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 focus:bg-slate-800"
                     placeholder="admin@rjd.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -113,92 +180,87 @@ export default function SignIn() {
                 </div>
               </div>
 
-              {/* Campo Contraseña */}
-              <div className="space-y-2">
+              {/* Contraseña */}
+              <div
+                className="space-y-2 login-reveal"
+                style={{ animationDelay: "200ms" }}
+              >
                 <label
                   htmlFor="password"
-                  className="text-sm font-medium text-slate-200 flex items-center space-x-2"
+                  className="block text-sm font-medium text-slate-300"
                 >
-                  <Lock className="w-4 h-4 text-green-400" />
-                  <span>Contraseña</span>
+                  Contraseña
                 </label>
                 <div className="relative">
+                  <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-emerald-400" />
                   <input
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     required
-                    className="input-dark block w-full px-4 py-3 pr-12 rounded-xl transition-all duration-200"
+                    className="w-full rounded-xl bg-slate-800/60 border border-slate-700 text-slate-100 placeholder:text-slate-500 pl-11 pr-11 py-3 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 focus:bg-slate-800"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-0 flex items-center pr-3"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={
+                      showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                    }
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-slate-400 hover:text-slate-200 transition-colors" />
+                      <EyeOff className="w-5 h-5" />
                     ) : (
-                      <Eye className="h-5 w-5 text-slate-400 hover:text-slate-200 transition-colors" />
+                      <Eye className="w-5 h-5" />
                     )}
                   </button>
                 </div>
               </div>
 
-              {/* Error message */}
+              {/* Error */}
               {error && (
-                <div className="flex items-center space-x-2 text-red-400 bg-red-900/30 px-4 py-3 rounded-xl border border-red-500/30 backdrop-blur-sm">
+                <div className="flex items-center gap-2 text-red-400 bg-red-950/40 px-4 py-3 rounded-xl border border-red-500/30">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <p className="text-sm">{error}</p>
                 </div>
               )}
 
-              {/* Botón de login */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary-dark w-full flex justify-center items-center space-x-2 py-3 px-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              {/* Botón */}
+              <div
+                className="login-reveal pt-1"
+                style={{ animationDelay: "260ms" }}
               >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span>Iniciando sesión...</span>
-                  </>
-                ) : (
-                  <span>Iniciar Sesión</span>
-                )}
-              </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="group w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-white bg-linear-to-r from-blue-600 to-emerald-600 shadow-lg shadow-blue-900/30 transition-all duration-200 hover:from-blue-500 hover:to-emerald-500 hover:shadow-xl hover:shadow-emerald-900/30 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white" />
+                      <span>Iniciando sesión...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Iniciar sesión</span>
+                      <ArrowRight className="w-[18px] h-[18px] transition-transform duration-200 group-hover:translate-x-0.5" />
+                    </>
+                  )}
+                </button>
+              </div>
             </form>
 
-            {/* Credenciales por defecto */}
-            {/* <div className="mt-6 p-4 bg-blue-900/20 rounded-xl border border-blue-500/30 backdrop-blur-sm">
-              <h4 className="text-sm font-medium text-blue-300 mb-2 flex items-center space-x-2">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                <span>Credenciales por defecto:</span>
-              </h4>
-              <div className="text-xs text-blue-200/80 space-y-1 ml-4">
-                <p>
-                  <span className="font-medium">Email:</span> admin@rjd.com
-                </p>
-                <p>
-                  <span className="font-medium">Contraseña:</span> admin123
-                </p>
-              </div>
-            </div> */}
-          </div>
-
-          {/* Footer */}
-          <div className="text-center">
-            <p className="text-xs text-slate-500">
-              © {new Date().getFullYear()} Suministro y Servicios RJD - Todos
-              los derechos reservados
+            {/* Footer (móvil) */}
+            <p className="lg:hidden mt-10 text-center text-xs text-slate-600">
+              © {new Date().getFullYear()} Suministro y Servicios RJD
             </p>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
