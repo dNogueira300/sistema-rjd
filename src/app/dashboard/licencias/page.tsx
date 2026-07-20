@@ -7,7 +7,6 @@ import ExcelJS from "exceljs";
 import { toast } from "sonner";
 import { useLicensePackages } from "@/hooks/useLicensePackages";
 import { useLicenseActivations } from "@/hooks/useLicenseActivations";
-import { useClients } from "@/hooks/useClients";
 import { useTechnicians } from "@/hooks/useTechnicians";
 import LicensePackageForm from "@/components/licenses/LicensePackageForm";
 import LicensePackagesTable from "@/components/licenses/LicensePackagesTable";
@@ -50,10 +49,8 @@ export default function LicenciasPage() {
 
   const { packages, isLoading: loadingPackages, createPackage, updatePackage, deletePackage, isMutating: mutatingPackages } = useLicensePackages();
   const { activations, isLoading: loadingActivations, createActivation, updateActivation, deleteActivation, isMutating: mutatingActivations } = useLicenseActivations(filters);
-  const { clients } = useClients();
   const { technicians } = useTechnicians();
 
-  const customerOptions = useMemo(() => (clients ?? []).map((c) => ({ id: c.id, name: c.name })), [clients]);
   const technicianOptions = useMemo(() => (technicians ?? []).map((t) => ({ id: t.id, name: t.name })), [technicians]);
 
   // Modales de formulario
@@ -188,7 +185,6 @@ export default function LicenciasPage() {
             filters={filters}
             packages={packages}
             technicians={technicianOptions}
-            customers={customerOptions}
             onChange={setFilters}
             onReset={() => setFilters({})}
           />
@@ -271,7 +267,6 @@ export default function LicenciasPage() {
             activation={editingActivation}
             packages={packages}
             technicians={technicianOptions}
-            customers={customerOptions}
             isLoading={mutatingActivations}
             onCancel={() => setActivationFormOpen(false)}
             onSubmit={(data) => {

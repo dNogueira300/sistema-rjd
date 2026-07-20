@@ -11,6 +11,7 @@ import type {
   LicensePackage,
   CreateLicensePackageData,
 } from "@/types/license";
+import SingleDatePicker from "@/components/licenses/SingleDatePicker";
 
 interface LicensePackageFormProps {
   package?: LicensePackage | null;
@@ -127,14 +128,11 @@ export default function LicensePackageForm({
           <label className="text-sm font-medium text-slate-200 flex items-center gap-2 mb-2">
             <Calendar className="w-4 h-4 text-green-400" /> Fecha de compra *
           </label>
-          <input
-            type="date"
+          <SingleDatePicker
             value={formData.purchaseDate}
-            onChange={(e) => setFormData((p) => ({ ...p, purchaseDate: e.target.value }))}
-            onBlur={() => handleBlur("purchaseDate")}
-            className={`input-dark w-full ${errors.purchaseDate ? "border-red-500" : ""}`}
+            onChange={(v) => setFormData((p) => ({ ...p, purchaseDate: v }))}
             disabled={isLoading}
-            required
+            error={!!errors.purchaseDate}
           />
           {errors.purchaseDate && <p className="text-red-400 text-xs mt-1">{errors.purchaseDate}</p>}
         </div>

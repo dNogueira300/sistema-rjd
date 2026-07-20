@@ -12,6 +12,8 @@ import type {
   LicensePackage,
   CreateLicenseActivationData,
 } from "@/types/license";
+import SingleDatePicker from "@/components/licenses/SingleDatePicker";
+import ClientSearchSelect from "@/components/licenses/ClientSearchSelect";
 
 interface Option {
   id: string;
@@ -22,7 +24,6 @@ interface LicenseActivationFormProps {
   activation?: LicenseActivation | null;
   packages: LicensePackage[];
   technicians: Option[];
-  customers: Option[];
   onSubmit: (data: CreateLicenseActivationData) => void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -45,7 +46,6 @@ export default function LicenseActivationForm({
   activation,
   packages,
   technicians,
-  customers,
   onSubmit,
   onCancel,
   isLoading = false,
@@ -157,14 +157,11 @@ export default function LicenseActivationForm({
             <label className="text-sm font-medium text-slate-200 flex items-center gap-2 mb-2">
               <Calendar className="w-4 h-4 text-green-400" /> Fecha *
             </label>
-            <input
-              type="date"
+            <SingleDatePicker
               value={formData.activationDate}
-              onChange={(e) => setFormData((p) => ({ ...p, activationDate: e.target.value }))}
-              onBlur={() => handleBlur("activationDate")}
-              className={`input-dark w-full ${errors.activationDate ? "border-red-500" : ""}`}
+              onChange={(v) => setFormData((p) => ({ ...p, activationDate: v }))}
               disabled={isLoading}
-              required
+              error={!!errors.activationDate}
             />
             {errors.activationDate && <p className="text-red-400 text-xs mt-1">{errors.activationDate}</p>}
           </div>
@@ -193,19 +190,14 @@ export default function LicenseActivationForm({
           <label className="text-sm font-medium text-slate-200 flex items-center gap-2 mb-2">
             <Users className="w-4 h-4 text-blue-400" /> Cliente *
           </label>
-          <select
+          <ClientSearchSelect
             value={formData.customerId}
-            onChange={(e) => setFormData((p) => ({ ...p, customerId: e.target.value }))}
-            onBlur={() => handleBlur("customerId")}
-            className={`input-dark w-full ${errors.customerId ? "border-red-500" : ""}`}
+            onChange={(id) => setFormData((p) => ({ ...p, customerId: id }))}
+            initialLabel={activation?.customer.name}
+            placeholder="Buscar cliente..."
             disabled={isLoading}
-            required
-          >
-            <option value="">Seleccionar cliente</option>
-            {customers.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+            error={!!errors.customerId}
+          />
           {errors.customerId && <p className="text-red-400 text-xs mt-1">{errors.customerId}</p>}
         </div>
 
