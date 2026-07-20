@@ -94,6 +94,35 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Activación no encontrada" }, { status: 404 });
     }
 
+    if (data.technicianId && data.technicianId !== existing.technicianId) {
+      const technician = await prisma.user.findUnique({ where: { id: data.technicianId }, select: { id: true } });
+      if (!technician) {
+        return NextResponse.json({ error: "Técnico no encontrado" }, { status: 404 });
+      }
+    }
+    if (data.customerId && data.customerId !== existing.customerId) {
+      const customer = await prisma.customer.findUnique({ where: { id: data.customerId }, select: { id: true } });
+      if (!customer) {
+        return NextResponse.json({ error: "Cliente no encontrado" }, { status: 404 });
+      }
+    }
+    if (data.packageId && data.packageId !== existing.packageId) {
+      const pkg = await prisma.licensePackage.findUnique({
+        where: { id: data.packageId },
+        include: { _count: { select: { activations: true } } },
+      });
+      if (!pkg) {
+        return NextResponse.json({ error: "Paquete no encontrado" }, { status: 404 });
+      }
+      const remaining = pkg.totalLicenses - pkg._count.activations;
+      if (remaining <= 0) {
+        return NextResponse.json(
+          { error: "El paquete destino no tiene licencias disponibles", details: "Elija otro paquete." },
+          { status: 400 }
+        );
+      }
+    }
+
     const updated = await prisma.licenseActivation.update({
       where: { id },
       data: {
