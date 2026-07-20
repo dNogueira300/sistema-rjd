@@ -252,9 +252,9 @@ export default function LicenciasPage() {
             isLoading={mutatingPackages}
             onCancel={() => setPackageFormOpen(false)}
             onSubmit={(data) => {
-              if (editingPackage) updatePackage({ id: editingPackage.id, data });
-              else createPackage(data);
-              setPackageFormOpen(false);
+              const onSuccess = () => setPackageFormOpen(false);
+              if (editingPackage) updatePackage({ id: editingPackage.id, data }, { onSuccess });
+              else createPackage(data, { onSuccess });
             }}
           />
         </div>
@@ -270,9 +270,9 @@ export default function LicenciasPage() {
             isLoading={mutatingActivations}
             onCancel={() => setActivationFormOpen(false)}
             onSubmit={(data) => {
-              if (editingActivation) updateActivation({ id: editingActivation.id, data });
-              else createActivation(data);
-              setActivationFormOpen(false);
+              const onSuccess = () => setActivationFormOpen(false);
+              if (editingActivation) updateActivation({ id: editingActivation.id, data }, { onSuccess });
+              else createActivation(data, { onSuccess });
             }}
           />
         </div>

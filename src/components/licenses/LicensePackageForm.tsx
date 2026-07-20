@@ -168,7 +168,16 @@ export default function LicensePackageForm({
             Cancelar
           </button>
           <button type="submit" className="btn-primary-dark flex-1 py-3 px-4 rounded-xl disabled:opacity-50" disabled={isLoading || !isValid}>
-            {isLoading ? "Guardando..." : isEditing ? "Actualizar Paquete" : "Registrar Paquete"}
+            {isLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                Guardando...
+              </span>
+            ) : isEditing ? (
+              "Actualizar Paquete"
+            ) : (
+              "Registrar Paquete"
+            )}
           </button>
         </div>
       </form>
