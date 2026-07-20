@@ -25,6 +25,7 @@ model User {
   assignedEquipments Equipment[]
   payrollRecords     PayrollRecord[]
   advances          Advance[]
+  licenseActivations LicenseActivation[]
 
   @@map("users")
 }
@@ -51,6 +52,7 @@ model Customer {
 
   // Relaciones
   equipments Equipment[]
+  licenseActivations LicenseActivation[]
 
   @@map("customers")
 
@@ -245,4 +247,54 @@ enum AdvanceStatus {
   PENDING     // Pendiente
   PAID        // Pagado
   CANCELLED   // Cancelado
+}
+
+// ============ MODELOS DE LICENCIAS DE ANTIVIRUS ============
+
+model LicensePackage {
+  id            String   @id @default(cuid())
+  code          String   @unique // LIC-YYYYMMDD-NNNN
+  provider      String?  // Proveedor / dónde se compró
+  totalLicenses Int      // Total del paquete (ej. 10)
+  purchaseDate  DateTime @default(now())
+  observations  String?
+  createdBy     String   // User ID (admin) que registró
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relaciones
+  activations LicenseActivation[]
+
+  @@map("license_packages")
+
+  // Indices
+  @@index([purchaseDate(sort: Desc)], name: "license_package_date_idx")
+  @@index([code], name: "license_package_code_idx")
+}
+
+model LicenseActivation {
+  id             String   @id @default(cuid())
+  activationDate DateTime @default(now())
+  licenseKey     String   // Clave de la licencia
+  support        String   // Datos de soporte / garantía
+  observations   String?
+  createdBy      String   // User ID (admin) que registró
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relaciones
+  packageId  String
+  package    LicensePackage @relation(fields: [packageId], references: [id])
+  technicianId String
+  technician   User         @relation(fields: [technicianId], references: [id])
+  customerId String
+  customer   Customer       @relation(fields: [customerId], references: [id])
+
+  @@map("license_activations")
+
+  // Indices
+  @@index([activationDate(sort: Desc)], name: "license_activation_date_idx")
+  @@index([packageId], name: "license_activation_package_idx")
+  @@index([technicianId], name: "license_activation_technician_idx")
+  @@index([customerId], name: "license_activation_customer_idx")
 }
