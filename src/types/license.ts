@@ -39,7 +39,7 @@ export interface CreateLicensePackageData {
   observations?: string;
 }
 
-export interface UpdateLicensePackageData extends Partial<CreateLicensePackageData> {}
+export type UpdateLicensePackageData = Partial<CreateLicensePackageData>;
 
 // ====== ACTIVACIÓN ======
 export interface LicenseActivation {
@@ -69,8 +69,7 @@ export interface CreateLicenseActivationData {
   observations?: string;
 }
 
-export interface UpdateLicenseActivationData
-  extends Partial<CreateLicenseActivationData> {}
+export type UpdateLicenseActivationData = Partial<CreateLicenseActivationData>;
 
 export interface LicenseActivationFilters {
   from?: string; // ISO (inicio de rango)
