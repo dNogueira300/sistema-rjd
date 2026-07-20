@@ -55,25 +55,23 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   if (auth.error) return auth.error;
   const { id } = await params;
 
-  const pkg = await prisma.licensePackage.findUnique({
-    where: { id },
-    include: {
-      _count: { select: { activations: true } },
-      activations: {
-        orderBy: { activationDate: "desc" },
-        include: {
-          technician: { select: { id: true, name: true } },
-          customer: { select: { id: true, name: true } },
-        },
+  try {
+    const pkg = await prisma.licensePackage.findUnique({
+      where: { id },
+      include: {
+        _count: { select: { activations: true } },
       },
-    },
-  });
+    });
 
-  if (!pkg) {
-    return NextResponse.json({ error: "Paquete no encontrado" }, { status: 404 });
+    if (!pkg) {
+      return NextResponse.json({ error: "Paquete no encontrado" }, { status: 404 });
+    }
+
+    return NextResponse.json({ package: toLicensePackage(pkg as PrismaPackageResult) });
+  } catch (error) {
+    console.error("Error obteniendo paquete:", error);
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
-
-  return NextResponse.json({ package: toLicensePackage(pkg as PrismaPackageResult) });
 }
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -85,9 +83,19 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const body = await request.json();
     const data = updateLicensePackageSchema.parse(body);
 
-    const existing = await prisma.licensePackage.findUnique({ where: { id } });
+    const existing = await prisma.licensePackage.findUnique({
+      where: { id },
+      include: { _count: { select: { activations: true } } },
+    });
     if (!existing) {
       return NextResponse.json({ error: "Paquete no encontrado" }, { status: 404 });
+    }
+
+    if (data.totalLicenses !== undefined && data.totalLicenses < existing._count.activations) {
+      return NextResponse.json(
+        { error: `No se puede reducir el total por debajo de las ${existing._count.activations} licencias ya usadas` },
+        { status: 400 }
+      );
     }
 
     const updated = await prisma.licensePackage.update({
@@ -116,20 +124,25 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   if (auth.error) return auth.error;
   const { id } = await params;
 
-  const pkg = await prisma.licensePackage.findUnique({
-    where: { id },
-    include: { _count: { select: { activations: true } } },
-  });
-  if (!pkg) {
-    return NextResponse.json({ error: "Paquete no encontrado" }, { status: 404 });
-  }
-  if (pkg._count.activations > 0) {
-    return NextResponse.json(
-      { error: "No se puede eliminar un paquete con activaciones registradas", details: "Elimine primero las activaciones asociadas." },
-      { status: 400 }
-    );
-  }
+  try {
+    const pkg = await prisma.licensePackage.findUnique({
+      where: { id },
+      include: { _count: { select: { activations: true } } },
+    });
+    if (!pkg) {
+      return NextResponse.json({ error: "Paquete no encontrado" }, { status: 404 });
+    }
+    if (pkg._count.activations > 0) {
+      return NextResponse.json(
+        { error: "No se puede eliminar un paquete con activaciones registradas", details: "Elimine primero las activaciones asociadas." },
+        { status: 400 }
+      );
+    }
 
-  await prisma.licensePackage.delete({ where: { id } });
-  return NextResponse.json({ message: "Paquete eliminado", deletedId: id });
+    await prisma.licensePackage.delete({ where: { id } });
+    return NextResponse.json({ message: "Paquete eliminado", deletedId: id });
+  } catch (error) {
+    console.error("Error eliminando paquete:", error);
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+  }
 }
