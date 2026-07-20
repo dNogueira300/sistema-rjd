@@ -23,6 +23,15 @@ function toDateInput(iso: string): string {
   return iso ? new Date(iso).toISOString().slice(0, 10) : "";
 }
 
+function todayInLimaInput(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Lima",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 export default function LicensePackageForm({
   package: pkg,
   onSubmit,
@@ -35,7 +44,7 @@ export default function LicensePackageForm({
   const [formData, setFormData] = useState<CreateLicensePackageData>(() => ({
     provider: pkg?.provider ?? "",
     totalLicenses: pkg?.totalLicenses ?? 10,
-    purchaseDate: pkg ? toDateInput(pkg.purchaseDate) : toDateInput(new Date().toISOString()),
+    purchaseDate: pkg ? toDateInput(pkg.purchaseDate) : todayInLimaInput(),
     observations: pkg?.observations ?? "",
   }));
   const [touched, setTouched] = useState<Record<string, boolean>>({});

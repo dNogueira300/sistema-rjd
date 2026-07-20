@@ -32,6 +32,15 @@ function toDateInput(iso: string): string {
   return iso ? new Date(iso).toISOString().slice(0, 10) : "";
 }
 
+function todayInLimaInput(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Lima",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 export default function LicenseActivationForm({
   activation,
   packages,
@@ -52,7 +61,7 @@ export default function LicenseActivationForm({
 
   const [formData, setFormData] = useState<CreateLicenseActivationData>(() => ({
     packageId: defaultPackageId,
-    activationDate: activation ? toDateInput(activation.activationDate) : toDateInput(new Date().toISOString()),
+    activationDate: activation ? toDateInput(activation.activationDate) : todayInLimaInput(),
     technicianId: activation?.technicianId ?? "",
     licenseKey: activation?.licenseKey ?? "",
     support: activation?.support ?? "",
