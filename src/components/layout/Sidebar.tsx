@@ -12,6 +12,7 @@ import {
   LogOut,
   X,
   Wrench,
+  KeyRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -44,6 +45,11 @@ const menuItems = [
     name: "Técnicos",
     href: "/dashboard/tecnicos",
     icon: Wrench,
+  },
+  {
+    name: "Licencias",
+    href: "/dashboard/licencias",
+    icon: KeyRound,
   },
   {
     name: "Reportes",
