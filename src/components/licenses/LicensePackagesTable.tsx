@@ -12,9 +12,9 @@ interface LicensePackagesTableProps {
 }
 
 const statusBadge: Record<PackageStockStatus, { label: string; className: string }> = {
-  ACTIVE: { label: "Activo", className: "text-emerald-700 bg-emerald-100" },
-  LOW: { label: "Stock bajo", className: "text-amber-700 bg-amber-100" },
-  DEPLETED: { label: "Agotado", className: "text-red-700 bg-red-100" },
+  ACTIVE: { label: "Activo", className: "bg-emerald-600/20 text-emerald-400 border border-emerald-600/30" },
+  LOW: { label: "Stock bajo", className: "bg-amber-600/20 text-amber-400 border border-amber-600/30" },
+  DEPLETED: { label: "Agotado", className: "bg-red-600/20 text-red-400 border border-red-600/30" },
 };
 
 export default function LicensePackagesTable({ packages, onEdit, onDelete }: LicensePackagesTableProps) {

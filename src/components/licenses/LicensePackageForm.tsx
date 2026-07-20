@@ -71,7 +71,7 @@ export default function LicensePackageForm({
         schema.parse(formData);
         onSubmit({
           ...formData,
-          purchaseDate: new Date(formData.purchaseDate).toISOString(),
+          purchaseDate: new Date(`${formData.purchaseDate}T12:00:00.000Z`).toISOString(),
         });
       } catch (error) {
         console.error("Error de validación:", error);
