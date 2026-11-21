@@ -26,6 +26,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
+    if (session.user.role !== "ADMINISTRADOR") {
+      return NextResponse.json({ error: "Permisos insuficientes" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
 
     // Parsear filtros
