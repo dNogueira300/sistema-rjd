@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import ChangePasswordModal from "@/components/user/ChangePasswordModal";
 
+const isAdminRole = (role?: string) => role === "ADMINISTRADOR";
+
 export default function Header() {
   const { data: session, status } = useSession();
   const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
@@ -15,7 +17,6 @@ export default function Header() {
 
   // Determinar el rol del usuario para mostrar
   const userRole = session?.user?.role === "ADMINISTRADOR" ? "Administrador" : "Técnico";
-  const isAdmin = session?.user?.role === "ADMINISTRADOR";
 
   return (
     <header
@@ -50,7 +51,7 @@ export default function Header() {
           {/* Title Section */}
           <div>
             <h1 className="text-lg md:text-xl font-bold text-slate-100">
-              Panel de Administración
+              {isAdminRole(session?.user?.role) ? "Panel de Administración" : "Panel Técnico"}
             </h1>
             <p className="text-xs md:text-sm text-slate-400 hidden sm:block">
               Gestión integral del sistema
@@ -77,7 +78,7 @@ export default function Header() {
           </button>
 
           {/* Dropdown Menu */}
-          {showUserMenu && isAdmin && (
+          {showUserMenu && session?.user && (
             <>
               {/* Backdrop */}
               <div
@@ -95,7 +96,7 @@ export default function Header() {
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-200 hover:bg-slate-700 transition-colors"
                 >
                   <Settings className="w-4 h-4 text-blue-400" />
-                  <span>Configuración</span>
+                  <span>Cambiar contraseña</span>
                 </button>
               </div>
             </>

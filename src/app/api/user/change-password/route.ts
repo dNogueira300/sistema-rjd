@@ -18,13 +18,8 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Solo los administradores pueden cambiar su contraseña mediante esta ruta
-    if (session.user.role !== "ADMINISTRADOR") {
-      return NextResponse.json(
-        { error: "No autorizado. Solo administradores pueden cambiar su contraseña" },
-        { status: 403 }
-      );
-    }
+    // Cualquier usuario autenticado puede cambiar SU propia contraseña
+    // (se verifica la contraseña actual más abajo)
 
     // Parsear body
     const body = await request.json();

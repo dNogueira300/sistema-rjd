@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import {
   Home,
   Laptop,
@@ -13,17 +13,28 @@ import {
   X,
   Wrench,
   KeyRound,
+  UserCog,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { useEquipments } from "@/hooks/useEquipments";
 
-const menuItems = [
+type MenuItem = {
+  name: string;
+  href: string;
+  icon: typeof Home;
+  showBadge?: boolean;
+  // Si es true, solo lo ven los administradores
+  adminOnly?: boolean;
+};
+
+const menuItems: MenuItem[] = [
   {
     name: "Dashboard",
     href: "/dashboard",
     icon: Home,
+    adminOnly: true,
   },
   {
     name: "Equipos",
@@ -35,26 +46,37 @@ const menuItems = [
     name: "Finanzas",
     href: "/dashboard/finanzas",
     icon: DollarSign,
+    adminOnly: true,
   },
   {
     name: "Clientes",
     href: "/dashboard/clientes",
     icon: Users,
+    adminOnly: true,
   },
   {
     name: "Técnicos",
     href: "/dashboard/tecnicos",
     icon: Wrench,
+    adminOnly: true,
   },
   {
     name: "Licencias",
     href: "/dashboard/licencias",
     icon: KeyRound,
+    adminOnly: true,
   },
   {
     name: "Reportes",
     href: "/dashboard/reportes",
     icon: BarChart3,
+    adminOnly: true,
+  },
+  {
+    name: "Usuarios",
+    href: "/dashboard/usuarios",
+    icon: UserCog,
+    adminOnly: true,
   },
 ];
 
@@ -62,14 +84,17 @@ export default function Sidebar() {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
   const { isCollapsed, isMobile, closeSidebar } = useSidebar();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMINISTRADOR";
+  const visibleItems = menuItems.filter((item) => !item.adminOnly || isAdmin);
 
-  // Obtener equipos para contar los reparados
-  const { equipments } = useEquipments({
+  // Contar equipos reparados (usa el total del servidor, no solo la página)
+  const { totalEquipments } = useEquipments({
     initialFilters: {
       status: "REPAIRED",
     },
   });
-  const repairedCount = equipments?.length || 0;
+  const repairedCount = totalEquipments || 0;
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/auth/signin" });
@@ -159,15 +184,19 @@ export default function Sidebar() {
 
           {/* Navigation Menu */}
           <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-            {menuItems.map((item) => {
+            {visibleItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              const isActive =
+                item.href === "/dashboard"
+                  ? pathname === "/dashboard"
+                  : pathname.startsWith(item.href);
               const showBadge = item.showBadge && repairedCount > 0;
 
               return (
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch
                   onClick={handleNavClick}
                   className={cn(
                     "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 relative",

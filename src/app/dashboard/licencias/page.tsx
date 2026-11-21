@@ -2,8 +2,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus, FileDown, FileSpreadsheet, KeyRound } from "lucide-react";
-import ExcelJS from "exceljs";
+import {
+  Plus,
+  FileDown,
+  FileSpreadsheet,
+  KeyRound,
+  Package,
+  ShieldCheck,
+  CalendarCheck,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useLicensePackages } from "@/hooks/useLicensePackages";
 import { useLicenseActivations } from "@/hooks/useLicenseActivations";
@@ -14,11 +21,8 @@ import LicenseActivationForm from "@/components/licenses/LicenseActivationForm";
 import LicenseActivationsTable from "@/components/licenses/LicenseActivationsTable";
 import LicenseFilters from "@/components/licenses/LicenseFilters";
 import ConfirmModal from "@/components/clients/ConfirmModal";
+import MetricCard from "@/components/reports/MetricCard";
 import { formatDate } from "@/lib/utils";
-import {
-  generateLicenseActivationsPDF,
-  generateLicensePackagesPDF,
-} from "@/lib/license-pdf-generator";
 import type {
   LicensePackage,
   LicenseActivation,
@@ -63,6 +67,23 @@ export default function LicenciasPage() {
   const [packageToDelete, setPackageToDelete] = useState<LicensePackage | null>(null);
   const [activationToDelete, setActivationToDelete] = useState<LicenseActivation | null>(null);
 
+  // Estadísticas globales de stock (independientes de los filtros)
+  const stats = useMemo(() => {
+    const total = packages.reduce((sum, p) => sum + p.totalLicenses, 0);
+    const used = packages.reduce((sum, p) => sum + p.usedLicenses, 0);
+    const remaining = packages.reduce((sum, p) => sum + p.remainingLicenses, 0);
+    const lowStock = packages.filter((p) => p.stockStatus === "LOW").length;
+    const depleted = packages.filter((p) => p.stockStatus === "DEPLETED").length;
+    return {
+      total,
+      used,
+      remaining,
+      lowStock,
+      depleted,
+      usedPct: total > 0 ? Math.round((used / total) * 100) : 0,
+    };
+  }, [packages]);
+
   const rangeLabel = useMemo(() => {
     const from = filters.from ? formatDate(filters.from) : null;
     const to = filters.to ? formatDate(filters.to) : null;
@@ -75,7 +96,7 @@ export default function LicenciasPage() {
   // ====== EXPORTACIÓN ACTIVACIONES ======
   const exportActivationsExcel = async () => {
     if (activations.length === 0) return toast.error("No hay activaciones para exportar");
-    const wb = new ExcelJS.Workbook();
+    const wb = new (await import("exceljs")).default.Workbook();
     const ws = wb.addWorksheet("Activaciones");
     ws.columns = [
       { header: "Fecha", key: "fecha", width: 14 },
@@ -102,7 +123,7 @@ export default function LicenciasPage() {
     downloadBlob(new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), "activaciones-licencias.xlsx");
   };
 
-  const exportActivationsPDF = () => {
+  const exportActivationsPDF = async () => {
     if (activations.length === 0) return toast.error("No hay activaciones para exportar");
     const rows = activations.map((a) => ({
       activationDate: formatDate(a.activationDate),
@@ -113,6 +134,7 @@ export default function LicenciasPage() {
       packageCode: a.package.code,
       observations: a.observations ?? "",
     }));
+    const { generateLicenseActivationsPDF } = await import("@/lib/license-pdf-generator");
     const buffer = generateLicenseActivationsPDF(rows, rangeLabel);
     downloadBlob(new Blob([buffer], { type: "application/pdf" }), "activaciones-licencias.pdf");
   };
@@ -120,7 +142,7 @@ export default function LicenciasPage() {
   // ====== EXPORTACIÓN PAQUETES ======
   const exportPackagesExcel = async () => {
     if (packages.length === 0) return toast.error("No hay paquetes para exportar");
-    const wb = new ExcelJS.Workbook();
+    const wb = new (await import("exceljs")).default.Workbook();
     const ws = wb.addWorksheet("Paquetes");
     ws.columns = [
       { header: "Código", key: "codigo", width: 20 },
@@ -147,7 +169,7 @@ export default function LicenciasPage() {
     downloadBlob(new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), "paquetes-licencias.xlsx");
   };
 
-  const exportPackagesPDF = () => {
+  const exportPackagesPDF = async () => {
     if (packages.length === 0) return toast.error("No hay paquetes para exportar");
     const rows = packages.map((p) => ({
       code: p.code,
@@ -158,15 +180,80 @@ export default function LicenciasPage() {
       statusLabel: statusLabel[p.stockStatus],
       purchaseDate: formatDate(p.purchaseDate),
     }));
+    const { generateLicensePackagesPDF } = await import("@/lib/license-pdf-generator");
     const buffer = generateLicensePackagesPDF(rows);
     downloadBlob(new Blob([buffer], { type: "application/pdf" }), "paquetes-licencias.pdf");
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-4">
-      <div className="flex items-center gap-3">
-        <KeyRound className="w-7 h-7 text-blue-400" />
-        <h1 className="text-2xl font-bold text-slate-100">Licencias de Antivirus</h1>
+    <div className="space-y-4 md:space-y-6">
+      {/* Encabezado */}
+      <div className="card-dark p-4 md:p-6">
+        <div className="flex items-center gap-3 md:gap-4">
+          <div className="p-2 md:p-3 rounded-lg bg-linear-to-br from-indigo-600 to-indigo-700 shrink-0">
+            <KeyRound className="w-6 h-6 md:w-8 md:h-8 text-white" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-xl md:text-2xl font-bold text-slate-100 truncate">
+              Licencias de Antivirus
+            </h2>
+            <p className="text-sm md:text-base text-slate-400 hidden sm:block">
+              Paquetes comprados y activaciones por cliente
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Estadísticas */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <MetricCard
+          title="Licencias compradas"
+          value={loadingPackages ? "—" : stats.total}
+          icon={Package}
+          iconColor="text-blue-400"
+          borderColor="border-blue-500"
+          bgColor="bg-blue-600/10"
+          iconBg="bg-blue-600/20"
+          subtitle={loadingPackages ? undefined : `${packages.length} paquete${packages.length === 1 ? "" : "s"}`}
+        />
+        <MetricCard
+          title="Disponibles"
+          value={loadingPackages ? "—" : stats.remaining}
+          icon={KeyRound}
+          iconColor="text-green-400"
+          borderColor="border-green-500"
+          bgColor="bg-green-600/10"
+          iconBg="bg-green-600/20"
+          subtitle={
+            loadingPackages ? undefined : stats.lowStock + stats.depleted > 0 ? (
+              <span className="text-amber-400">
+                {stats.lowStock} stock bajo · {stats.depleted} agotados
+              </span>
+            ) : (
+              "Stock en buen nivel"
+            )
+          }
+        />
+        <MetricCard
+          title="Activadas"
+          value={loadingPackages ? "—" : stats.used}
+          icon={ShieldCheck}
+          iconColor="text-purple-400"
+          borderColor="border-purple-500"
+          bgColor="bg-purple-600/10"
+          iconBg="bg-purple-600/20"
+          subtitle={loadingPackages ? undefined : `${stats.usedPct}% del total`}
+        />
+        <MetricCard
+          title="Activaciones en el periodo"
+          value={loadingActivations ? "—" : activations.length}
+          icon={CalendarCheck}
+          iconColor="text-orange-400"
+          borderColor="border-orange-500"
+          bgColor="bg-orange-600/10"
+          iconBg="bg-orange-600/20"
+          subtitle={rangeLabel}
+        />
       </div>
 
       {/* Tabs */}
