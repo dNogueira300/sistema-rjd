@@ -60,7 +60,7 @@ export const generateComprobanteIngreso = (
     const logoX = margin;
     const logoY = 12;
 
-    doc.addImage(logoBase64, "PNG", logoX, logoY, logoWidth, logoHeight);
+    doc.addImage(logoBase64, "JPEG", logoX, logoY, logoWidth, logoHeight, "rjd-logo");
 
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");

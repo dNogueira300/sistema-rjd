@@ -11,7 +11,7 @@ const mediumGray: [number, number, number] = [100, 116, 139];
 function addHeader(doc: jsPDF, title: string, subtitle: string, pageWidth: number) {
   const margin = 15;
   try {
-    doc.addImage(logoBase64, "PNG", margin, 10, 22, 22);
+    doc.addImage(logoBase64, "JPEG", margin, 12, 22, 13.5, "rjd-logo");
   } catch {
     // Si el logo falla, continuar sin él
   }

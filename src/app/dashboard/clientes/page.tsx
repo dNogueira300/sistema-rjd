@@ -9,7 +9,6 @@ import ClientTable from "@/components/clients/ClientTable"; // Cambiado de Clien
 import ConfirmModal from "@/components/clients/ConfirmModal";
 import Pagination from "@/components/clients/Pagination";
 import { formatPhone, formatRUC } from "@/lib/validations/client";
-import ExcelJS from "exceljs";
 import type {
   Client,
   CreateClientData,
@@ -125,7 +124,7 @@ export default function ClientesPage() {
     if (clients.length === 0) return;
 
     // Crear libro de trabajo
-    const workbook = new ExcelJS.Workbook();
+    const workbook = new (await import("exceljs")).default.Workbook();
     workbook.creator = "Sistema RJD";
     workbook.created = new Date();
 

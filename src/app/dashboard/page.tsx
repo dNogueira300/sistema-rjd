@@ -15,7 +15,6 @@ import {
   Download,
 } from "lucide-react";
 import { formatNumber } from "@/lib/reports";
-import { generateOperationalReportPDF } from "@/lib/report-pdf-generator";
 import { toast } from "sonner";
 
 export default function DashboardPage() {
@@ -53,8 +52,12 @@ export default function DashboardPage() {
     overdueEquipments,
   } = data;
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     try {
+      // Carga diferida: jsPDF solo se descarga al exportar
+      const { generateOperationalReportPDF } = await import(
+        "@/lib/report-pdf-generator"
+      );
       const pdfBuffer = generateOperationalReportPDF(data);
       const blob = new Blob([pdfBuffer], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);

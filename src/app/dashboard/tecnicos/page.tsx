@@ -9,7 +9,6 @@ import TechnicianTable from "@/components/technicians/TechnicianTable";
 import ConfirmModal from "@/components/clients/ConfirmModal";
 import Pagination from "@/components/clients/Pagination";
 import { formatPhone } from "@/lib/validations/technician";
-import ExcelJS from "exceljs";
 import type {
   Technician,
   CreateTechnicianData,
@@ -148,7 +147,7 @@ export default function TecnicosPage() {
     if (technicians.length === 0) return;
 
     // Crear libro de trabajo
-    const workbook = new ExcelJS.Workbook();
+    const workbook = new (await import("exceljs")).default.Workbook();
     workbook.creator = "Sistema RJD";
     workbook.created = new Date();
 
